@@ -1167,15 +1167,17 @@ std::ostream &operator<<(std::ostream &os, const MuteEnum value);
 /// NoteSizeType ///////////////////////////////////////////////////////////////////////////
 ///
 /// The note-size-type type indicates the type of note being defined by a note-size element.
-/// The grace type is used for notes of cue size that that include a grace element. The cue
-/// type is used for all other notes with cue size, whether defined explicitly or implicitly
-/// via a cue element. The large type is used for notes of large size.
+/// The grace type is used for notes of cue size that that include a grace element. The
+/// grace-cue type is used for notes that include both a grace and cue element. The cue type
+/// is used for all other notes with cue size, whether defined explicitly or implicitly via a
+/// cue element. The large type is used for notes of large size.
 ///
 enum class NoteSizeType
 {
     cue = 0,
     grace = 1,
-    large = 2
+    graceCue = 2,
+    large = 3
 };
 
 NoteSizeType parseNoteSizeType(const std::string &value);
@@ -1902,6 +1904,25 @@ std::optional<UpDownStopContinue> tryParseUpDownStopContinue(const std::string &
 std::string toString(const UpDownStopContinue value);
 std::ostream &toStream(std::ostream &os, const UpDownStopContinue value);
 std::ostream &operator<<(std::ostream &os, const UpDownStopContinue value);
+
+/// UpDownNone /////////////////////////////////////////////////////////////////////
+///
+/// Extends the 3.x up-down type to add a "none" value for arpeggiate direction.
+/// MusicXML 4.0 Backport: the "none" value (no arrow on the arpeggio sign) is
+/// new in MusicXML 4.0. In 3.x the direction attribute used up-down (up/down only).
+///
+enum class UpDownNone
+{
+    up = 0,
+    down = 1,
+    none = 2 // MusicXML 4.0 Backport
+};
+
+UpDownNone parseUpDownNone(const std::string &value);
+std::optional<UpDownNone> tryParseUpDownNone(const std::string &value);
+std::string toString(const UpDownNone value);
+std::ostream &toStream(std::ostream &os, const UpDownNone value);
+std::ostream &operator<<(std::ostream &os, const UpDownNone value);
 
 /// UprightInverted ////////////////////////////////////////////////////////////////////////
 ///

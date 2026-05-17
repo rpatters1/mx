@@ -16,7 +16,8 @@ enum class TimeSignatureSymbol
 {
     unspecified,
     common,
-    cut
+    cut,
+    singleNumber
 };
 
 class TimeSignatureData
@@ -25,11 +26,11 @@ class TimeSignatureData
     // common, cut
     TimeSignatureSymbol symbol;
 
-    // the top number of the time signature, e.g. '5' in a '5/4' signature
-    int beats;
+    // the top number of the time signature, e.g. "5" in a "5/4" or "3+2" in a "(3+2)/8"
+    std::string beats;
 
-    // the bottom number of the time signature, e.g. '4' in a '5/4' signature
-    int beatType;
+    // the bottom number of the time signature, e.g. "4" in a "5/4"
+    std::string beatType;
 
     // a time signature is implicit when it is not specified by the musicxml
     bool isImplicit;
@@ -44,7 +45,8 @@ class TimeSignatureData
     }
 
     TimeSignatureData()
-        : symbol{TimeSignatureSymbol::unspecified}, beats{4}, beatType{4}, isImplicit{true}, display{Bool::unspecified}
+        : symbol{TimeSignatureSymbol::unspecified}, beats{"4"}, beatType{"4"}, isImplicit{true},
+          display{Bool::unspecified}
     {
     }
 };

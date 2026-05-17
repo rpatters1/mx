@@ -15,8 +15,6 @@
 #include "mx/core/elements/Time.h"
 #include "mx/core/elements/TimeChoice.h"
 #include "mx/core/elements/TimeSignatureGroup.h"
-#include "mx/impl/LcmGcd.h"
-#include "mx/utility/StringToInt.h"
 #include "mx/utility/Throw.h"
 
 #include <cmath>
@@ -27,6 +25,7 @@ namespace mx
 {
 namespace impl
 {
+
 TimeReader::TimeReader(const core::MusicDataChoiceSet &inMusicDataChoices)
     : myMusicDataChoiceSet{inMusicDataChoices}, myIsTimeFound{false}, myTimeSignatureData{}
 {
@@ -79,24 +78,8 @@ bool TimeReader::parseTime()
 
 bool TimeReader::parseTimeSignatureGroup(const core::TimeSignatureGroup &timeSig)
 {
-    const auto beatsStr = timeSig.getBeats()->getValue().getValue();
-    int beats = myTimeSignatureData.beats;
-
-    if (!utility::stringToInt(beatsStr, beats))
-    {
-        return false;
-    }
-
-    const auto beatTypeStr = timeSig.getBeatType()->getValue().getValue();
-    int beatType = myTimeSignatureData.beatType;
-
-    if (!utility::stringToInt(beatTypeStr, beatType))
-    {
-        return false;
-    }
-
-    myTimeSignatureData.beats = beats;
-    myTimeSignatureData.beatType = beatType;
+    myTimeSignatureData.beats = timeSig.getBeats()->getValue().getValue();
+    myTimeSignatureData.beatType = timeSig.getBeatType()->getValue().getValue();
 
     if (myTime->getAttributes()->hasSymbol)
     {
@@ -107,6 +90,10 @@ bool TimeReader::parseTimeSignatureGroup(const core::TimeSignatureGroup &timeSig
         else if (myTime->getAttributes()->symbol == core::TimeSymbol::cut)
         {
             myTimeSignatureData.symbol = api::TimeSignatureSymbol::cut;
+        }
+        else if (myTime->getAttributes()->symbol == core::TimeSymbol::singleNumber)
+        {
+            myTimeSignatureData.symbol = api::TimeSignatureSymbol::singleNumber;
         }
     }
     else
