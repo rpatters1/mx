@@ -46,6 +46,12 @@ COPY . .
 FROM base AS run
 RUN --mount=type=cache,target=/workspace/build make check
 
+# --- run-core-dev stage: run `make check-core-dev` for its exit code --------
+# Parallel to `run`. Drives the core-dev gate (mx/core + ezxml + utility,
+# fmt-check + warning-free build) against the same pinned toolchain.
+FROM base AS run-core-dev
+RUN --mount=type=cache,target=/workspace/build make check-core-dev
+
 # --- fmt stage: format in place, then export only the src tree -------
 FROM base AS fmt
 RUN --mount=type=cache,target=/workspace/build make fmt
