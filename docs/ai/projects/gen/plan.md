@@ -1,64 +1,37 @@
 # gen Plan
 
-## Milestone 1: Reverse-engineer codegen (Phase 1)
+## Milestone 1: revgen — reverse-engineer codegen ✅
 
-Produce a generator that, given `docs/musicxml.xsd`, regenerates `mx/core` with minimal unexplained
-diff. Exit criteria (from `design/scoring.md`):
+Build a generator that produces every C++ class in `mx/core` from `docs/musicxml.xsd` with no
+skipped elements.
 
-- **Gate A** (no-skip): every XSD element, type, attribute, attributeGroup, and group reaches a
-  code-emitting path. No skipping.
-- **Gate B** (quality): `make fmt && make check && make test-all` passes.
-- **Gate C** (classification): 100% of diff lines attributed to a category (RULE/EXC/FIX/ANOMALY).
-- **Gate D** (residual): unexplained residual penalty = 0.
+**Complete** (2026-05-21, iteration 40). SKIP_ELEMENTS and CHOICE_SKIP both empty.
 
-Current status: Gate A not met (14 elements skipped). Gate B partially met (make check passes,
-make test-all fails). Gates C and D not yet measured against the classification framework.
+## Milestone 2: fix-gen — fix generator bugs surfaced as failing tests ✅
 
-### Remaining work for Milestone 1
+**Complete** (2026-05-22). All 2678 tests pass.
 
-Ordered by expected impact on gates:
+The commit "src: issues caused by revgen" contained hand-edits to non-generated code (mx/impl,
+mx/core/FromXElement, some tests) that worked around generator bugs. Each was triaged as BUG /
+BENIGN / WEIRD, generator bugs were fixed, and the workarounds reverted.
 
-1. Attribute group expansion (unblocks Gate A and Gate B)
-2. Choice class generation for remaining skipped elements (Gate A)
-3. Keyword escaping fixes (Gate B)
-4. streamContents pattern refinements (Gate D)
-5. Classification of all remaining diff lines (Gate C)
-6. Residual reduction to zero (Gate D)
+One WEIRD item deferred to M5: original `mx/core` had a hand-applied MusicXML 4.0 `UpDownNone`
+backport that a schema-faithful 3.x regen overwrites. The `// TODO: fixme - MusicXML 4.0 ...`
+comments in `mx/impl` (NotationsWriter.cpp:398, ArpeggiateFunctions.cpp:35) bookmark this.
 
-### Open design questions (need /grill-me sessions)
+## Milestone 3: increase test coverage
 
-Two grill-me sessions were completed (overrides -> `design/overrides.md`, scoring ->
-`design/scoring.md`). Three remain:
+Add a lot more MusicXML round-trip input files. Build a dedicated mx/core-level round-trip test
+harness (not just api-level freezing tests). No specific design yet.
 
-- [ ] **CODEGEN_PROGRAM_QUALITY criteria** - how is program quality measured concretely? Static
-  analysis tools, manual rubric, or both?
-- [ ] **Language constraints** - which languages are permitted for competing agents? (Currently
-  Python is the de facto choice.)
-- [ ] **Systematic-gap scoring** - how does scoring handle a program that is systematically correct
-  for 95% of elements but misses one XSD pattern that appears 300 times? The missing-color FIX
-  (45 structs) is a concrete instance of the inverse problem.
+## Milestone 4: better-gen — fix garbage
 
-## Milestone 2: Improve codegen / modernize C++ (Phase 2)
+The gen program is 12k lines of bad Python. Fix it. Use dedicated mx/core round-trip tests as the
+north star for correctness.
 
-Improve the generated code from the current MusicXML spec:
-- more consistent patterns
-- modern C++ (e.g. std::variant to reduce object sizes)
-- fewer bespoke alterations
+## Milestone 5: mxml4-types — generate MusicXML 4.0 types
 
-## Milestone 3: Analyze mx/api coverage (Phase 3)
-
-Determine which MusicXML features are inaccessible from `mx/api`.
-
-## Milestone 4: Generate MusicXML 4.0 types (Phase 4)
-
-Replace `docs/musicxml.xsd` with MusicXML 4.0, regenerate. Fix all existing tests. Watch for
-backported or bolted-on features like SMuFL that were added with hacks to 3.0/3.1 but are now
-first-class in 4.0. Be backward compatible with files that `mx` may have written with those hacks.
-
-## Milestone 5: Surface 4.0 features to mx/api (Phase 5)
-
-Expose new MusicXML 4.0 features through the public API. Prioritize those users will want.
-
-## Milestone 6: PR
-
-Open a PR introducing MusicXML 4.0 support.
+Replace `docs/musicxml.xsd` with MusicXML 4.0, regenerate, fix all existing tests. Watch for
+backported or bolted-on features (SMuFL, UpDown, etc.) that were added with hacks to 3.0/3.1 but
+are first-class in 4.0. Be backward-compatible with files `mx` may have written using those hacks.
+Restore the `mx/impl` TODOs from revgen.
