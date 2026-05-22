@@ -300,17 +300,17 @@ BeatUnitPerPtr tgenBeatUnitPer(TestMode v)
     {
     case TestMode::one: {
         o->setBeatUnitGroup(tgenBeatUnitGroup(TestMode::two));
-        o->setPerMinuteOtBeatUnitChoice(tgenPerMinuteOrBeatUnitChoice(TestMode::three));
+        o->setPerMinuteOrBeatUnitChoice(tgenPerMinuteOrBeatUnitChoice(TestMode::three));
     }
     break;
     case TestMode::two: {
         o->setBeatUnitGroup(tgenBeatUnitGroup(TestMode::three));
-        o->setPerMinuteOtBeatUnitChoice(tgenPerMinuteOrBeatUnitChoice(TestMode::one));
+        o->setPerMinuteOrBeatUnitChoice(tgenPerMinuteOrBeatUnitChoice(TestMode::one));
     }
     break;
     case TestMode::three: {
         o->setBeatUnitGroup(tgenBeatUnitGroup(TestMode::one));
-        o->setPerMinuteOtBeatUnitChoice(tgenPerMinuteOrBeatUnitChoice(TestMode::two));
+        o->setPerMinuteOrBeatUnitChoice(tgenPerMinuteOrBeatUnitChoice(TestMode::two));
     }
     break;
     default:
