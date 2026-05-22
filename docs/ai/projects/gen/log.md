@@ -2,102 +2,81 @@
 
 Append chronologically, oldest on top.
 
-## M1: revgen (2026-05-18 — 2026-05-21, 40 iterations)
+## M1: revgen (2026-05-18 — 2026-05-21, 40 iterations) ✅
 
-Reverse-engineered the codegen. Iteratively shrank `SKIP_ELEMENTS` and `CHOICE_SKIP` to empty.
-Closed 2026-05-21 with the generator producing every C++ class in `mx/core`. Tests failing — the
-commit `d4f25ee6` "src: issues caused by revgen" hand-edits non-generated consumers to keep
-the build working; those hand-edits were the input to M2.
+Reverse-engineered the codegen, iteratively shrinking `SKIP_ELEMENTS` and `CHOICE_SKIP` to
+empty. Closed with the generator producing every C++ class in `mx/core`. Tests still
+failing; commit `d4f25ee6` "src: issues caused by revgen" carries hand-edits to
+non-generated consumers that kept the build working — the input to M2.
 
-## M2: fix-gen (2026-05-21 — 2026-05-22)
+## M2: fix-gen (2026-05-21 — 2026-05-22) ✅
 
-Triaged `d4f25ee6` into 6 root-cause issues (A–F), then triaged 62 (later 129 after a clean
-build) `make test-all` failures into clusters. Fixed iteratively, ending at 0 failures.
+Triaged `d4f25ee6` into 6 root causes (A–F) and ~129 `make test-all` failures into clusters
+(R1–R7, D1–D4, plus an isFirst-separator family). Fixed iteratively to 0 failures.
 
-### Triage of `d4f25ee6` hand-edits
+Notable mechanisms introduced (still in `gen/generate.py`):
+- `EXTENSION_OPTIONAL_GROUP_RENAME`, `SUPPRESS_GROUP_SUFFIX`,
+  `WRAPPER_AS_ELEMENT_SYNTH_GROUPS` (MetronomeTuplet group flattening, issue C).
+- `TREE_ELEMENT_CONFIG["key"] = {"parent_imports_choice_groups": True}` →
+  `Key::import{Traditional,NonTraditional}Key` (issues E/F).
+- Required-set seeding rule in `generate_element_cpp`
+  (`min_occurs>=1, max_occurs!=1, !is_group`) fixed HarpPedals SIGSEGV (R5).
+- `is_container` + `trigger_names` on `TreeChoiceBranch`; `importContainer<X>` dispatch
+  in `generate_tree_parent_cpp` (D1, D4 — Metronome reader).
+- `ATTR_DEFAULT_OVERRIDE` (~17 entries), `CHILD_INIT_VALUE_OVERRIDE` (Scaling,
+  StaffDetails).
+- `_emit_direction_family` bespoke driven by
+  `model.complex_types["direction-type"].content_tree`.
+- `ELEMENT_HAS_CONTENTS_ALWAYS_TRUE` (MeasureLayout, NoteheadText), notehead-text
+  `seed_choice_set`, MeasureLayout explicit child-presence check for `isOneLineOnly`.
 
-- **A — UpDownNone collapsed to UpDown** (WEIRD / Low): Hand-applied MusicXML 4.0 backport
-  in original `mx/core` overwritten by schema-faithful 3.x regen. Deferred to M5; TODO
-  comments left in `mx/impl`.
-- **B — `hasLong` escaped to `hasLong_`** (BUG / Low): Keyword-escape over-applied to the
-  has-prefix flag. Fix: `has_flag_name` strips trailing underscore added by `camel()` for
-  keywords.
-- **C — MetronomeTuplet group flattened** (BUG / High): Regen flattened
-  `TimeModificationNormalTypeNormalDot` into `MetronomeTuplet`, making `<normal-type>`
-  unconditional. Fix: added `EXTENSION_OPTIONAL_GROUP_RENAME` (per-extending-type override) +
-  `SUPPRESS_GROUP_SUFFIX` + `WRAPPER_AS_ELEMENT_SYNTH_GROUPS` so the wrapper survives as a
-  sub-element rather than being inlined.
-- **D — `setPerMinuteOtBeatUnitChoice` typo** (BENIGN): Historical typo in original; accepted
-  small test edit, no generator change.
-- **E/F — Missing `importGroup` overloads for traditional-/non-traditional-key** (BUG /
-  Medium): Fix path option 1: emit `Key::importTraditionalKey` / `Key::importNonTraditionalKey`
-  as private member functions via new `TREE_ELEMENT_CONFIG["key"] = {"parent_imports_choice_groups": True}`.
-  Reverted hand-edits in `FromXElement.{h,cpp}`.
+Deferred: issue A — original `mx/core` had a hand-applied MusicXML 4.0 `UpDownNone`
+backport overwritten by schema-faithful 3.x regen. TODO comments in
+`mx/impl/NotationsWriter.cpp:398` and `mx/impl/ArpeggiateFunctions.cpp:35`. Belongs to
+M5/M6.
 
-### Failing-test clusters
-
-Original triage scheme R1–R7 was rewritten mid-M2 as the situation evolved. Final shape:
-
-- **R1 — direction-family parents emit `MX_FROM_XELEMENT_UNUSED`** (19 tests): split into
-  R1a (ArrowGroup needs real `fromXElementImpl` body — added "arrow" to
-  `GROUPS_WITH_REAL_FROM_X_ELEMENT`) and R1b (Direction parent bespoke — added
-  `_emit_direction_family` handler driven by `model.complex_types["direction-type"].content_tree.branches`).
-- **R5 — required-set seeding** (10 tests including HarpPedals SIGSEGV): added structural
-  rule in `generate_element_cpp` for `min_occurs>=1, max_occurs!=1, not is_group` children:
-  ctor pre-seeds default, `hasContents()` returns true, `remove*` gates on `size>1`,
-  `clear*Set` re-seeds.
-- **R3 — group-class `streamContents` inter-child `endl`** (~10 tests): rewrote
-  `generate_group_cpp` separator logic — required-after-required: unconditional endl before;
-  required-after-optional: optional's block emits; index-0 optional: endl after.
-- **R2 — choice-class spurious leading `endl`** (~7 tests): gated on
-  `config.get("skip_parent")` in `generate_choice_class_cpp` so only `direction-type`-style
-  wrapper choices keep the leading endl.
-- **R4 — attribute default initializers** (bulk fix, ~22 tests): seeded 17 entries in
-  `ATTR_DEFAULT_OVERRIDE` (lang="it" defaults, lineEnd=down, number="1", etc.). Continued
-  in i5 with `CHILD_INIT_VALUE_OVERRIDE` for `Scaling`/`StaffDetails`.
-- **hasContents direction cluster** (6 tests): Rest/Unpitched gated optional groups on
-  `myHas`; MeasureLayout/NoteheadText/Slash/BeatRepeat needed
-  `ELEMENT_HAS_CONTENTS_ALWAYS_TRUE` / `CHILD_MIN_OCCURS_OVERRIDE` / notehead-text
-  `seed_choice_set`.
-- **group/tree-group isFirst separator** (i4/i6, ~30 tests): `generate_group_cpp` and
-  `generate_tree_group_cpp` were emitting unconditional `endl` before each set-based child
-  even when all preceding optional singletons were absent. Fixed with `isFirst` flag
-  pattern.
-- **MeasureLayout isOneLineOnly**: explicit child-presence check instead of `hasContents()`
-  for elements with `ELEMENT_HAS_CONTENTS_ALWAYS_TRUE`.
-
-### Final D-cluster (Metronome/Tempo round-trip)
-
-After mass cleanup, 13 failures remained, all metronome/tempo. Re-triaged as D1–D4:
-
-- **D3 — `MetronomeAttributes` missing `halign`/`justify` defaults** (`LeftCenterRight::center`):
-  trivial `ATTR_DEFAULT_OVERRIDE` entries.
-- **D1 — choice classes called `toStream` for empty-`streamName` containers** (BeatUnitPer,
-  NoteRelationNote produced literal `<>...</>`): added `is_container` field to
-  `TreeChoiceBranch`; emit `streamContents` instead of `toStream` for container branches in
-  `generate_tree_choice_cpp`.
-- **D2 — `DirectionWriter.cpp:370` throws on non-BPM tempos**: bisect confirmed pre-revgen
-  `a0500803` did pass these tests, so revgen introduced the regression in the reader/writer
-  path. Subsumed by D4.
-- **D4 — Metronome container-branch `fromXElementImpl` missing**: `generate_tree_parent_cpp`
-  emitted no dispatch for `is_container=True` branches. Synthetic containers have no XML
-  tag, so the reader silently skipped all metronome children. Fix: added `trigger_names`
-  field to `TreeChoiceBranch` (computed from first child element name); emit
-  `importContainer<X>` declarations and bodies in the parent; dispatch in
-  `fromXElementImpl` keyed on trigger names. Generated `Metronome::fromXElementImpl` matches
-  HEAD exactly. 9 → 0 failed. **M2 complete.**
-
-### Lessons / invariants captured
+### Lessons captured (operational invariants)
 
 - `git checkout -- src/private/mx/core/` preserves mtimes; incremental cmake then links
-  partly-old `.o`s, giving stale test counts. Use `make clean && make test-all` for any
-  authoritative measurement.
-- `make test-all` must run with generated files present (Issue A's `UpDownNone`
-  hand-backport in HEAD is incompatible with the schema-faithful regen, so a reset-first
-  build fails to compile).
+  partly-old `.o` files and reports stale test counts. Use `make clean && make test-all`
+  for authoritative measurements.
+- `make test-all` must run with generated files present — HEAD's `UpDownNone` backport
+  is incompatible with a schema-faithful regen, so a reset-first build will not compile.
 - When removing a previously-emitted byte from a shared template, survey the whole HEAD
-  population that template emits, not just one or two representative files (R2's
-  DirectionType regression).
-- Bespoke handlers should still read the parsed XSD model — pattern is "custom algorithm,
-  schema-driven data" (Direction's element-name tables derived from
-  `model.complex_types["direction-type"].content_tree.branches`).
+  population that template emits (R2 burned us by regressing DirectionType).
+- Bespoke handlers should still read the parsed XSD model — "custom algorithm,
+  schema-driven data".
+
+## M3: fix-core-dev (2026-05-22, 5 iterations) ✅
+
+Each iteration picked the smallest core-roundtrip diff in `data/testOutput/corert` and
+triaged it: either a hand-rolled mx-side fix or a `{file}.invalid` marker for files that
+don't conform to the XSD. Per-iteration template now lives in `plan.md`.
+
+- **i1** — tenths-typed `width` attribute trailing-zero strip. Added `"width"` to
+  `decimalFields` in `src/private/mxtest/import/DecimalFields.h`. Cleared 17 failures.
+  Commit `639d46a3`.
+- **i2** — `musuite/testInvalid.xml` is intentionally invalid; introduced the
+  `{file}.invalid` marker convention (honored by `CoreRoundtripImpl.cpp::discoverInputFiles`;
+  api import keeps processing). Documented in `data/README.md`.
+- **i3 (static-analysis sweep)** — ran `xmllint --schema` against MusicXML XSD on
+  remaining failing files; marked 10 as `.invalid` where the schema violation explained
+  the diff. Three real bugs survived: ly22b, ly41e, ly45f.
+- **i3 (cont.)** — ly45f: `CommaSeparatedListOfPositiveIntegers::parse` in hand-written
+  `src/private/mx/core/CommaSeparatedPositiveIntegers.cpp` discarded "1, 2, 3" vs
+  "1,2,3" spacing on import. Added a `", "` detection that sets `myIsSpacingDesired`.
+  Commit `461b96d2`.
+- **i4** — ly41e: `XsString::toStream` escaped only `<`, `>`, `&`. A raw `\r` was
+  normalized to `\n` on the next read (pugixml `parse_eol`, XML 1.0 §2.11). Added
+  `'\r'` → `"&#xd;"`. Hand-written type, no regen. Commit `040b2152`.
+- **i5** — ly22b: XSD `slash` group is `minOccurs="0"` inside complexType `slash` and
+  `beat-repeat`, so empty `<slash/>` is valid. HEAD treated `slash-type` as
+  always-present; revgen preserved this via `CHILD_MIN_OCCURS_OVERRIDE`. Removed the
+  overrides, regenerated `Slash.{h,cpp}` and `BeatRepeat.{h,cpp}` with a `myHasSlashType`
+  flag, removed a matching `addChildIfNone` workaround in
+  `src/private/mxtest/import/ExpectedFiles.cpp`. `make test-all` then surfaced 25
+  assertions in 23 `mxtest/core/*Test.cpp` cases that codified the bug; added 6
+  `setHasSlashType(true)` calls across 4 fixture files. Commits `d43a222c`, `9c8efa24`.
+
+Final state: `make test-core-dev` 350/350, `make test` 2717/2717, `make test-all`
+3028/3028 (9914 assertions), `make check` passed. PR-merge commit `6c4e18d4`.
