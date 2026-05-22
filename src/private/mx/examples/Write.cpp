@@ -120,8 +120,11 @@ int main(int argc, const char *argv[])
     std::cout << std::endl;
 #endif
 
-    // write to a file
-    mgr.writeToFile(documentID, "./example.musicxml");
+    // write to a file. argv[1] overrides the default output path so the build
+    // system can send the file to a gitignored location during automated runs;
+    // see issue #150.
+    const std::string outputPath = (argc > 1) ? argv[1] : "./example.musicxml";
+    mgr.writeToFile(documentID, outputPath);
 
     // we need to explicitly delete the object held by the manager
     mgr.destroyDocument(documentID);
