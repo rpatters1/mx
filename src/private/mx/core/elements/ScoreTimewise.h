@@ -19,8 +19,8 @@ namespace core
 
 MX_FORWARD_DECLARE_ATTRIBUTES(ScoreTimewiseAttributes)
 MX_FORWARD_DECLARE_ELEMENT(ScoreHeaderGroup)
-MX_FORWARD_DECLARE_ELEMENT(TimewiseMeasure)
 MX_FORWARD_DECLARE_ELEMENT(ScoreTimewise)
+MX_FORWARD_DECLARE_ELEMENT(TimewiseMeasure)
 
 inline ScoreTimewisePtr makeScoreTimewise()
 {
@@ -51,6 +51,7 @@ class ScoreTimewise : public ElementInterface
     void clearTimewiseMeasureSet();
     TimewiseMeasurePtr getTimewiseMeasure(const TimewiseMeasureSetIterConst &setIterator) const;
 
+  private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);
 
   private:

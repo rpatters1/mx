@@ -189,14 +189,6 @@ bool Frame::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
         importElementSet(message, it, endIter, isSuccess, "frame-note", myFrameNoteSet);
     }
 
-    if (!isFrameStringsFound)
-    {
-        message << "Frame: '" << myFrameStrings->getElementName() << "' is required but was not found" << std::endl;
-    }
-    if (!isFrameFretsFound)
-    {
-        message << "Frame: '" << myFrameFrets->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

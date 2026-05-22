@@ -13,7 +13,7 @@ namespace core
 TimeAttributes::TimeAttributes()
     : number(), symbol(), separator(), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(),
       fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(),
-      halign(LeftCenterRight::center), valign(), printObject(YesNo::no), hasNumber(false), hasSymbol(false),
+      halign(LeftCenterRight::left), valign(Valign::bottom), printObject(YesNo::no), hasNumber(false), hasSymbol(false),
       hasSeparator(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
       hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false),
       hasHalign(false), hasValign(false), hasPrintObject(false)

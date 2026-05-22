@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/CommaSeparatedText.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
@@ -40,7 +41,9 @@ struct AccidentalTextAttributes : public AttributesInterface
     FontStyle fontStyle;
     FontSize fontSize;
     FontWeight fontWeight;
+    Color color;
     LeftCenterRight halign;
+    Valign valign;
     NumberOfLines underline;
     NumberOfLines overline;
     NumberOfLines lineThrough;
@@ -49,6 +52,7 @@ struct AccidentalTextAttributes : public AttributesInterface
     NumberOrNormal lineHeight;
     XmlLang lang;
     XmlSpace space;
+    TextDirection dir;
     EnclosureShape enclosure;
     bool hasJustify;
     bool hasDefaultX;
@@ -59,7 +63,9 @@ struct AccidentalTextAttributes : public AttributesInterface
     bool hasFontStyle;
     bool hasFontSize;
     bool hasFontWeight;
+    bool hasColor;
     bool hasHalign;
+    bool hasValign;
     bool hasUnderline;
     bool hasOverline;
     bool hasLineThrough;
@@ -68,6 +74,7 @@ struct AccidentalTextAttributes : public AttributesInterface
     bool hasLineHeight;
     bool hasLang;
     bool hasSpace;
+    bool hasDir;
     bool hasEnclosure;
 
   private:

@@ -16,8 +16,8 @@ namespace mx
 namespace core
 {
 
-MX_FORWARD_DECLARE_ELEMENT(AccidentalMark)
 MX_FORWARD_DECLARE_ELEMENT(OrnamentsChoice)
+MX_FORWARD_DECLARE_ELEMENT(AccidentalMark)
 MX_FORWARD_DECLARE_ELEMENT(Ornaments)
 
 inline OrnamentsPtr makeOrnaments()
@@ -56,8 +56,6 @@ class Ornaments : public ElementInterface
   private:
     OrnamentsChoiceSet myOrnamentsChoiceSet;
     AccidentalMarkSet myAccidentalMarkSet;
-
-    bool isOrnamentsChoice(const char *const name) const;
 };
 } // namespace core
 } // namespace mx

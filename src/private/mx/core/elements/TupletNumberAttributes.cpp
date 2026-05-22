@@ -11,15 +11,14 @@ namespace mx
 namespace core
 {
 TupletNumberAttributes::TupletNumberAttributes()
-    : fontFamily(), fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}),
-      fontWeight(FontWeight::normal), hasFontFamily(false), hasFontStyle(false), hasFontSize(false),
-      hasFontWeight(false)
+    : fontFamily(), fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal),
+      color(), hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false)
 {
 }
 
 bool TupletNumberAttributes::hasValues() const
 {
-    return hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight;
+    return hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasColor;
 }
 
 std::ostream &TupletNumberAttributes::toStream(std::ostream &os) const
@@ -30,6 +29,7 @@ std::ostream &TupletNumberAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -61,9 +61,13 @@ bool TupletNumberAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XE
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

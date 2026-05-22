@@ -42,6 +42,7 @@ bool Hole::hasContents() const
 
 std::ostream &Hole::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    isOneLineOnly = false;
     if (myHasHoleType)
     {
         os << std::endl;
@@ -55,7 +56,6 @@ std::ostream &Hole::streamContents(std::ostream &os, const int indentLevel, bool
         myHoleShape->toStream(os, indentLevel + 1);
     }
     os << std::endl;
-    isOneLineOnly = false;
     return os;
 }
 
@@ -154,10 +154,6 @@ bool Hole::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
         }
     }
 
-    if (!isHoleClosedFound)
-    {
-        message << "Hole: '" << myHoleClosed->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

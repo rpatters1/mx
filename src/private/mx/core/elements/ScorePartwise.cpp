@@ -135,7 +135,8 @@ bool ScorePartwise::fromXElementImpl(std::ostream &message, ::ezxml::XElement &x
         const std::string elementName = it->getName();
 
         if (elementName == "work" || elementName == "movement-number" || elementName == "movement-title" ||
-            elementName == "identification" || elementName == "defaults" || elementName == "credit")
+            elementName == "identification" || elementName == "defaults" || elementName == "credit" ||
+            elementName == "part-list")
         {
             continue;
         }

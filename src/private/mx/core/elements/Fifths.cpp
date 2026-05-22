@@ -10,7 +10,7 @@ namespace mx
 {
 namespace core
 {
-Fifths::Fifths() : myValue{0}
+Fifths::Fifths() : myValue()
 {
 }
 

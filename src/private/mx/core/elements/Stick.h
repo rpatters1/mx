@@ -38,7 +38,7 @@ class Stick : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     StickAttributesPtr getAttributes() const;
-    void setAttributes(const StickAttributesPtr &value);
+    void setAttributes(const StickAttributesPtr &attributes);
 
     /* _________ StickType minOccurs = 1, maxOccurs = 1 _________ */
     StickTypePtr getStickType() const;

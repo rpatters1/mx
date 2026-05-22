@@ -41,19 +41,17 @@ bool HarmonicInfoChoice::hasContents() const
 
 std::ostream &HarmonicInfoChoice::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    switch (myChoice)
+    if (myChoice == Choice::basePitch)
     {
-    case Choice::basePitch:
         myBasePitch->toStream(os, indentLevel);
-        break;
-    case Choice::touchingPitch:
+    }
+    if (myChoice == Choice::touchingPitch)
+    {
         myTouchingPitch->toStream(os, indentLevel);
-        break;
-    case Choice::soundingPitch:
+    }
+    if (myChoice == Choice::soundingPitch)
+    {
         mySoundingPitch->toStream(os, indentLevel);
-        break;
-    default:
-        break;
     }
     isOneLineOnly = false;
     return os;
@@ -64,7 +62,7 @@ HarmonicInfoChoice::Choice HarmonicInfoChoice::getChoice() const
     return myChoice;
 }
 
-void HarmonicInfoChoice::setChoice(const HarmonicInfoChoice::Choice value)
+void HarmonicInfoChoice::setChoice(const Choice value)
 {
     myChoice = value;
 }

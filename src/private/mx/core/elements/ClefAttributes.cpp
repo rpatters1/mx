@@ -11,8 +11,8 @@ namespace mx
 namespace core
 {
 ClefAttributes::ClefAttributes()
-    : number(), additional(YesNo::no), size(), afterBarline(YesNo::no), defaultX(), defaultY(), relativeX(),
-      relativeY(), fontFamily(), fontStyle(FontStyle::normal), fontSize(CssFontSize::medium),
+    : number(), additional(YesNo::no), size(SymbolSize::full), afterBarline(YesNo::no), defaultX(), defaultY(),
+      relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal), fontSize(CssFontSize::medium),
       fontWeight(FontWeight::normal), color(), printObject(YesNo::no), hasNumber(false), hasAdditional(false),
       hasSize(false), hasAfterBarline(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false),
       hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false),

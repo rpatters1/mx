@@ -35,12 +35,8 @@ class MetronomeRelationGroup : public ElementInterface
     virtual std::ostream &streamName(std::ostream &os) const;
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
-
-    /* _________ MetronomeRelation minOccurs = 1, maxOccurs = 1 _________ */
     MetronomeRelationPtr getMetronomeRelation() const;
     void setMetronomeRelation(const MetronomeRelationPtr &value);
-
-    /* _________ MetronomeNote minOccurs = 1, maxOccurs = 1 _________ */
     MetronomeNotePtr getMetronomeNote() const;
     void setMetronomeNote(const MetronomeNotePtr &value);
 

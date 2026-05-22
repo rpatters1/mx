@@ -16,8 +16,8 @@ namespace mx
 namespace core
 {
 
-MX_FORWARD_DECLARE_ELEMENT(AccidentalText)
 MX_FORWARD_DECLARE_ELEMENT(DisplayText)
+MX_FORWARD_DECLARE_ELEMENT(AccidentalText)
 MX_FORWARD_DECLARE_ELEMENT(DisplayTextOrAccidentalText)
 
 inline DisplayTextOrAccidentalTextPtr makeDisplayTextOrAccidentalText()
@@ -30,8 +30,8 @@ class DisplayTextOrAccidentalText : public ElementInterface
   public:
     enum class Choice
     {
-        displayText = 1,
-        accidentalText = 2
+        displayText = 0,
+        accidentalText = 1
     };
     DisplayTextOrAccidentalText();
 
@@ -40,8 +40,8 @@ class DisplayTextOrAccidentalText : public ElementInterface
     virtual std::ostream &streamName(std::ostream &os) const;
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
-    DisplayTextOrAccidentalText::Choice getChoice() const;
-    void setChoice(const DisplayTextOrAccidentalText::Choice value);
+    Choice getChoice() const;
+    void setChoice(const Choice value);
     DisplayTextPtr getDisplayText() const;
     void setDisplayText(const DisplayTextPtr &value);
     AccidentalTextPtr getAccidentalText() const;

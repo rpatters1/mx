@@ -39,7 +39,7 @@ class Interchangeable : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     InterchangeableAttributesPtr getAttributes() const;
-    void setAttributes(const InterchangeableAttributesPtr &value);
+    void setAttributes(const InterchangeableAttributesPtr &attributes);
 
     /* _________ TimeRelation minOccurs = 0, maxOccurs = 1 _________ */
     TimeRelationPtr getTimeRelation() const;

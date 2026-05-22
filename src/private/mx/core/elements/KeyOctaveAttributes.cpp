@@ -10,8 +10,7 @@ namespace mx
 {
 namespace core
 {
-KeyOctaveAttributes::KeyOctaveAttributes()
-    : number(PositiveInteger{1}), cancel(YesNo::no), hasNumber(true), hasCancel(false)
+KeyOctaveAttributes::KeyOctaveAttributes() : number(), cancel(YesNo::no), hasNumber(true), hasCancel(false)
 {
 }
 

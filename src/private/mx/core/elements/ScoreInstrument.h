@@ -12,14 +12,19 @@
 #include <memory>
 #include <vector>
 
+namespace ezxml
+{
+class XElementIterator;
+}
+
 namespace mx
 {
 namespace core
 {
 
 MX_FORWARD_DECLARE_ATTRIBUTES(ScoreInstrumentAttributes)
-MX_FORWARD_DECLARE_ELEMENT(InstrumentAbbreviation)
 MX_FORWARD_DECLARE_ELEMENT(InstrumentName)
+MX_FORWARD_DECLARE_ELEMENT(InstrumentAbbreviation)
 MX_FORWARD_DECLARE_ELEMENT(InstrumentSound)
 MX_FORWARD_DECLARE_ELEMENT(SoloOrEnsembleChoice)
 MX_FORWARD_DECLARE_ELEMENT(VirtualInstrument)
@@ -53,17 +58,17 @@ class ScoreInstrument : public ElementInterface
     bool getHasInstrumentAbbreviation() const;
     void setHasInstrumentAbbreviation(const bool value);
 
-    /* _________ SoloOrEnsembleChoice minOccurs = 0, maxOccurs = 1 _________ */
-    SoloOrEnsembleChoicePtr getSoloOrEnsembleChoice() const;
-    void setSoloOrEnsembleChoice(const SoloOrEnsembleChoicePtr &value);
-    bool getHasSoloOrEnsembleChoice() const;
-    void setHasSoloOrEnsembleChoice(const bool value);
-
     /* _________ InstrumentSound minOccurs = 0, maxOccurs = 1 _________ */
     InstrumentSoundPtr getInstrumentSound() const;
     void setInstrumentSound(const InstrumentSoundPtr &value);
     bool getHasInstrumentSound() const;
     void setHasInstrumentSound(const bool value);
+
+    /* _________ SoloOrEnsembleChoice minOccurs = 0, maxOccurs = 1 _________ */
+    SoloOrEnsembleChoicePtr getSoloOrEnsembleChoice() const;
+    void setSoloOrEnsembleChoice(const SoloOrEnsembleChoicePtr &value);
+    bool getHasSoloOrEnsembleChoice() const;
+    void setHasSoloOrEnsembleChoice(const bool value);
 
     /* _________ VirtualInstrument minOccurs = 0, maxOccurs = 1 _________ */
     VirtualInstrumentPtr getVirtualInstrument() const;

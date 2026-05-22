@@ -11,18 +11,19 @@ namespace mx
 namespace core
 {
 GlissandoAttributes::GlissandoAttributes()
-    : type(StartStop::start), number(1), lineType(LineType::solid), dashLength(), spaceLength(), defaultX(), defaultY(),
-      relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}),
-      fontWeight(FontWeight::normal), hasType(true), hasNumber(false), hasLineType(false), hasDashLength(false),
-      hasSpaceLength(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
-      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false)
+    : type(StartStop::start), number(), lineType(LineType::solid), dashLength(), spaceLength(), defaultX(), defaultY(),
+      relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal), fontSize(CssFontSize::medium),
+      fontWeight(FontWeight::normal), color(), hasType(true), hasNumber(false), hasLineType(false),
+      hasDashLength(false), hasSpaceLength(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false),
+      hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false),
+      hasColor(false)
 {
 }
 
 bool GlissandoAttributes::hasValues() const
 {
     return hasType || hasNumber || hasLineType || hasDashLength || hasSpaceLength || hasDefaultX || hasDefaultY ||
-           hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight;
+           hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasColor;
 }
 
 std::ostream &GlissandoAttributes::toStream(std::ostream &os) const
@@ -42,6 +43,7 @@ std::ostream &GlissandoAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -110,15 +112,19 @@ bool GlissandoAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElem
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
     }
 
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

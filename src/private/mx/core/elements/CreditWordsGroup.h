@@ -37,7 +37,7 @@ class CreditWordsGroup : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
 
-    /* _________ LinkSet minOccurs = 0, maxOccurs = unbounded _________ */
+    /* _________ Link minOccurs = 0, maxOccurs = unbounded _________ */
     const LinkSet &getLinkSet() const;
     void addLink(const LinkPtr &value);
     void removeLink(const LinkSetIterConst &value);

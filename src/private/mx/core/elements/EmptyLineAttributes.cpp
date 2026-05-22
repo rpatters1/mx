@@ -11,18 +11,19 @@ namespace mx
 namespace core
 {
 EmptyLineAttributes::EmptyLineAttributes()
-    : lineShape(), lineType(), dashLength(), spaceLength(), defaultX(), defaultY(), relativeX(), relativeY(),
-      fontFamily(), fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal),
-      placement(AboveBelow::below), hasLineShape(false), hasLineType(false), hasDashLength(false),
-      hasSpaceLength(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
-      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasPlacement(false)
+    : lineShape(LineShape::straight), lineType(LineType::solid), dashLength(), spaceLength(), defaultX(), defaultY(),
+      relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal), fontSize(CssFontSize::medium),
+      fontWeight(FontWeight::normal), color(), placement(AboveBelow::below), hasLineShape(false), hasLineType(false),
+      hasDashLength(false), hasSpaceLength(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false),
+      hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false),
+      hasColor(false), hasPlacement(false)
 {
 }
 
 bool EmptyLineAttributes::hasValues() const
 {
     return hasLineShape || hasLineType || hasDashLength || hasSpaceLength || hasDefaultX || hasDefaultY ||
-           hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight ||
+           hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasColor ||
            hasPlacement;
 }
 
@@ -30,7 +31,6 @@ std::ostream &EmptyLineAttributes::toStream(std::ostream &os) const
 {
     if (hasValues())
     {
-        streamAttribute(os, dashLength, "dash-length", hasDashLength);
         streamAttribute(os, lineShape, "line-shape", hasLineShape);
         streamAttribute(os, lineType, "line-type", hasLineType);
         streamAttribute(os, dashLength, "dash-length", hasDashLength);
@@ -43,6 +43,7 @@ std::ostream &EmptyLineAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, placement, "placement", hasPlacement);
     }
     return os;
@@ -58,7 +59,6 @@ bool EmptyLineAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElem
 
     for (; it != endIter; ++it)
     {
-
         if (parseAttribute(message, it, className, isSuccess, lineShape, hasLineShape, "line-shape", &parseLineShape))
         {
             continue;
@@ -105,6 +105,10 @@ bool EmptyLineAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElem
         }
         if (parseAttribute(message, it, className, isSuccess, fontWeight, hasFontWeight, "font-weight",
                            &parseFontWeight))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
         {
             continue;
         }

@@ -11,7 +11,7 @@ namespace mx
 namespace core
 {
 BeatRepeatAttributes::BeatRepeatAttributes()
-    : type(StartStop::start), slashes(1), useDots(YesNo::no), hasType(true), hasSlashes(false), hasUseDots(false)
+    : type(StartStop::start), slashes(), useDots(YesNo::no), hasType(true), hasSlashes(false), hasUseDots(false)
 {
 }
 
@@ -59,7 +59,7 @@ bool BeatRepeatAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEle
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

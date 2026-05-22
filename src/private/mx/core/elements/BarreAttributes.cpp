@@ -10,13 +10,13 @@ namespace mx
 {
 namespace core
 {
-BarreAttributes::BarreAttributes() : type(StartStop::start), hasType(true)
+BarreAttributes::BarreAttributes() : type(StartStop::start), color(), hasType(true), hasColor(false)
 {
 }
 
 bool BarreAttributes::hasValues() const
 {
-    return hasType;
+    return hasType || hasColor;
 }
 
 std::ostream &BarreAttributes::toStream(std::ostream &os) const
@@ -24,6 +24,7 @@ std::ostream &BarreAttributes::toStream(std::ostream &os) const
     if (hasValues())
     {
         streamAttribute(os, type, "type", hasType);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -43,15 +44,19 @@ bool BarreAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement 
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
     }
 
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/Enums.h"
 #include "mx/core/ForwardDeclare.h"
 
@@ -26,7 +27,9 @@ struct BarreAttributes : public AttributesInterface
     virtual bool hasValues() const;
     virtual std::ostream &toStream(std::ostream &os) const;
     StartStop type;
+    Color color;
     const bool hasType;
+    bool hasColor;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

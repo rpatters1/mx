@@ -142,14 +142,6 @@ bool Accord::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement
         }
     }
 
-    if (!isTuningStepFound)
-    {
-        message << "Accord: '" << myTuningStep->getElementName() << "' is required but was not found" << std::endl;
-    }
-    if (!isTuningOctaveFound)
-    {
-        message << "Accord: '" << myTuningOctave->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

@@ -40,7 +40,7 @@ class Transpose : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     TransposeAttributesPtr getAttributes() const;
-    void setAttributes(const TransposeAttributesPtr &value);
+    void setAttributes(const TransposeAttributesPtr &attributes);
 
     /* _________ Diatonic minOccurs = 0, maxOccurs = 1 _________ */
     DiatonicPtr getDiatonic() const;

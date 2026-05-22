@@ -55,54 +55,63 @@ bool NotationsChoice::hasContents() const
 
 std::ostream &NotationsChoice::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    switch (myChoice)
+    if (myChoice == Choice::tied)
     {
-    case Choice::tied:
         myTied->toStream(os, indentLevel);
-        break;
-    case Choice::slur:
-        mySlur->toStream(os, indentLevel);
-        break;
-    case Choice::tuplet:
-        myTuplet->toStream(os, indentLevel);
-        break;
-    case Choice::glissando:
-        myGlissando->toStream(os, indentLevel);
-        break;
-    case Choice::slide:
-        mySlide->toStream(os, indentLevel);
-        break;
-    case Choice::ornaments:
-        myOrnaments->toStream(os, indentLevel);
-        break;
-    case Choice::technical:
-        myTechnical->toStream(os, indentLevel);
-        break;
-    case Choice::articulations:
-        myArticulations->toStream(os, indentLevel);
-        break;
-    case Choice::dynamics:
-        myDynamics->toStream(os, indentLevel);
-        break;
-    case Choice::fermata:
-        myFermata->toStream(os, indentLevel);
-        break;
-    case Choice::arpeggiate:
-        myArpeggiate->toStream(os, indentLevel);
-        break;
-    case Choice::nonArpeggiate:
-        myNonArpeggiate->toStream(os, indentLevel);
-        break;
-    case Choice::accidentalMark:
-        myAccidentalMark->toStream(os, indentLevel);
-        break;
-    case Choice::otherNotation:
-        myOtherNotation->toStream(os, indentLevel);
-        break;
-    default:
-        break;
     }
-    isOneLineOnly = hasContents();
+    if (myChoice == Choice::slur)
+    {
+        mySlur->toStream(os, indentLevel);
+    }
+    if (myChoice == Choice::tuplet)
+    {
+        myTuplet->toStream(os, indentLevel);
+    }
+    if (myChoice == Choice::glissando)
+    {
+        myGlissando->toStream(os, indentLevel);
+    }
+    if (myChoice == Choice::slide)
+    {
+        mySlide->toStream(os, indentLevel);
+    }
+    if (myChoice == Choice::ornaments)
+    {
+        myOrnaments->toStream(os, indentLevel);
+    }
+    if (myChoice == Choice::technical)
+    {
+        myTechnical->toStream(os, indentLevel);
+    }
+    if (myChoice == Choice::articulations)
+    {
+        myArticulations->toStream(os, indentLevel);
+    }
+    if (myChoice == Choice::dynamics)
+    {
+        myDynamics->toStream(os, indentLevel);
+    }
+    if (myChoice == Choice::fermata)
+    {
+        myFermata->toStream(os, indentLevel);
+    }
+    if (myChoice == Choice::arpeggiate)
+    {
+        myArpeggiate->toStream(os, indentLevel);
+    }
+    if (myChoice == Choice::nonArpeggiate)
+    {
+        myNonArpeggiate->toStream(os, indentLevel);
+    }
+    if (myChoice == Choice::accidentalMark)
+    {
+        myAccidentalMark->toStream(os, indentLevel);
+    }
+    if (myChoice == Choice::otherNotation)
+    {
+        myOtherNotation->toStream(os, indentLevel);
+    }
+    isOneLineOnly = false;
     return os;
 }
 
@@ -111,7 +120,7 @@ NotationsChoice::Choice NotationsChoice::getChoice() const
     return myChoice;
 }
 
-void NotationsChoice::setChoice(const NotationsChoice::Choice value)
+void NotationsChoice::setChoice(const Choice value)
 {
     myChoice = value;
 }

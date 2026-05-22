@@ -91,7 +91,8 @@ std::ostream &MidiInstrument::streamContents(std::ostream &os, const int indentL
         os << std::endl;
         myElevation->toStream(os, indentLevel + 1);
     }
-    if (hasContents())
+    if (myHasMidiChannel || myHasMidiName || myHasMidiBank || myHasMidiProgram || myHasMidiUnpitched || myHasVolume ||
+        myHasPan || myHasElevation)
     {
         isOneLineOnly = false;
         os << std::endl;

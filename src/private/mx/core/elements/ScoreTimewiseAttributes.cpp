@@ -3,8 +3,6 @@
 // Distributed under the MIT License
 
 #include "mx/core/elements/ScoreTimewiseAttributes.h"
-#include "ezxml/XAttributeIterator.h"
-#include "ezxml/XElement.h"
 #include "mx/core/FromXElement.h"
 #include <iostream>
 

@@ -12,9 +12,9 @@ namespace core
 {
 WavyLineAttributes::WavyLineAttributes()
     : type(StartStopContinue::start), number(), defaultX(), defaultY(), relativeX(), relativeY(),
-      placement(AboveBelow::below), startNote(StartNote::main), trillStep(), twoNoteTurn(TwoNoteTurn::none),
-      accelerate(YesNo::no), beats(), secondBeat(), lastBeat(), hasType(true), hasNumber(false), hasDefaultX(false),
-      hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasPlacement(false), hasStartNote(false),
+      placement(AboveBelow::below), color(), startNote(), trillStep(), twoNoteTurn(), accelerate(YesNo::no), beats(),
+      secondBeat(), lastBeat(), hasType(true), hasNumber(false), hasDefaultX(false), hasDefaultY(false),
+      hasRelativeX(false), hasRelativeY(false), hasPlacement(false), hasColor(false), hasStartNote(false),
       hasTrillStep(false), hasTwoNoteTurn(false), hasAccelerate(false), hasBeats(false), hasSecondBeat(false),
       hasLastBeat(false)
 {
@@ -23,7 +23,8 @@ WavyLineAttributes::WavyLineAttributes()
 bool WavyLineAttributes::hasValues() const
 {
     return hasType || hasNumber || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasPlacement ||
-           hasStartNote || hasTrillStep || hasTwoNoteTurn || hasAccelerate || hasBeats || hasSecondBeat || hasLastBeat;
+           hasColor || hasStartNote || hasTrillStep || hasTwoNoteTurn || hasAccelerate || hasBeats || hasSecondBeat ||
+           hasLastBeat;
 }
 
 std::ostream &WavyLineAttributes::toStream(std::ostream &os) const
@@ -37,6 +38,7 @@ std::ostream &WavyLineAttributes::toStream(std::ostream &os) const
         streamAttribute(os, relativeX, "relative-x", hasRelativeX);
         streamAttribute(os, relativeY, "relative-y", hasRelativeY);
         streamAttribute(os, placement, "placement", hasPlacement);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, startNote, "start-note", hasStartNote);
         streamAttribute(os, trillStep, "trill-step", hasTrillStep);
         streamAttribute(os, twoNoteTurn, "two-note-turn", hasTwoNoteTurn);
@@ -87,6 +89,10 @@ bool WavyLineAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEleme
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
         if (parseAttribute(message, it, className, isSuccess, startNote, hasStartNote, "start-note", &parseStartNote))
         {
             continue;
@@ -121,10 +127,10 @@ bool WavyLineAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEleme
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

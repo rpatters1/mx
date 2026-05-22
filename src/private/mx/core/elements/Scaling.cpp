@@ -39,12 +39,12 @@ bool Scaling::hasContents() const
 
 std::ostream &Scaling::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    isOneLineOnly = false;
     os << std::endl;
     myMillimeters->toStream(os, indentLevel + 1);
     os << std::endl;
     myTenths->toStream(os, indentLevel + 1);
     os << std::endl;
-    isOneLineOnly = false;
     return os;
 }
 
@@ -93,14 +93,6 @@ bool Scaling::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelemen
         }
     }
 
-    if (!isMillimetersFound)
-    {
-        message << "Scaling: '" << myMillimeters->getElementName() << "' is required but was not found" << std::endl;
-    }
-    if (!isTenthsFound)
-    {
-        message << "Scaling: '" << myTenths->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

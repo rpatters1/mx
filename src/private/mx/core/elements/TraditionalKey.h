@@ -52,9 +52,9 @@ class TraditionalKey : public ElementInterface
 
   private:
     CancelPtr myCancel;
+    bool myHasCancel;
     FifthsPtr myFifths;
     ModePtr myMode;
-    bool myHasCancel;
     bool myHasMode;
 };
 } // namespace core

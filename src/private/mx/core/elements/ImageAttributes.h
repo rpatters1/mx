@@ -35,6 +35,7 @@ struct ImageAttributes : public AttributesInterface
     TenthsValue relativeX;
     TenthsValue relativeY;
     LeftCenterRight halign;
+    ValignImage valign;
     const bool hasSource;
     const bool hasType;
     bool hasDefaultX;
@@ -42,6 +43,7 @@ struct ImageAttributes : public AttributesInterface
     bool hasRelativeX;
     bool hasRelativeY;
     bool hasHalign;
+    bool hasValign;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

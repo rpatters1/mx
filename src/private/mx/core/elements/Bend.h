@@ -12,6 +12,11 @@
 #include <memory>
 #include <vector>
 
+namespace ezxml
+{
+class XElementIterator;
+}
+
 namespace mx
 {
 namespace core

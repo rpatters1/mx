@@ -11,17 +11,17 @@ namespace mx
 namespace core
 {
 WedgeAttributes::WedgeAttributes()
-    : type(WedgeType::crescendo), number(), lineType(LineType::solid), spread(), niente(YesNo::no), dashLength(),
-      spaceLength(), defaultX(), defaultY(), relativeX(), relativeY(), hasType(true), hasNumber(false),
-      hasLineType(false), hasSpread(false), hasNiente(false), hasDashLength(false), hasSpaceLength(false),
-      hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false)
+    : type(), number(), spread(), niente(YesNo::no), lineType(LineType::solid), dashLength(), spaceLength(), defaultX(),
+      defaultY(), relativeX(), relativeY(), color(), hasType(true), hasNumber(false), hasSpread(false),
+      hasNiente(false), hasLineType(false), hasDashLength(false), hasSpaceLength(false), hasDefaultX(false),
+      hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasColor(false)
 {
 }
 
 bool WedgeAttributes::hasValues() const
 {
-    return hasType || hasNumber || hasLineType || hasSpread || hasNiente || hasDashLength || hasSpaceLength ||
-           hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY;
+    return hasType || hasNumber || hasSpread || hasNiente || hasLineType || hasDashLength || hasSpaceLength ||
+           hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasColor;
 }
 
 std::ostream &WedgeAttributes::toStream(std::ostream &os) const
@@ -30,15 +30,16 @@ std::ostream &WedgeAttributes::toStream(std::ostream &os) const
     {
         streamAttribute(os, type, "type", hasType);
         streamAttribute(os, number, "number", hasNumber);
-        streamAttribute(os, lineType, "line-type", hasLineType);
         streamAttribute(os, spread, "spread", hasSpread);
         streamAttribute(os, niente, "niente", hasNiente);
+        streamAttribute(os, lineType, "line-type", hasLineType);
         streamAttribute(os, dashLength, "dash-length", hasDashLength);
         streamAttribute(os, spaceLength, "space-length", hasSpaceLength);
         streamAttribute(os, defaultX, "default-x", hasDefaultX);
         streamAttribute(os, defaultY, "default-y", hasDefaultY);
         streamAttribute(os, relativeX, "relative-x", hasRelativeX);
         streamAttribute(os, relativeY, "relative-y", hasRelativeY);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -62,15 +63,15 @@ bool WedgeAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement 
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, lineType, hasLineType, "line-type", &parseLineType))
-        {
-            continue;
-        }
         if (parseAttribute(message, it, className, isSuccess, spread, hasSpread, "spread"))
         {
             continue;
         }
         if (parseAttribute(message, it, className, isSuccess, niente, hasNiente, "niente", &parseYesNo))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, lineType, hasLineType, "line-type", &parseLineType))
         {
             continue;
         }
@@ -98,12 +99,16 @@ bool WedgeAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement 
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
     }
 
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

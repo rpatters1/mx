@@ -16,6 +16,7 @@ namespace mx
 {
 namespace core
 {
+
 MX_FORWARD_DECLARE_ATTRIBUTES(ScorePartwiseAttributes)
 
 struct ScorePartwiseAttributes : public AttributesInterface

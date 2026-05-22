@@ -51,10 +51,14 @@ std::ostream &Tuplet::streamContents(std::ostream &os, const int indentLevel, bo
         os << std::endl;
         myTupletNormal->toStream(os, indentLevel + 1);
     }
-    isOneLineOnly = !hasContents();
-    if (!isOneLineOnly)
+    if (myHasTupletActual || myHasTupletNormal)
     {
+        isOneLineOnly = false;
         os << std::endl;
+    }
+    else
+    {
+        isOneLineOnly = true;
     }
     return os;
 }
@@ -136,7 +140,7 @@ bool Tuplet::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

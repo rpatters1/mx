@@ -4,11 +4,12 @@
 
 #include "mx/core/elements/Metronome.h"
 #include "mx/core/FromXElement.h"
+#include "mx/core/elements/BeatUnit.h"
+#include "mx/core/elements/BeatUnitDot.h"
 #include "mx/core/elements/BeatUnitGroup.h"
 #include "mx/core/elements/BeatUnitPer.h"
 #include "mx/core/elements/BeatUnitPerOrNoteRelationNoteChoice.h"
 #include "mx/core/elements/MetronomeNote.h"
-#include "mx/core/elements/MetronomeRelation.h"
 #include "mx/core/elements/MetronomeRelationGroup.h"
 #include "mx/core/elements/NoteRelationNote.h"
 #include "mx/core/elements/PerMinute.h"
@@ -21,7 +22,7 @@ namespace core
 {
 Metronome::Metronome()
     : myAttributes(std::make_shared<MetronomeAttributes>()),
-      myBeatUnitPerOrNoteRelationNoteChoice(makeBeatUnitPerOrNoteRelationNoteChoice())
+      myBeatUnitPerOrNoteRelationNoteChoice(std::make_shared<BeatUnitPerOrNoteRelationNoteChoice>())
 {
 }
 
@@ -32,26 +33,35 @@ bool Metronome::hasAttributes() const
 
 std::ostream &Metronome::streamAttributes(std::ostream &os) const
 {
-    myAttributes->toStream(os);
-    return os;
+    return myAttributes->toStream(os);
 }
 
 std::ostream &Metronome::streamName(std::ostream &os) const
 {
-    return os << "metronome";
+    os << "metronome";
+    return os;
 }
 
 bool Metronome::hasContents() const
 {
-    return true;
+    return myBeatUnitPerOrNoteRelationNoteChoice->hasContents();
 }
 
 std::ostream &Metronome::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    os << std::endl;
-    myBeatUnitPerOrNoteRelationNoteChoice->streamContents(os, indentLevel + 1, isOneLineOnly);
-    os << std::endl;
-    isOneLineOnly = false;
+    if (myBeatUnitPerOrNoteRelationNoteChoice->hasContents())
+    {
+        os << std::endl;
+        if (myBeatUnitPerOrNoteRelationNoteChoice)
+        {
+            myBeatUnitPerOrNoteRelationNoteChoice->streamContents(os, indentLevel + 1, isOneLineOnly);
+        }
+        os << std::endl;
+    }
+    if (myBeatUnitPerOrNoteRelationNoteChoice->hasContents())
+    {
+        isOneLineOnly = false;
+    }
     return os;
 }
 
@@ -81,133 +91,134 @@ void Metronome::setBeatUnitPerOrNoteRelationNoteChoice(const BeatUnitPerOrNoteRe
     }
 }
 
-/*
- <xs:attributeGroup ref="justify"/>
- <xs:attributeGroup ref="print-style-align"/>
- <xs:attributeGroup ref="text-decoration"/>
- <xs:attributeGroup ref="text-rotation"/>
- <xs:attributeGroup ref="letter-spacing"/>
- <xs:attributeGroup ref="line-height"/>
- <xs:attribute ref="xml:lang"/>
- <xs:attribute ref="xml:space"/>
- <xs:attributeGroup ref="text-direction"/>
- <xs:attributeGroup ref="enclosure"/>*/
-
 bool Metronome::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     bool isSuccess = true;
     isSuccess &= myAttributes->fromXElement(message, xelement);
 
-    auto iter = xelement.begin();
     auto endIter = xelement.end();
-
-    for (; iter != endIter; ++iter)
+    for (auto it = xelement.begin(); it != endIter; ++it)
     {
-        bool isIterIncremented = false;
-
-        if ((iter->getName() == "beat-unit") || (iter->getName() == "beat-unit-dot"))
+        if (it->getName() == "beat-unit" || it->getName() == "beat-unit-dot")
         {
-            myBeatUnitPerOrNoteRelationNoteChoice->setChoice(BeatUnitPerOrNoteRelationNoteChoice::Choice::beatUnitPer);
-            auto beatUnitGroup = myBeatUnitPerOrNoteRelationNoteChoice->getBeatUnitPer()->getBeatUnitGroup();
-            importGroup(message, iter, endIter, isSuccess, beatUnitGroup);
-            isIterIncremented = true;
-            ++iter;
-
-            if (iter == endIter)
+            if (importContainerBeatUnitPer(message, it, endIter, isSuccess))
             {
-                return false;
-            }
-
-            if ((iter->getName() == "beat-unit") || (iter->getName() == "beat-unit-dot"))
-            {
-                auto beatUnitGroup2 = myBeatUnitPerOrNoteRelationNoteChoice->getBeatUnitPer()
-                                          ->getPerMinuteOrBeatUnitChoice()
-                                          ->getBeatUnitGroup();
-                myBeatUnitPerOrNoteRelationNoteChoice->getBeatUnitPer()->getPerMinuteOrBeatUnitChoice()->setChoice(
-                    PerMinuteOrBeatUnitChoice::Choice::beatUnitGroup);
-                importGroup(message, iter, endIter, isSuccess, beatUnitGroup2);
-                isIterIncremented = true;
-                ++iter;
-            }
-            else if (iter->getName() == "per-minute")
-            {
-                myBeatUnitPerOrNoteRelationNoteChoice->getBeatUnitPer()->getPerMinuteOrBeatUnitChoice()->setChoice(
-                    PerMinuteOrBeatUnitChoice::Choice::perMinute);
-                myBeatUnitPerOrNoteRelationNoteChoice->getBeatUnitPer()
-                    ->getPerMinuteOrBeatUnitChoice()
-                    ->getPerMinute()
-                    ->fromXElement(message, *iter);
-                isIterIncremented = true;
-                ++iter;
+                continue;
             }
         }
-        else if ((iter->getName() == "metronome-note"))
+        if (it->getName() == "metronome-note")
         {
-            myBeatUnitPerOrNoteRelationNoteChoice->setChoice(
-                BeatUnitPerOrNoteRelationNoteChoice::Choice::noteRelationNote);
-            auto noteRelationNote = myBeatUnitPerOrNoteRelationNoteChoice->getNoteRelationNote();
-            bool isFirstMetronomeNoteAdded = false;
-
-            while (iter != endIter && iter->getName() == "metronome-note")
+            if (importContainerNoteRelationNote(message, it, endIter, isSuccess))
             {
-                auto metronomeNote = makeMetronomeNote();
-                isSuccess &= metronomeNote->fromXElement(message, *iter);
-
-                if (!isFirstMetronomeNoteAdded && noteRelationNote->getMetronomeNoteSet().size() == 1)
-                {
-                    noteRelationNote->addMetronomeNote(metronomeNote);
-                    noteRelationNote->removeMetronomeNote(noteRelationNote->getMetronomeNoteSet().cbegin());
-                    isFirstMetronomeNoteAdded = true;
-                }
-                else
-                {
-                    noteRelationNote->addMetronomeNote(metronomeNote);
-                    isFirstMetronomeNoteAdded = true;
-                }
-                isIterIncremented = true;
-                ++iter;
+                continue;
             }
-
-            if (iter == endIter)
-            {
-                MX_RETURN_IS_SUCCESS;
-            }
-
-            if (iter->getName() == "metronome-relation")
-            {
-                myBeatUnitPerOrNoteRelationNoteChoice->getNoteRelationNote()->setHasMetronomeRelationGroup(true);
-                auto metronomeRelationGroup =
-                    myBeatUnitPerOrNoteRelationNoteChoice->getNoteRelationNote()->getMetronomeRelationGroup();
-                isSuccess &= metronomeRelationGroup->getMetronomeRelation()->fromXElement(message, *iter);
-                ++iter;
-                isIterIncremented = true;
-
-                if (iter == endIter)
-                {
-                    MX_RETURN_IS_SUCCESS;
-                }
-
-                if (iter->getName() == "metronome-note")
-                {
-                    myBeatUnitPerOrNoteRelationNoteChoice->getNoteRelationNote()->setHasMetronomeRelationGroup(true);
-                    isSuccess &= metronomeRelationGroup->getMetronomeNote()->fromXElement(message, *iter);
-                    ++iter;
-                    isIterIncremented = true;
-                    if (iter == endIter)
-                    {
-                        MX_RETURN_IS_SUCCESS;
-                    }
-                }
-            }
-        }
-
-        if (isIterIncremented)
-        {
-            --iter;
         }
     }
 
     MX_RETURN_IS_SUCCESS;
+}
+
+bool Metronome::importContainerBeatUnitPer(std::ostream &message, ::ezxml::XElementIterator &it,
+                                           ::ezxml::XElementIterator &endIter, bool &isSuccess)
+{
+    if (it == endIter)
+    {
+        return false;
+    }
+
+    if (it->getName() != "beat-unit" && it->getName() != "beat-unit-dot")
+    {
+        return false;
+    }
+
+    myBeatUnitPerOrNoteRelationNoteChoice->setChoice(BeatUnitPerOrNoteRelationNoteChoice::Choice::beatUnitPer);
+    auto containerPtr = myBeatUnitPerOrNoteRelationNoteChoice->getBeatUnitPer();
+    bool isIterIncremented = false;
+
+    if (it != endIter)
+    {
+        auto groupPtr = containerPtr->getBeatUnitGroup();
+        importGroup(message, it, endIter, isSuccess, groupPtr);
+        isIterIncremented = true;
+        ++it;
+    }
+
+    auto perminuteorbeatunitchoice = containerPtr->getPerMinuteOrBeatUnitChoice();
+    if (it != endIter && it->getName() == "per-minute")
+    {
+        perminuteorbeatunitchoice->setChoice(PerMinuteOrBeatUnitChoice::Choice::perMinute);
+        isSuccess &= perminuteorbeatunitchoice->getPerMinute()->fromXElement(message, *it);
+        isIterIncremented = true;
+        ++it;
+    }
+    else if (it != endIter && (it->getName() == "beat-unit" || it->getName() == "beat-unit-dot"))
+    {
+        perminuteorbeatunitchoice->setChoice(PerMinuteOrBeatUnitChoice::Choice::beatUnitGroup);
+        auto groupPtr = perminuteorbeatunitchoice->getBeatUnitGroup();
+        importGroup(message, it, endIter, isSuccess, groupPtr);
+        isIterIncremented = true;
+        ++it;
+    }
+
+    if (isIterIncremented)
+    {
+        --it;
+    }
+
+    return true;
+}
+
+bool Metronome::importContainerNoteRelationNote(std::ostream &message, ::ezxml::XElementIterator &it,
+                                                ::ezxml::XElementIterator &endIter, bool &isSuccess)
+{
+    if (it == endIter)
+    {
+        return false;
+    }
+
+    if (it->getName() != "metronome-note")
+    {
+        return false;
+    }
+
+    myBeatUnitPerOrNoteRelationNoteChoice->setChoice(BeatUnitPerOrNoteRelationNoteChoice::Choice::noteRelationNote);
+    auto containerPtr = myBeatUnitPerOrNoteRelationNoteChoice->getNoteRelationNote();
+    bool isIterIncremented = false;
+
+    while (it != endIter && it->getName() == "metronome-note")
+    {
+        auto item = makeMetronomeNote();
+        isSuccess &= item->fromXElement(message, *it);
+        const auto &items = containerPtr->getMetronomeNoteSet();
+        if (items.size() == 1 && !isIterIncremented)
+        {
+            containerPtr->addMetronomeNote(item);
+            containerPtr->removeMetronomeNote(items.cbegin());
+        }
+        else
+        {
+            containerPtr->addMetronomeNote(item);
+        }
+        isIterIncremented = true;
+        ++it;
+    }
+
+    bool hasMetronomeRelationGroup = false;
+    auto metronomerelationgroup = containerPtr->getMetronomeRelationGroup();
+    importGroup(message, it, endIter, isSuccess, metronomerelationgroup, hasMetronomeRelationGroup);
+    if (hasMetronomeRelationGroup)
+    {
+        containerPtr->setHasMetronomeRelationGroup(true);
+        isIterIncremented = true;
+        ++it;
+    }
+
+    if (isIterIncremented)
+    {
+        --it;
+    }
+
+    return true;
 }
 
 } // namespace core

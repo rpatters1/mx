@@ -60,7 +60,6 @@ void Syllabic::setValue(const SyllabicEnum &value)
 bool Syllabic::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     MX_UNUSED(message);
-    MX_UNUSED(xelement);
     myValue = parseSyllabicEnum(xelement.getValue());
     return true;
 }

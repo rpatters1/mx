@@ -10,7 +10,7 @@ namespace mx
 {
 namespace core
 {
-MetronomeBeamAttributes::MetronomeBeamAttributes() : number(1), hasNumber(false)
+MetronomeBeamAttributes::MetronomeBeamAttributes() : number(), hasNumber(false)
 {
 }
 

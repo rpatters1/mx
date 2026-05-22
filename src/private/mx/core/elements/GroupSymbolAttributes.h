@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/ForwardDeclare.h"
 
@@ -29,10 +30,12 @@ struct GroupSymbolAttributes : public AttributesInterface
     TenthsValue defaultY;
     TenthsValue relativeX;
     TenthsValue relativeY;
+    Color color;
     bool hasDefaultX;
     bool hasDefaultY;
     bool hasRelativeX;
     bool hasRelativeY;
+    bool hasColor;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

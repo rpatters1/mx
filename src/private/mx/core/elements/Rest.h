@@ -37,7 +37,7 @@ class Rest : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     RestAttributesPtr getAttributes() const;
-    void setAttributes(const RestAttributesPtr &value);
+    void setAttributes(const RestAttributesPtr &attributes);
 
     /* _________ DisplayStepOctaveGroup minOccurs = 0, maxOccurs = 1 _________ */
     DisplayStepOctaveGroupPtr getDisplayStepOctaveGroup() const;

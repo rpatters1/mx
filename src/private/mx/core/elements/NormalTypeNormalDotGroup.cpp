@@ -39,13 +39,19 @@ bool NormalTypeNormalDotGroup::hasContents() const
 std::ostream &NormalTypeNormalDotGroup::streamContents(std::ostream &os, const int indentLevel,
                                                        bool &isOneLineOnly) const
 {
-    isOneLineOnly = false;
+    bool isFirst = true;
+    if (!isFirst)
+        os << std::endl;
     myNormalType->toStream(os, indentLevel);
+    isFirst = false;
     for (auto x : myNormalDotSet)
     {
-        os << std::endl;
+        if (!isFirst)
+            os << std::endl;
         x->toStream(os, indentLevel);
+        isFirst = false;
     }
+    isOneLineOnly = !hasContents();
     return os;
 }
 
@@ -102,7 +108,6 @@ bool NormalTypeNormalDotGroup::fromXElementImpl(std::ostream &message, ::ezxml::
     bool isSuccess = true;
     bool isNormalTypeFound = false;
     bool isFirstNormalDotAdded = false;
-
     for (auto it = xelement.begin(); it != xelement.end(); ++it)
     {
         const std::string elementName = it->getName();
@@ -132,13 +137,15 @@ bool NormalTypeNormalDotGroup::fromXElementImpl(std::ostream &message, ::ezxml::
         {
             if (!isNormalTypeFound)
             {
-                isSuccess = false;
-                message << "NormalTypeNormalDotGroup: 'normal-type' element is required but was not found" << std::endl;
+                message << "NormalTypeNormalDotGroup: a 'normal-type' element is required but was not found"
+                        << std::endl;
+                return false;
             }
-            break;
         }
     }
+
     MX_RETURN_IS_SUCCESS;
 }
+
 } // namespace core
 } // namespace mx

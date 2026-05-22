@@ -62,10 +62,15 @@ std::ostream &Appearance::streamContents(std::ostream &os, const int indentLevel
         os << std::endl;
         x->toStream(os, indentLevel + 1);
     }
-    isOneLineOnly = !hasContents();
-    if (!isOneLineOnly)
+    if (myLineWidthSet.size() > 0 || myNoteSizeSet.size() > 0 || myDistanceSet.size() > 0 ||
+        myOtherAppearanceSet.size() > 0)
     {
+        isOneLineOnly = false;
         os << std::endl;
+    }
+    else
+    {
+        isOneLineOnly = true;
     }
     return os;
 }

@@ -161,14 +161,6 @@ bool FrameNote::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelem
         }
     }
 
-    if (!isStringFound)
-    {
-        message << "FrameNote: '" << myString->getElementName() << "' is required but was not found" << std::endl;
-    }
-    if (!isFretFound)
-    {
-        message << "FrameNote: '" << myFret->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

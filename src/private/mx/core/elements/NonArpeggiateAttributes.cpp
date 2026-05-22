@@ -11,15 +11,16 @@ namespace mx
 namespace core
 {
 NonArpeggiateAttributes::NonArpeggiateAttributes()
-    : type(TopBottom::top), number(), defaultX(), defaultY(), relativeX(), relativeY(), placement(AboveBelow::below),
+    : type(), number(), defaultX(), defaultY(), relativeX(), relativeY(), placement(AboveBelow::below), color(),
       hasType(true), hasNumber(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
-      hasPlacement(false)
+      hasPlacement(false), hasColor(false)
 {
 }
 
 bool NonArpeggiateAttributes::hasValues() const
 {
-    return hasType || hasNumber || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasPlacement;
+    return hasType || hasNumber || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasPlacement ||
+           hasColor;
 }
 
 std::ostream &NonArpeggiateAttributes::toStream(std::ostream &os) const
@@ -33,6 +34,7 @@ std::ostream &NonArpeggiateAttributes::toStream(std::ostream &os) const
         streamAttribute(os, relativeX, "relative-x", hasRelativeX);
         streamAttribute(os, relativeY, "relative-y", hasRelativeY);
         streamAttribute(os, placement, "placement", hasPlacement);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -76,15 +78,19 @@ bool NonArpeggiateAttributes::fromXElementImpl(std::ostream &message, ::ezxml::X
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
     }
 
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

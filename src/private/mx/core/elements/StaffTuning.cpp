@@ -142,15 +142,6 @@ bool StaffTuning::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xel
         }
     }
 
-    if (!isTuningStepFound)
-    {
-        message << "StaffTuning: '" << myTuningStep->getElementName() << "' is required but was not found" << std::endl;
-    }
-    if (!isTuningOctaveFound)
-    {
-        message << "StaffTuning: '" << myTuningOctave->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

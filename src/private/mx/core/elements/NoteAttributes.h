@@ -6,6 +6,7 @@
 
 #include "mx/core/AttributesInterface.h"
 #include "mx/core/Color.h"
+#include "mx/core/CommaSeparatedText.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
 #include "mx/core/FontSize.h"

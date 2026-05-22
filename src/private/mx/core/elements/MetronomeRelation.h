@@ -24,6 +24,16 @@ inline MetronomeRelationPtr makeMetronomeRelation()
     return std::make_shared<MetronomeRelation>();
 }
 
+inline MetronomeRelationPtr makeMetronomeRelation(const XsString &value)
+{
+    return std::make_shared<MetronomeRelation>(value);
+}
+
+inline MetronomeRelationPtr makeMetronomeRelation(XsString &&value)
+{
+    return std::make_shared<MetronomeRelation>(std::move(value));
+}
+
 class MetronomeRelation : public ElementInterface
 {
   public:

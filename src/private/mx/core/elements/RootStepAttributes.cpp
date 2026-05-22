@@ -12,16 +12,16 @@ namespace core
 {
 RootStepAttributes::RootStepAttributes()
     : text(), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(FontSize{CssFontSize::medium}), fontWeight(FontWeight::normal), hasText(false), hasDefaultX(false),
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), hasText(false), hasDefaultX(false),
       hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false),
-      hasFontSize(false), hasFontWeight(false)
+      hasFontSize(false), hasFontWeight(false), hasColor(false)
 {
 }
 
 bool RootStepAttributes::hasValues() const
 {
     return hasText || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle ||
-           hasFontSize || hasFontWeight;
+           hasFontSize || hasFontWeight || hasColor;
 }
 
 std::ostream &RootStepAttributes::toStream(std::ostream &os) const
@@ -37,6 +37,7 @@ std::ostream &RootStepAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -88,9 +89,13 @@ bool RootStepAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEleme
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

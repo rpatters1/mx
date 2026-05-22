@@ -11,14 +11,15 @@ namespace mx
 namespace core
 {
 PartSymbolAttributes::PartSymbolAttributes()
-    : topStaff(), bottomStaff(), defaultX(), defaultY(), relativeX(), relativeY(), hasTopStaff(false),
-      hasBottomStaff(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false)
+    : topStaff(), bottomStaff(), defaultX(), defaultY(), relativeX(), relativeY(), color(), hasTopStaff(false),
+      hasBottomStaff(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
+      hasColor(false)
 {
 }
 
 bool PartSymbolAttributes::hasValues() const
 {
-    return hasTopStaff || hasBottomStaff || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY;
+    return hasTopStaff || hasBottomStaff || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasColor;
 }
 
 std::ostream &PartSymbolAttributes::toStream(std::ostream &os) const
@@ -31,6 +32,7 @@ std::ostream &PartSymbolAttributes::toStream(std::ostream &os) const
         streamAttribute(os, defaultY, "default-y", hasDefaultY);
         streamAttribute(os, relativeX, "relative-x", hasRelativeX);
         streamAttribute(os, relativeY, "relative-y", hasRelativeY);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -66,6 +68,10 @@ bool PartSymbolAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEle
             continue;
         }
         if (parseAttribute(message, it, className, isSuccess, relativeY, hasRelativeY, "relative-y"))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
         {
             continue;
         }

@@ -11,10 +11,10 @@ namespace mx
 namespace core
 {
 TupletAttributes::TupletAttributes()
-    : type(), number(), bracket(YesNo::no), showNumber(), showType(), lineShape(), defaultX(), defaultY(), relativeX(),
-      relativeY(), placement(AboveBelow::below), hasType(true), hasNumber(false), hasBracket(false),
-      hasShowNumber(false), hasShowType(false), hasLineShape(false), hasDefaultX(false), hasDefaultY(false),
-      hasRelativeX(false), hasRelativeY(false), hasPlacement(false)
+    : type(StartStop::start), number(), bracket(YesNo::no), showNumber(), showType(), lineShape(LineShape::straight),
+      defaultX(), defaultY(), relativeX(), relativeY(), placement(AboveBelow::below), hasType(true), hasNumber(false),
+      hasBracket(false), hasShowNumber(false), hasShowType(false), hasLineShape(false), hasDefaultX(false),
+      hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasPlacement(false)
 {
 }
 
@@ -104,7 +104,7 @@ bool TupletAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

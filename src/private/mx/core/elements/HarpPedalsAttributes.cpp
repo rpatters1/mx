@@ -12,9 +12,10 @@ namespace core
 {
 HarpPedalsAttributes::HarpPedalsAttributes()
     : defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), halign(LeftCenterRight::center), valign(),
-      hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false),
-      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false), hasHalign(false), hasValign(false)
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), halign(LeftCenterRight::left),
+      valign(Valign::bottom), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
+      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false),
+      hasHalign(false), hasValign(false)
 {
 }
 

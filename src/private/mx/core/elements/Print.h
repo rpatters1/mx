@@ -41,7 +41,7 @@ class Print : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     PrintAttributesPtr getAttributes() const;
-    void setAttributes(const PrintAttributesPtr &value);
+    void setAttributes(const PrintAttributesPtr &attributes);
 
     /* _________ LayoutGroup minOccurs = 1, maxOccurs = 1 _________ */
     LayoutGroupPtr getLayoutGroup() const;

@@ -38,7 +38,7 @@ class Slash : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     SlashAttributesPtr getAttributes() const;
-    void setAttributes(const SlashAttributesPtr &value);
+    void setAttributes(const SlashAttributesPtr &attributes);
 
     /* _________ SlashType minOccurs = 1, maxOccurs = 1 _________ */
     SlashTypePtr getSlashType() const;
@@ -49,6 +49,7 @@ class Slash : public ElementInterface
     void addSlashDot(const SlashDotPtr &value);
     void removeSlashDot(const SlashDotSetIterConst &value);
     void clearSlashDotSet();
+    SlashDotPtr getSlashDot(const SlashDotSetIterConst &setIterator) const;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

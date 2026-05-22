@@ -41,26 +41,23 @@ bool MidiDeviceInstrumentGroup::hasContents() const
 std::ostream &MidiDeviceInstrumentGroup::streamContents(std::ostream &os, const int indentLevel,
                                                         bool &isOneLineOnly) const
 {
-    if (this->hasContents())
+    bool firstItem = true;
+    isOneLineOnly = true;
+    if (myHasMidiDevice)
     {
-        if (myHasMidiDevice)
-        {
-            myMidiDevice->toStream(os, indentLevel);
-            if (myHasMidiInstrument)
-            {
-                os << std::endl;
-            }
-        }
-        if (myHasMidiInstrument)
-        {
-            myMidiInstrument->toStream(os, indentLevel);
-        }
-        isOneLineOnly = false;
+        if (!firstItem)
+            os << std::endl;
+        myMidiDevice->toStream(os, indentLevel);
+        firstItem = false;
     }
-    else
+    if (myHasMidiInstrument)
     {
-        isOneLineOnly = true;
+        if (!firstItem)
+            os << std::endl;
+        myMidiInstrument->toStream(os, indentLevel);
+        firstItem = false;
     }
+    isOneLineOnly = !hasContents();
     return os;
 }
 

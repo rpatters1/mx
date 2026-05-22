@@ -45,7 +45,7 @@ class PageLayout : public ElementInterface
     PageWidthPtr getPageWidth() const;
     void setPageWidth(const PageWidthPtr &value);
 
-    /* _________ PageMargins minOccurs = 0, maxOccurs = 2 _________ */
+    /* _________ PageMargins minOccurs = 0, maxOccurs = unbounded _________ */
     const PageMarginsSet &getPageMarginsSet() const;
     void addPageMargins(const PageMarginsPtr &value);
     void removePageMargins(const PageMarginsSetIterConst &value);

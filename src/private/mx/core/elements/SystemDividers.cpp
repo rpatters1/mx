@@ -93,16 +93,6 @@ bool SystemDividers::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
         }
     }
 
-    if (!isLeftDividerFound)
-    {
-        message << "SystemDividers: '" << myLeftDivider->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
-    if (!isRightDividerFound)
-    {
-        message << "SystemDividers: '" << myRightDivider->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

@@ -40,6 +40,7 @@ bool PageLayout::hasContents() const
 
 std::ostream &PageLayout::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    isOneLineOnly = false;
     os << std::endl;
     myPageHeight->toStream(os, indentLevel + 1);
     os << std::endl;
@@ -50,7 +51,6 @@ std::ostream &PageLayout::streamContents(std::ostream &os, const int indentLevel
         x->toStream(os, indentLevel + 1);
     }
     os << std::endl;
-    isOneLineOnly = false;
     return os;
 }
 
@@ -97,10 +97,7 @@ void PageLayout::addPageMargins(const PageMarginsPtr &value)
 {
     if (value)
     {
-        if (myPageMarginsSet.size() < 2)
-        {
-            myPageMarginsSet.push_back(value);
-        }
+        myPageMarginsSet.push_back(value);
     }
 }
 
@@ -138,14 +135,6 @@ bool PageLayout::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xele
         importElementSet(message, it, endIter, isSuccess, "page-margins", myPageMarginsSet);
     }
 
-    if (!isPageHeightFound)
-    {
-        message << "PageLayout: '" << myPageHeight->getElementName() << "' is required but was not found" << std::endl;
-    }
-    if (!isPageWidthFound)
-    {
-        message << "PageLayout: '" << myPageWidth->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

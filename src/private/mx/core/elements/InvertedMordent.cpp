@@ -3,13 +3,14 @@
 // Distributed under the MIT License
 
 #include "mx/core/elements/InvertedMordent.h"
+#include "mx/core/FromXElement.h"
 #include <iostream>
 
 namespace mx
 {
 namespace core
 {
-InvertedMordent::InvertedMordent() : myAttributes(std::make_shared<InvertedMordentAttributes>())
+InvertedMordent::InvertedMordent() : ElementInterface(), myAttributes(std::make_shared<InvertedMordentAttributes>())
 {
 }
 
@@ -20,7 +21,11 @@ bool InvertedMordent::hasAttributes() const
 
 std::ostream &InvertedMordent::streamAttributes(std::ostream &os) const
 {
-    return myAttributes->toStream(os);
+    if (myAttributes)
+    {
+        myAttributes->toStream(os);
+    }
+    return os;
 }
 
 std::ostream &InvertedMordent::streamName(std::ostream &os) const

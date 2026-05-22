@@ -188,10 +188,6 @@ bool Transpose::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelem
         }
     }
 
-    if (!isChromaticFound)
-    {
-        message << "Transpose: '" << myChromatic->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

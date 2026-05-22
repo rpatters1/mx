@@ -10,7 +10,7 @@ namespace mx
 {
 namespace core
 {
-OffsetAttributes::OffsetAttributes() : sound(), hasSound(false)
+OffsetAttributes::OffsetAttributes() : sound(YesNo::no), hasSound(false)
 {
 }
 

@@ -11,18 +11,18 @@ namespace mx
 namespace core
 {
 TextAttributes::TextAttributes()
-    : fontFamily(), fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}),
-      fontWeight(FontWeight::normal), underline(), overline(), lineThrough(), rotation(), letterSpacing(),
-      lang(XmlLang{"it"}), hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false),
+    : fontFamily(), fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal),
+      color(), underline(), overline(), lineThrough(), rotation(), letterSpacing(), lang("it"), dir(),
+      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false),
       hasUnderline(false), hasOverline(false), hasLineThrough(false), hasRotation(false), hasLetterSpacing(false),
-      hasLang(false)
+      hasLang(false), hasDir(false)
 {
 }
 
 bool TextAttributes::hasValues() const
 {
-    return hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasUnderline || hasOverline ||
-           hasLineThrough || hasRotation || hasLetterSpacing || hasLang;
+    return hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasColor || hasUnderline || hasOverline ||
+           hasLineThrough || hasRotation || hasLetterSpacing || hasLang || hasDir;
 }
 
 std::ostream &TextAttributes::toStream(std::ostream &os) const
@@ -33,12 +33,14 @@ std::ostream &TextAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, underline, "underline", hasUnderline);
         streamAttribute(os, overline, "overline", hasOverline);
         streamAttribute(os, lineThrough, "line-through", hasLineThrough);
         streamAttribute(os, rotation, "rotation", hasRotation);
         streamAttribute(os, letterSpacing, "letter-spacing", hasLetterSpacing);
         streamAttribute(os, lang, "xml:lang", hasLang);
+        streamAttribute(os, dir, "dir", hasDir);
     }
     return os;
 }
@@ -70,6 +72,10 @@ bool TextAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
         if (parseAttribute(message, it, className, isSuccess, underline, hasUnderline, "underline"))
         {
             continue;
@@ -90,11 +96,11 @@ bool TextAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, lang, hasLang, "lang"))
+        if (parseAttribute(message, it, className, isSuccess, lang, hasLang, "xml:lang"))
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, lang, hasLang, "xml:lang"))
+        if (parseAttribute(message, it, className, isSuccess, dir, hasDir, "dir", &parseTextDirection))
         {
             continue;
         }

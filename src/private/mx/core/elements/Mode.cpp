@@ -60,8 +60,7 @@ void Mode::setValue(const ModeValue &value)
 bool Mode::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     MX_UNUSED(message);
-    MX_UNUSED(xelement);
-    myValue.setValue(xelement.getValue());
+    myValue = parseModeValue(xelement.getValue());
     return true;
 }
 

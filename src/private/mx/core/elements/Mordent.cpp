@@ -10,7 +10,7 @@ namespace mx
 {
 namespace core
 {
-Mordent::Mordent() : myAttributes(std::make_shared<MordentAttributes>())
+Mordent::Mordent() : ElementInterface(), myAttributes(std::make_shared<MordentAttributes>())
 {
 }
 
@@ -21,7 +21,11 @@ bool Mordent::hasAttributes() const
 
 std::ostream &Mordent::streamAttributes(std::ostream &os) const
 {
-    return myAttributes->toStream(os);
+    if (myAttributes)
+    {
+        myAttributes->toStream(os);
+    }
+    return os;
 }
 
 std::ostream &Mordent::streamName(std::ostream &os) const

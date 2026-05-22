@@ -114,7 +114,7 @@ bool TiedAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, bezierOffset2, hasBezierOffset2, "bezier-offset-2"))
+        if (parseAttribute(message, it, className, isSuccess, bezierOffset2, hasBezierOffset2, "bezier-offset2"))
         {
             continue;
         }
@@ -126,11 +126,11 @@ bool TiedAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, bezierX2, hasBezierX2, "bezier-x-2"))
+        if (parseAttribute(message, it, className, isSuccess, bezierX2, hasBezierX2, "bezier-x2"))
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, bezierY2, hasBezierY2, "bezier-y-2"))
+        if (parseAttribute(message, it, className, isSuccess, bezierY2, hasBezierY2, "bezier-y2"))
         {
             continue;
         }
@@ -143,7 +143,7 @@ bool TiedAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

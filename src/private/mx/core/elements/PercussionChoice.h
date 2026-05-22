@@ -62,6 +62,8 @@ class PercussionChoice : public ElementInterface
     virtual std::ostream &streamName(std::ostream &os) const;
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
+
+    /* _________ Choice minOccurs = 1, maxOccurs = 1 _________ */
     PercussionChoice::Choice getChoice() const;
     void setChoice(const PercussionChoice::Choice value);
 

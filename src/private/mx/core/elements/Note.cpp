@@ -6,6 +6,7 @@
 #include "mx/core/FromXElement.h"
 #include "mx/core/elements/Accidental.h"
 #include "mx/core/elements/Beam.h"
+#include "mx/core/elements/Chord.h"
 #include "mx/core/elements/Cue.h"
 #include "mx/core/elements/CueNoteGroup.h"
 #include "mx/core/elements/Dot.h"
@@ -21,6 +22,7 @@
 #include "mx/core/elements/Lyric.h"
 #include "mx/core/elements/NormalNoteGroup.h"
 #include "mx/core/elements/Notations.h"
+#include "mx/core/elements/NoteAttributes.h"
 #include "mx/core/elements/NoteChoice.h"
 #include "mx/core/elements/Notehead.h"
 #include "mx/core/elements/NoteheadText.h"
@@ -749,7 +751,7 @@ bool Note::parseNoteChoice(std::ostream &message, ::ezxml::XElement &noteElement
     // we should now be pointing at the full note group
     isSuccess &= parseFullNoteGroup(message, noteElement, iter, fullNoteGroup);
 
-    // NormalNoteGroups and CueNoteGroups require a duration element
+    // GraceNoteGroups do not have a duration element
     if (elementName != "grace")
     {
         if (iter == noteElement.end() || iter->getName() != "duration")
@@ -758,13 +760,13 @@ bool Note::parseNoteChoice(std::ostream &message, ::ezxml::XElement &noteElement
             return false;
         }
 
-        if (getNoteChoice()->getChoice() == NoteChoice::Choice::normal)
-        {
-            getNoteChoice()->getNormalNoteGroup()->getDuration()->fromXElement(message, *iter);
-        }
-        else if (getNoteChoice()->getChoice() == NoteChoice::Choice::cue)
+        if (getNoteChoice()->getChoice() == NoteChoice::Choice::cue)
         {
             getNoteChoice()->getCueNoteGroup()->getDuration()->fromXElement(message, *iter);
+        }
+        else if (getNoteChoice()->getChoice() == NoteChoice::Choice::normal)
+        {
+            getNoteChoice()->getNormalNoteGroup()->getDuration()->fromXElement(message, *iter);
         }
         ++iter;
     }
@@ -775,22 +777,22 @@ bool Note::parseNoteChoice(std::ostream &message, ::ezxml::XElement &noteElement
         MX_RETURN_IS_SUCCESS;
     }
 
-    // now we may be pointing at tie elements, but only if the choice is normal or grace
-    if (getNoteChoice()->getChoice() == NoteChoice::Choice::normal ||
-        getNoteChoice()->getChoice() == NoteChoice::Choice::grace)
+    // now we may be pointing at tie elements, but only if the choice supports them
+    if (getNoteChoice()->getChoice() == NoteChoice::Choice::grace ||
+        getNoteChoice()->getChoice() == NoteChoice::Choice::normal)
     {
         std::string possibleTieElementName = iter->getName();
         while (iter != noteElement.end() && iter->getName() == "tie")
         {
             auto tie = makeTie();
             isSuccess &= tie->fromXElement(message, *iter);
-            if (getNoteChoice()->getChoice() == NoteChoice::Choice::normal)
-            {
-                getNoteChoice()->getNormalNoteGroup()->addTie(tie);
-            }
-            else if (getNoteChoice()->getChoice() == NoteChoice::Choice::grace)
+            if (getNoteChoice()->getChoice() == NoteChoice::Choice::grace)
             {
                 getNoteChoice()->getGraceNoteGroup()->addTie(tie);
+            }
+            else if (getNoteChoice()->getChoice() == NoteChoice::Choice::normal)
+            {
+                getNoteChoice()->getNormalNoteGroup()->addTie(tie);
             }
             ++iter;
         }

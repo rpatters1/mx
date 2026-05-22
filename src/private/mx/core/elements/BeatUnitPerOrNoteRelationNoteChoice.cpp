@@ -40,18 +40,13 @@ bool BeatUnitPerOrNoteRelationNoteChoice::hasContents() const
 std::ostream &BeatUnitPerOrNoteRelationNoteChoice::streamContents(std::ostream &os, const int indentLevel,
                                                                   bool &isOneLineOnly) const
 {
-    switch (myChoice)
+    if (myChoice == Choice::beatUnitPer)
     {
-    case Choice::beatUnitPer: {
         myBeatUnitPer->streamContents(os, indentLevel, isOneLineOnly);
     }
-    break;
-    case Choice::noteRelationNote: {
+    if (myChoice == Choice::noteRelationNote)
+    {
         myNoteRelationNote->streamContents(os, indentLevel, isOneLineOnly);
-    }
-    break;
-    default:
-        break;
     }
     isOneLineOnly = false;
     return os;
@@ -62,7 +57,7 @@ BeatUnitPerOrNoteRelationNoteChoice::Choice BeatUnitPerOrNoteRelationNoteChoice:
     return myChoice;
 }
 
-void BeatUnitPerOrNoteRelationNoteChoice::setChoice(const BeatUnitPerOrNoteRelationNoteChoice::Choice value)
+void BeatUnitPerOrNoteRelationNoteChoice::setChoice(const Choice value)
 {
     myChoice = value;
 }
@@ -87,15 +82,13 @@ NoteRelationNotePtr BeatUnitPerOrNoteRelationNoteChoice::getNoteRelationNote() c
 
 void BeatUnitPerOrNoteRelationNoteChoice::setNoteRelationNote(const NoteRelationNotePtr &value)
 {
-    myNoteRelationNote = value;
+    if (value)
+    {
+        myNoteRelationNote = value;
+    }
 }
 
-bool BeatUnitPerOrNoteRelationNoteChoice::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
-{
-    MX_CHOICE_IF(beatUnitPer, "beat-unit-per", BeatUnitPer);
-    MX_CHOICE_IF(noteRelationNote, "note-relation-note", NoteRelationNote);
-    MX_BAD_ELEMENT_FAILURE(BeatUnitPerOrNoteRelationNoteChoice);
-}
+MX_FROM_XELEMENT_UNUSED(BeatUnitPerOrNoteRelationNoteChoice);
 
 } // namespace core
 } // namespace mx

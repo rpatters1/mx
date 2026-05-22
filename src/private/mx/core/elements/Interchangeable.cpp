@@ -142,17 +142,6 @@ bool Interchangeable::fromXElementImpl(std::ostream &message, ::ezxml::XElement 
         }
     }
 
-    if (!isBeatsFound)
-    {
-        message << "Interchangeable: '" << myBeats->getElementName() << "' is required but was not found" << std::endl;
-    }
-
-    if (!isBeatTypeFound)
-    {
-        message << "Interchangeable: '" << myBeatType->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
-
     MX_RETURN_IS_SUCCESS;
 }
 

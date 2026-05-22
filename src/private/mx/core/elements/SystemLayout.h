@@ -43,6 +43,8 @@ class SystemLayout : public ElementInterface
     void setSystemMargins(const SystemMarginsPtr &value);
     bool getHasSystemMargins() const;
     void setHasSystemMargins(const bool value);
+
+    /* _________ SystemDistance minOccurs = 0, maxOccurs = 1 _________ */
     SystemDistancePtr getSystemDistance() const;
     void setSystemDistance(const SystemDistancePtr &value);
     bool getHasSystemDistance() const;

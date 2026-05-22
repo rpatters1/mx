@@ -10,7 +10,7 @@ namespace mx
 {
 namespace core
 {
-HoleClosedAttributes::HoleClosedAttributes() : location(HoleClosedLocation::top), hasLocation(false)
+HoleClosedAttributes::HoleClosedAttributes() : location(), hasLocation(false)
 {
 }
 

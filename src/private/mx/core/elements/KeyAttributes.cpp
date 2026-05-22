@@ -100,7 +100,7 @@ bool KeyAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &x
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

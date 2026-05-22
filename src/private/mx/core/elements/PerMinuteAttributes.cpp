@@ -11,9 +11,8 @@ namespace mx
 namespace core
 {
 PerMinuteAttributes::PerMinuteAttributes()
-    : fontFamily(), fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}),
-      fontWeight(FontWeight::normal), hasFontFamily(false), hasFontStyle(false), hasFontSize(false),
-      hasFontWeight(false)
+    : fontFamily(), fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal),
+      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false)
 {
 }
 

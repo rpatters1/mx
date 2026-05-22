@@ -11,18 +11,19 @@ namespace mx
 namespace core
 {
 AccidentalAttributes::AccidentalAttributes()
-    : cautionary(YesNo::no), editorial(YesNo::no), parentheses(YesNo::no), bracket(), size(), defaultX(), defaultY(),
-      relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}),
-      fontWeight(FontWeight::normal), hasCautionary(false), hasEditorial(false), hasParentheses(false),
-      hasBracket(false), hasSize(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false),
-      hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false)
+    : cautionary(YesNo::no), editorial(YesNo::no), parentheses(YesNo::no), bracket(YesNo::no), size(SymbolSize::full),
+      defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), hasCautionary(false), hasEditorial(false),
+      hasParentheses(false), hasBracket(false), hasSize(false), hasDefaultX(false), hasDefaultY(false),
+      hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false),
+      hasFontWeight(false), hasColor(false)
 {
 }
 
 bool AccidentalAttributes::hasValues() const
 {
     return hasCautionary || hasEditorial || hasParentheses || hasBracket || hasSize || hasDefaultX || hasDefaultY ||
-           hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight;
+           hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasColor;
 }
 
 std::ostream &AccidentalAttributes::toStream(std::ostream &os) const
@@ -42,6 +43,7 @@ std::ostream &AccidentalAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -106,6 +108,10 @@ bool AccidentalAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEle
         }
         if (parseAttribute(message, it, className, isSuccess, fontWeight, hasFontWeight, "font-weight",
                            &parseFontWeight))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
         {
             continue;
         }

@@ -52,6 +52,7 @@ struct CreditWordsAttributes : public AttributesInterface
     NumberOrNormal lineHeight;
     XmlLang lang;
     XmlSpace space;
+    TextDirection dir;
     EnclosureShape enclosure;
     bool hasJustify;
     bool hasDefaultX;
@@ -73,6 +74,7 @@ struct CreditWordsAttributes : public AttributesInterface
     bool hasLineHeight;
     bool hasLang;
     bool hasSpace;
+    bool hasDir;
     bool hasEnclosure;
 
   private:

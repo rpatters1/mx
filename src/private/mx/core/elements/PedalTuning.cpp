@@ -93,14 +93,6 @@ bool PedalTuning::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xel
         }
     }
 
-    if (!isPedalStepFound)
-    {
-        message << "PedalTuning: '" << myPedalStep->getElementName() << "' is required but was not found" << std::endl;
-    }
-    if (!isPedalAlterFound)
-    {
-        message << "PedalTuning: '" << myPedalAlter->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

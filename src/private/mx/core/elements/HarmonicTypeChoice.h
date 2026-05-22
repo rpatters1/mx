@@ -16,8 +16,8 @@ namespace mx
 namespace core
 {
 
-MX_FORWARD_DECLARE_ELEMENT(Artificial)
 MX_FORWARD_DECLARE_ELEMENT(Natural)
+MX_FORWARD_DECLARE_ELEMENT(Artificial)
 MX_FORWARD_DECLARE_ELEMENT(HarmonicTypeChoice)
 
 inline HarmonicTypeChoicePtr makeHarmonicTypeChoice()
@@ -30,8 +30,8 @@ class HarmonicTypeChoice : public ElementInterface
   public:
     enum class Choice
     {
-        natural = 1,
-        artificial = 2
+        natural = 0,
+        artificial = 1
     };
     HarmonicTypeChoice();
 
@@ -40,16 +40,10 @@ class HarmonicTypeChoice : public ElementInterface
     virtual std::ostream &streamName(std::ostream &os) const;
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
-
-    /* _________ Choice minOccurs = 1, maxOccurs = 1 _________ */
-    HarmonicTypeChoice::Choice getChoice() const;
-    void setChoice(const HarmonicTypeChoice::Choice value);
-
-    /* _________ Natural minOccurs = 1, maxOccurs = 1 _________ */
+    Choice getChoice() const;
+    void setChoice(const Choice value);
     NaturalPtr getNatural() const;
     void setNatural(const NaturalPtr &value);
-
-    /* _________ Artificial minOccurs = 1, maxOccurs = 1 _________ */
     ArtificialPtr getArtificial() const;
     void setArtificial(const ArtificialPtr &value);
 

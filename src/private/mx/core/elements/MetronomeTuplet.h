@@ -39,7 +39,7 @@ class MetronomeTuplet : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     MetronomeTupletAttributesPtr getAttributes() const;
-    void setAttributes(const MetronomeTupletAttributesPtr &value);
+    void setAttributes(const MetronomeTupletAttributesPtr &attributes);
 
     /* _________ ActualNotes minOccurs = 1, maxOccurs = 1 _________ */
     ActualNotesPtr getActualNotes() const;

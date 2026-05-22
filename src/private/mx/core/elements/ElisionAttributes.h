@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/CommaSeparatedText.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
@@ -35,22 +36,26 @@ struct ElisionAttributes : public AttributesInterface
     FontStyle fontStyle;
     FontSize fontSize;
     FontWeight fontWeight;
+    Color color;
     NumberOfLines underline;
     NumberOfLines overline;
     NumberOfLines lineThrough;
     RotationDegrees rotation;
     NumberOrNormal letterSpacing;
     XmlLang lang;
+    TextDirection dir;
     bool hasFontFamily;
     bool hasFontStyle;
     bool hasFontSize;
     bool hasFontWeight;
+    bool hasColor;
     bool hasUnderline;
     bool hasOverline;
     bool hasLineThrough;
     bool hasRotation;
     bool hasLetterSpacing;
     bool hasLang;
+    bool hasDir;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

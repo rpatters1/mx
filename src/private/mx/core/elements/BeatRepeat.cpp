@@ -45,11 +45,8 @@ std::ostream &BeatRepeat::streamContents(std::ostream &os, const int indentLevel
     mySlashType->toStream(os, indentLevel + 1);
     for (auto x : mySlashDotSet)
     {
-        if (x)
-        {
-            os << std::endl;
-            x->toStream(os, indentLevel + 1);
-        }
+        os << std::endl;
+        x->toStream(os, indentLevel + 1);
     }
     os << std::endl;
     return os;
@@ -107,6 +104,15 @@ void BeatRepeat::clearSlashDotSet()
     mySlashDotSet.clear();
 }
 
+SlashDotPtr BeatRepeat::getSlashDot(const SlashDotSetIterConst &setIterator) const
+{
+    if (setIterator != mySlashDotSet.cend())
+    {
+        return *setIterator;
+    }
+    return SlashDotPtr();
+}
+
 bool BeatRepeat::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     bool isSuccess = true;
@@ -123,10 +129,6 @@ bool BeatRepeat::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xele
         importElementSet(message, it, endIter, isSuccess, "slash-dot", mySlashDotSet);
     }
 
-    if (!isSlashTypeFound)
-    {
-        message << "BeatRepeat: '" << mySlashType->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

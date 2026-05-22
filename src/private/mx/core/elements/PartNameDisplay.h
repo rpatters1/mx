@@ -40,13 +40,12 @@ class PartNameDisplay : public ElementInterface
     void setAttributes(const PartNameDisplayAttributesPtr &value);
 
     /* _________ DisplayTextOrAccidentalText minOccurs = 0, maxOccurs = unbounded _________ */
-    const DisplayTextOrAccidentalTextSet &getDisplayTextOrAccidentalText() const;
+    const DisplayTextOrAccidentalTextSet &getDisplayTextOrAccidentalTextSet() const;
     void addDisplayTextOrAccidentalText(const DisplayTextOrAccidentalTextPtr &value);
-    void removeDisplayTextOrAccidentalText(const DisplayTextOrAccidentalTextSetIterConst &setIterator);
+    void removeDisplayTextOrAccidentalText(const DisplayTextOrAccidentalTextSetIterConst &value);
     void clearDisplayTextOrAccidentalTextSet();
     DisplayTextOrAccidentalTextPtr getDisplayTextOrAccidentalText(
         const DisplayTextOrAccidentalTextSetIterConst &setIterator) const;
-    const DisplayTextOrAccidentalTextSet &getDisplayTextOrAccidentalTextSet() const;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

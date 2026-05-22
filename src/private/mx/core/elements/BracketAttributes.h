@@ -22,16 +22,6 @@ namespace core
 
 MX_FORWARD_DECLARE_ATTRIBUTES(BracketAttributes)
 
-/*
- <xs:attribute name="type" type="start-stop-continue" use="required"/>
- <xs:attribute name="number" type="number-level"/>
- <xs:attribute name="line-end" type="line-end" use="required"/>
- <xs:attribute name="end-length" type="tenths"/>
- <xs:attributeGroup ref="line-type"/>
- <xs:attributeGroup ref="dashed-formatting"/>
- <xs:attributeGroup ref="position"/>
- <xs:attributeGroup ref="color"/>
- */
 struct BracketAttributes : public AttributesInterface
 {
   public:

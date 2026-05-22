@@ -21,7 +21,7 @@ ScoreInstrument::ScoreInstrument()
     : myAttributes(std::make_shared<ScoreInstrumentAttributes>()), myInstrumentName(makeInstrumentName()),
       myInstrumentAbbreviation(makeInstrumentAbbreviation()), myHasInstrumentAbbreviation(false),
       myInstrumentSound(makeInstrumentSound()), myHasInstrumentSound(false),
-      mySoloOrEnsembleChoice(makeSoloOrEnsembleChoice()), myHasSoloOrEnsembleChoice(false),
+      mySoloOrEnsembleChoice(std::make_shared<SoloOrEnsembleChoice>()), myHasSoloOrEnsembleChoice(false),
       myVirtualInstrument(makeVirtualInstrument()), myHasVirtualInstrument(false)
 {
 }
@@ -215,35 +215,27 @@ bool ScoreInstrument::fromXElementImpl(std::ostream &message, ::ezxml::XElement 
         {
             continue;
         }
-
-        if (checkSetChoiceMember(message, *it, isSuccess, mySoloOrEnsembleChoice, "solo",
-                                 &SoloOrEnsembleChoice::getSolo, static_cast<int>(SoloOrEnsembleChoice::Choice::solo)))
+        if (it->getName() == "solo")
         {
+            mySoloOrEnsembleChoice->setChoice(SoloOrEnsembleChoice::Choice::solo);
+            isSuccess &= mySoloOrEnsembleChoice->getSolo()->fromXElement(message, *it);
             myHasSoloOrEnsembleChoice = true;
             continue;
         }
-
-        if (checkSetChoiceMember(message, *it, isSuccess, mySoloOrEnsembleChoice, "ensemble",
-                                 &SoloOrEnsembleChoice::getEnsemble,
-                                 static_cast<int>(SoloOrEnsembleChoice::Choice::ensemble)))
+        if (it->getName() == "ensemble")
         {
+            mySoloOrEnsembleChoice->setChoice(SoloOrEnsembleChoice::Choice::ensemble);
+            isSuccess &= mySoloOrEnsembleChoice->getEnsemble()->fromXElement(message, *it);
             myHasSoloOrEnsembleChoice = true;
             continue;
         }
-
         if (importElement(message, *it, isSuccess, *myVirtualInstrument, myHasVirtualInstrument))
         {
             continue;
         }
     }
 
-    if (!isInstrumentNameFound)
-    {
-        message << "ScoreInstrument: 'instrument-name' not found" << std::endl;
-        isSuccess = false;
-    }
-
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

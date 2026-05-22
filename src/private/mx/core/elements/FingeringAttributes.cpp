@@ -12,17 +12,17 @@ namespace core
 {
 FingeringAttributes::FingeringAttributes()
     : substitution(YesNo::no), alternate(YesNo::no), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(),
-      fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}), fontWeight(FontWeight::normal),
-      placement(), hasSubstitution(false), hasAlternate(false), hasDefaultX(false), hasDefaultY(false),
+      fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(),
+      placement(AboveBelow::below), hasSubstitution(false), hasAlternate(false), hasDefaultX(false), hasDefaultY(false),
       hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false),
-      hasFontWeight(false), hasPlacement(false)
+      hasFontWeight(false), hasColor(false), hasPlacement(false)
 {
 }
 
 bool FingeringAttributes::hasValues() const
 {
     return hasSubstitution || hasAlternate || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY ||
-           hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasPlacement;
+           hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasColor || hasPlacement;
 }
 
 std::ostream &FingeringAttributes::toStream(std::ostream &os) const
@@ -39,6 +39,7 @@ std::ostream &FingeringAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, placement, "placement", hasPlacement);
     }
     return os;
@@ -93,6 +94,10 @@ bool FingeringAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElem
         }
         if (parseAttribute(message, it, className, isSuccess, fontWeight, hasFontWeight, "font-weight",
                            &parseFontWeight))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
         {
             continue;
         }

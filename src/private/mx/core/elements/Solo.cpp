@@ -44,8 +44,8 @@ std::ostream &Solo::streamContents(std::ostream &os, const int indentLevel, bool
 
 bool Solo::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
-    MX_UNUSED(xelement);
     MX_UNUSED(message);
+    MX_UNUSED(xelement);
     return true;
 }
 

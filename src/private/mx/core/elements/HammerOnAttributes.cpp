@@ -11,18 +11,18 @@ namespace mx
 namespace core
 {
 HammerOnAttributes::HammerOnAttributes()
-    : type(StartStop::start), number(1), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(),
-      fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}), fontWeight(FontWeight::normal),
-      placement(), hasType(true), hasNumber(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false),
-      hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false),
-      hasPlacement(false)
+    : type(StartStop::start), number(), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(),
+      fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(),
+      placement(AboveBelow::below), hasType(true), hasNumber(false), hasDefaultX(false), hasDefaultY(false),
+      hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false),
+      hasFontWeight(false), hasColor(false), hasPlacement(false)
 {
 }
 
 bool HammerOnAttributes::hasValues() const
 {
     return hasType || hasNumber || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily ||
-           hasFontStyle || hasFontSize || hasFontWeight || hasPlacement;
+           hasFontStyle || hasFontSize || hasFontWeight || hasColor || hasPlacement;
 }
 
 std::ostream &HammerOnAttributes::toStream(std::ostream &os) const
@@ -39,6 +39,7 @@ std::ostream &HammerOnAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, placement, "placement", hasPlacement);
     }
     return os;
@@ -96,6 +97,10 @@ bool HammerOnAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEleme
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
         if (parseAttribute(message, it, className, isSuccess, placement, hasPlacement, "placement", &parseAboveBelow))
         {
             continue;
@@ -105,7 +110,7 @@ bool HammerOnAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEleme
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

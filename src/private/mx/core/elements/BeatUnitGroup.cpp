@@ -38,13 +38,19 @@ bool BeatUnitGroup::hasContents() const
 
 std::ostream &BeatUnitGroup::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    isOneLineOnly = false;
+    bool isFirst = true;
+    if (!isFirst)
+        os << std::endl;
     myBeatUnit->toStream(os, indentLevel);
+    isFirst = false;
     for (auto x : myBeatUnitDotSet)
     {
-        os << std::endl;
+        if (!isFirst)
+            os << std::endl;
         x->toStream(os, indentLevel);
+        isFirst = false;
     }
+    isOneLineOnly = !hasContents();
     return os;
 }
 
@@ -66,6 +72,14 @@ const BeatUnitDotSet &BeatUnitGroup::getBeatUnitDotSet() const
     return myBeatUnitDotSet;
 }
 
+void BeatUnitGroup::removeBeatUnitDot(const BeatUnitDotSetIterConst &value)
+{
+    if (value != myBeatUnitDotSet.cend())
+    {
+        myBeatUnitDotSet.erase(value);
+    }
+}
+
 void BeatUnitGroup::addBeatUnitDot(const BeatUnitDotPtr &value)
 {
     if (value)
@@ -74,62 +88,21 @@ void BeatUnitGroup::addBeatUnitDot(const BeatUnitDotPtr &value)
     }
 }
 
-void BeatUnitGroup::removeBeatUnitDot(const BeatUnitDotSetIterConst &setIterator)
-{
-    if (setIterator != myBeatUnitDotSet.cend())
-    {
-        myBeatUnitDotSet.erase(setIterator);
-    }
-}
-
 void BeatUnitGroup::clearBeatUnitDotSet()
 {
     myBeatUnitDotSet.clear();
 }
 
-bool BeatUnitGroup::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
+BeatUnitDotPtr BeatUnitGroup::getBeatUnitDot(const BeatUnitDotSetIterConst &setIterator) const
 {
-    bool isSuccess = true;
-    bool isBeatUnitFound = false;
-    bool isFirstBeatUnitDotAdded = false;
-
-    for (auto it = xelement.begin(); it != xelement.end(); ++it)
+    if (setIterator != myBeatUnitDotSet.cend())
     {
-        const std::string elementName = it->getName();
-
-        if (elementName == "beat-unit")
-        {
-            isBeatUnitFound = true;
-            isSuccess &= myBeatUnit->fromXElement(message, *it);
-        }
-        else if (elementName == "beat-unit-dot")
-        {
-            auto beatUnitDot = makeBeatUnitDot();
-            isSuccess &= beatUnitDot->fromXElement(message, *it);
-
-            if (!isFirstBeatUnitDotAdded && myBeatUnitDotSet.size() == 1)
-            {
-                *(myBeatUnitDotSet.begin()) = beatUnitDot;
-                isFirstBeatUnitDotAdded = true;
-            }
-            else
-            {
-                myBeatUnitDotSet.push_back(beatUnitDot);
-                isFirstBeatUnitDotAdded = true;
-            }
-        }
-        else
-        {
-            if (!isBeatUnitFound)
-            {
-                isSuccess = false;
-                message << "BeatUnitGroup: 'beat-unit' element is required but was not found" << std::endl;
-            }
-            break;
-        }
+        return *setIterator;
     }
-    MX_RETURN_IS_SUCCESS;
+    return BeatUnitDotPtr();
 }
+
+MX_FROM_XELEMENT_UNUSED(BeatUnitGroup);
 
 } // namespace core
 } // namespace mx

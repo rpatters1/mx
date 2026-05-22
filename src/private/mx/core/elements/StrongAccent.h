@@ -36,7 +36,7 @@ class StrongAccent : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     StrongAccentAttributesPtr getAttributes() const;
-    void setAttributes(const StrongAccentAttributesPtr &value);
+    void setAttributes(const StrongAccentAttributesPtr &attributes);
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

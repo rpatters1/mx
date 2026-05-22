@@ -10,7 +10,7 @@ namespace mx
 {
 namespace core
 {
-TypeAttributes::TypeAttributes() : size(), hasSize(false)
+TypeAttributes::TypeAttributes() : size(SymbolSize::full), hasSize(false)
 {
 }
 
@@ -44,7 +44,7 @@ bool TypeAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

@@ -24,7 +24,6 @@ namespace mx
 namespace core
 {
 PercussionChoice::PercussionChoice()
-
     : myChoice(PercussionChoice::Choice::glass), myGlass(makeGlass()), myMetal(makeMetal()), myWood(makeWood()),
       myPitched(makePitched()), myMembrane(makeMembrane()), myEffect(makeEffect()), myTimpani(makeTimpani()),
       myBeater(makeBeater()), myStick(makeStick()), myStickType(makeStickType()), myStickMaterial(makeStickMaterial()),
@@ -44,6 +43,7 @@ std::ostream &PercussionChoice::streamAttributes(std::ostream &os) const
 
 std::ostream &PercussionChoice::streamName(std::ostream &os) const
 {
+    os << "percussion";
     return os;
 }
 

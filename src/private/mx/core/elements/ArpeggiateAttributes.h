@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
 #include "mx/core/ForwardDeclare.h"
@@ -28,12 +29,13 @@ struct ArpeggiateAttributes : public AttributesInterface
     virtual bool hasValues() const;
     virtual std::ostream &toStream(std::ostream &os) const;
     NumberLevel number;
-    UpDownNone direction; // MusicXML 4.0 Backport: was UpDown in 3.x (no "none" value)
+    UpDown direction;
     TenthsValue defaultX;
     TenthsValue defaultY;
     TenthsValue relativeX;
     TenthsValue relativeY;
     AboveBelow placement;
+    Color color;
     bool hasNumber;
     bool hasDirection;
     bool hasDefaultX;
@@ -41,6 +43,7 @@ struct ArpeggiateAttributes : public AttributesInterface
     bool hasRelativeX;
     bool hasRelativeY;
     bool hasPlacement;
+    bool hasColor;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

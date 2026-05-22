@@ -38,20 +38,15 @@ bool SoloOrEnsembleChoice::hasContents() const
 
 std::ostream &SoloOrEnsembleChoice::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    switch (myChoice)
+    if (myChoice == Choice::solo)
     {
-    case Choice::solo: {
         mySolo->toStream(os, indentLevel);
     }
-    break;
-    case Choice::ensemble: {
+    if (myChoice == Choice::ensemble)
+    {
         myEnsemble->toStream(os, indentLevel);
     }
-    break;
-    default:
-        break;
-    }
-    isOneLineOnly = true;
+    isOneLineOnly = false;
     return os;
 }
 
@@ -60,7 +55,7 @@ SoloOrEnsembleChoice::Choice SoloOrEnsembleChoice::getChoice() const
     return myChoice;
 }
 
-void SoloOrEnsembleChoice::setChoice(const SoloOrEnsembleChoice::Choice value)
+void SoloOrEnsembleChoice::setChoice(const Choice value)
 {
     myChoice = value;
 }

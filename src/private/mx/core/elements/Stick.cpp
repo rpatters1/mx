@@ -109,14 +109,6 @@ bool Stick::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
         }
     }
 
-    if (!isStickTypeFound)
-    {
-        message << "Stick: '" << myStickType->getElementName() << "' is required but was not found" << std::endl;
-    }
-    if (!isStickMaterialFound)
-    {
-        message << "Stick: '" << myStickMaterial->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

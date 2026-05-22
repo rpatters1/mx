@@ -60,7 +60,6 @@ void Membrane::setValue(const MembraneEnum &value)
 bool Membrane::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     MX_UNUSED(message);
-    MX_UNUSED(xelement);
     myValue = parseMembraneEnum(xelement.getValue());
     return true;
 }

@@ -45,6 +45,8 @@ std::ostream &EditorialVoiceGroup::streamContents(std::ostream &os, const int in
     isOneLineOnly = true;
     if (myHasFootnote)
     {
+        if (!firstItem)
+            os << std::endl;
         myFootnote->toStream(os, indentLevel);
         firstItem = false;
     }

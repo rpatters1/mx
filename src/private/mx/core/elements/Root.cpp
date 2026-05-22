@@ -39,6 +39,7 @@ bool Root::hasContents() const
 
 std::ostream &Root::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    isOneLineOnly = false;
     os << std::endl;
     myRootStep->toStream(os, indentLevel + 1);
     if (myHasRootAlter)
@@ -47,7 +48,6 @@ std::ostream &Root::streamContents(std::ostream &os, const int indentLevel, bool
         myRootAlter->toStream(os, indentLevel + 1);
     }
     os << std::endl;
-    isOneLineOnly = false;
     return os;
 }
 
@@ -105,10 +105,6 @@ bool Root::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
         }
     }
 
-    if (!isRootStepFound)
-    {
-        message << "Root: '" << myRootStep->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

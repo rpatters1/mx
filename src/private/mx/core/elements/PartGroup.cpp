@@ -95,8 +95,8 @@ std::ostream &PartGroup::streamContents(std::ostream &os, const int indentLevel,
             os << std::endl;
             myEditorialGroup->streamContents(os, indentLevel + 1, isOneLineOnly);
         }
-        os << std::endl;
         isOneLineOnly = false;
+        os << std::endl;
     }
     else
     {
@@ -333,5 +333,6 @@ bool PartGroup::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelem
 
     MX_RETURN_IS_SUCCESS;
 }
+
 } // namespace core
 } // namespace mx

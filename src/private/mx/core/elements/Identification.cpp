@@ -286,7 +286,7 @@ bool Identification::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

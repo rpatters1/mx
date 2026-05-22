@@ -60,7 +60,6 @@ void KeyStep::setValue(const StepEnum &value)
 bool KeyStep::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     MX_UNUSED(message);
-    MX_UNUSED(xelement);
     myValue = parseStepEnum(xelement.getValue());
     return true;
 }

@@ -151,24 +151,6 @@ bool PageMargins::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xel
         }
     }
 
-    if (!isLeftMarginFound)
-    {
-        message << "PageMargins: '" << myLeftMargin->getElementName() << "' is required but was not found" << std::endl;
-    }
-    if (!isRightMarginFound)
-    {
-        message << "PageMargins: '" << myRightMargin->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
-    if (!isTopMarginFound)
-    {
-        message << "PageMargins: '" << myTopMargin->getElementName() << "' is required but was not found" << std::endl;
-    }
-    if (!isBottomMarginFound)
-    {
-        message << "PageMargins: '" << myBottomMargin->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

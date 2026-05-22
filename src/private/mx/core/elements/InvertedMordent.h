@@ -36,7 +36,7 @@ class InvertedMordent : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     InvertedMordentAttributesPtr getAttributes() const;
-    void setAttributes(const InvertedMordentAttributesPtr &value);
+    void setAttributes(const InvertedMordentAttributesPtr &attributes);
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

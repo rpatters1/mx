@@ -4,6 +4,8 @@
 
 #include "mx/core/elements/PartNameDisplay.h"
 #include "mx/core/FromXElement.h"
+#include "mx/core/elements/AccidentalText.h"
+#include "mx/core/elements/DisplayText.h"
 #include "mx/core/elements/DisplayTextOrAccidentalText.h"
 #include <iostream>
 
@@ -69,7 +71,7 @@ void PartNameDisplay::setAttributes(const PartNameDisplayAttributesPtr &value)
     }
 }
 
-const DisplayTextOrAccidentalTextSet &PartNameDisplay::getDisplayTextOrAccidentalText() const
+const DisplayTextOrAccidentalTextSet &PartNameDisplay::getDisplayTextOrAccidentalTextSet() const
 {
     return myDisplayTextOrAccidentalTextSet;
 }
@@ -82,11 +84,11 @@ void PartNameDisplay::addDisplayTextOrAccidentalText(const DisplayTextOrAccident
     }
 }
 
-void PartNameDisplay::removeDisplayTextOrAccidentalText(const DisplayTextOrAccidentalTextSetIterConst &setIterator)
+void PartNameDisplay::removeDisplayTextOrAccidentalText(const DisplayTextOrAccidentalTextSetIterConst &value)
 {
-    if (setIterator != myDisplayTextOrAccidentalTextSet.cend())
+    if (value != myDisplayTextOrAccidentalTextSet.cend())
     {
-        myDisplayTextOrAccidentalTextSet.erase(setIterator);
+        myDisplayTextOrAccidentalTextSet.erase(value);
     }
 }
 
@@ -102,12 +104,7 @@ DisplayTextOrAccidentalTextPtr PartNameDisplay::getDisplayTextOrAccidentalText(
     {
         return *setIterator;
     }
-    return makeDisplayTextOrAccidentalText();
-}
-
-const DisplayTextOrAccidentalTextSet &PartNameDisplay::getDisplayTextOrAccidentalTextSet() const
-{
-    return myDisplayTextOrAccidentalTextSet;
+    return DisplayTextOrAccidentalTextPtr();
 }
 
 bool PartNameDisplay::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
@@ -118,9 +115,22 @@ bool PartNameDisplay::fromXElementImpl(std::ostream &message, ::ezxml::XElement 
     auto endIter = xelement.end();
     for (auto it = xelement.begin(); it != endIter; ++it)
     {
-        auto item = makeDisplayTextOrAccidentalText();
-        isSuccess &= item->fromXElement(message, *it);
-        myDisplayTextOrAccidentalTextSet.push_back(item);
+        if (it->getName() == "display-text")
+        {
+            auto choice = makeDisplayTextOrAccidentalText();
+            choice->setChoice(DisplayTextOrAccidentalText::Choice::displayText);
+            isSuccess &= choice->getDisplayText()->fromXElement(message, *it);
+            myDisplayTextOrAccidentalTextSet.push_back(choice);
+            continue;
+        }
+        if (it->getName() == "accidental-text")
+        {
+            auto choice = makeDisplayTextOrAccidentalText();
+            choice->setChoice(DisplayTextOrAccidentalText::Choice::accidentalText);
+            isSuccess &= choice->getAccidentalText()->fromXElement(message, *it);
+            myDisplayTextOrAccidentalTextSet.push_back(choice);
+            continue;
+        }
     }
 
     MX_RETURN_IS_SUCCESS;

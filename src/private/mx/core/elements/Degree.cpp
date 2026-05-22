@@ -15,7 +15,7 @@ namespace core
 {
 Degree::Degree()
     : myAttributes(std::make_shared<DegreeAttributes>()), myDegreeValue(makeDegreeValue()),
-      myDegreeAlter(makeDegreeAlter()), myDegreeType(makeDegreeType(DegreeTypeValue::add))
+      myDegreeAlter(makeDegreeAlter()), myDegreeType(makeDegreeType())
 {
 }
 
@@ -42,6 +42,7 @@ bool Degree::hasContents() const
 
 std::ostream &Degree::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    isOneLineOnly = false;
     os << std::endl;
     myDegreeValue->toStream(os, indentLevel + 1);
     os << std::endl;
@@ -49,7 +50,6 @@ std::ostream &Degree::streamContents(std::ostream &os, const int indentLevel, bo
     os << std::endl;
     myDegreeType->toStream(os, indentLevel + 1);
     os << std::endl;
-    isOneLineOnly = false;
     return os;
 }
 
@@ -130,18 +130,6 @@ bool Degree::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement
         }
     }
 
-    if (!isDegreeValueFound)
-    {
-        message << "Degree: '" << myDegreeValue->getElementName() << "' is required but was not found" << std::endl;
-    }
-    if (!isDegreeAlterFound)
-    {
-        message << "Degree: '" << myDegreeAlter->getElementName() << "' is required but was not found" << std::endl;
-    }
-    if (!isDegreeTypeFound)
-    {
-        message << "Degree: '" << myDegreeType->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

@@ -16,8 +16,6 @@ namespace mx
 namespace core
 {
 
-MX_FORWARD_DECLARE_ELEMENT(AccidentalText)
-MX_FORWARD_DECLARE_ELEMENT(DisplayText)
 MX_FORWARD_DECLARE_ELEMENT(NoteheadTextChoice)
 MX_FORWARD_DECLARE_ELEMENT(NoteheadText)
 
@@ -37,7 +35,7 @@ class NoteheadText : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
 
-    /* _________ NoteheadTextChoice minOccurs = 1, maxOccurs = unbounded _________ */
+    /* _________ NoteheadTextChoice minOccurs = 0, maxOccurs = unbounded _________ */
     const NoteheadTextChoiceSet &getNoteheadTextChoiceSet() const;
     void addNoteheadTextChoice(const NoteheadTextChoicePtr &value);
     void removeNoteheadTextChoice(const NoteheadTextChoiceSetIterConst &value);

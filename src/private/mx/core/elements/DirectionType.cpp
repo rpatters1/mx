@@ -40,12 +40,30 @@ DirectionType::DirectionType()
       myScordatura(makeScordatura()), myImage(makeImage()), myPrincipalVoice(makePrincipalVoice()),
       myAccordionRegistration(makeAccordionRegistration()), myPercussionSet(), myOtherDirection(makeOtherDirection())
 {
-    myRehearsalSet.push_back(makeRehearsal());
-    mySegnoSet.push_back(makeSegno());
-    myWordsSet.push_back(makeWords());
-    myCodaSet.push_back(makeCoda());
-    myDynamicsSet.push_back(makeDynamics());
-    myPercussionSet.push_back(makePercussion());
+    while (myRehearsalSet.size() < 1)
+    {
+        myRehearsalSet.push_back(makeRehearsal());
+    }
+    while (mySegnoSet.size() < 1)
+    {
+        mySegnoSet.push_back(makeSegno());
+    }
+    while (myWordsSet.size() < 1)
+    {
+        myWordsSet.push_back(makeWords());
+    }
+    while (myCodaSet.size() < 1)
+    {
+        myCodaSet.push_back(makeCoda());
+    }
+    while (myDynamicsSet.size() < 1)
+    {
+        myDynamicsSet.push_back(makeDynamics());
+    }
+    while (myPercussionSet.size() < 1)
+    {
+        myPercussionSet.push_back(makePercussion());
+    }
 }
 
 bool DirectionType::hasAttributes() const
@@ -72,8 +90,6 @@ bool DirectionType::hasContents() const
 std::ostream &DirectionType::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
     isOneLineOnly = false;
-    // streamOpenTag( os );
-    // os << std::endl;
     switch (myChoice)
     {
     case Choice::rehearsal: {
@@ -207,8 +223,6 @@ std::ostream &DirectionType::streamContents(std::ostream &os, const int indentLe
     default:
         break;
     }
-    // os << std::endl;
-    // streamCloseTag( os );
     os << std::endl;
     isOneLineOnly = false;
     return os;
@@ -229,6 +243,14 @@ const RehearsalSet &DirectionType::getRehearsalSet() const
     return myRehearsalSet;
 }
 
+void DirectionType::addRehearsal(const RehearsalPtr &value)
+{
+    if (value)
+    {
+        myRehearsalSet.push_back(value);
+    }
+}
+
 void DirectionType::removeRehearsal(const RehearsalSetIterConst &value)
 {
     if (value != myRehearsalSet.cend())
@@ -237,14 +259,6 @@ void DirectionType::removeRehearsal(const RehearsalSetIterConst &value)
         {
             myRehearsalSet.erase(value);
         }
-    }
-}
-
-void DirectionType::addRehearsal(const RehearsalPtr &value)
-{
-    if (value)
-    {
-        myRehearsalSet.push_back(value);
     }
 }
 
@@ -271,6 +285,14 @@ const SegnoSet &DirectionType::getSegnoSet() const
     return mySegnoSet;
 }
 
+void DirectionType::addSegno(const SegnoPtr &value)
+{
+    if (value)
+    {
+        mySegnoSet.push_back(value);
+    }
+}
+
 void DirectionType::removeSegno(const SegnoSetIterConst &value)
 {
     if (value != mySegnoSet.cend())
@@ -279,14 +301,6 @@ void DirectionType::removeSegno(const SegnoSetIterConst &value)
         {
             mySegnoSet.erase(value);
         }
-    }
-}
-
-void DirectionType::addSegno(const SegnoPtr &value)
-{
-    if (value)
-    {
-        mySegnoSet.push_back(value);
     }
 }
 
@@ -313,6 +327,14 @@ const WordsSet &DirectionType::getWordsSet() const
     return myWordsSet;
 }
 
+void DirectionType::addWords(const WordsPtr &value)
+{
+    if (value)
+    {
+        myWordsSet.push_back(value);
+    }
+}
+
 void DirectionType::removeWords(const WordsSetIterConst &value)
 {
     if (value != myWordsSet.cend())
@@ -321,14 +343,6 @@ void DirectionType::removeWords(const WordsSetIterConst &value)
         {
             myWordsSet.erase(value);
         }
-    }
-}
-
-void DirectionType::addWords(const WordsPtr &value)
-{
-    if (value)
-    {
-        myWordsSet.push_back(value);
     }
 }
 
@@ -355,6 +369,14 @@ const CodaSet &DirectionType::getCodaSet() const
     return myCodaSet;
 }
 
+void DirectionType::addCoda(const CodaPtr &value)
+{
+    if (value)
+    {
+        myCodaSet.push_back(value);
+    }
+}
+
 void DirectionType::removeCoda(const CodaSetIterConst &value)
 {
     if (value != myCodaSet.cend())
@@ -363,14 +385,6 @@ void DirectionType::removeCoda(const CodaSetIterConst &value)
         {
             myCodaSet.erase(value);
         }
-    }
-}
-
-void DirectionType::addCoda(const CodaPtr &value)
-{
-    if (value)
-    {
-        myCodaSet.push_back(value);
     }
 }
 
@@ -410,6 +424,14 @@ const DynamicsSet &DirectionType::getDynamicsSet() const
     return myDynamicsSet;
 }
 
+void DirectionType::addDynamics(const DynamicsPtr &value)
+{
+    if (value)
+    {
+        myDynamicsSet.push_back(value);
+    }
+}
+
 void DirectionType::removeDynamics(const DynamicsSetIterConst &value)
 {
     if (value != myDynamicsSet.cend())
@@ -418,14 +440,6 @@ void DirectionType::removeDynamics(const DynamicsSetIterConst &value)
         {
             myDynamicsSet.erase(value);
         }
-    }
-}
-
-void DirectionType::addDynamics(const DynamicsPtr &value)
-{
-    if (value)
-    {
-        myDynamicsSet.push_back(value);
     }
 }
 
@@ -634,6 +648,14 @@ const PercussionSet &DirectionType::getPercussionSet() const
     return myPercussionSet;
 }
 
+void DirectionType::addPercussion(const PercussionPtr &value)
+{
+    if (value)
+    {
+        myPercussionSet.push_back(value);
+    }
+}
+
 void DirectionType::removePercussion(const PercussionSetIterConst &value)
 {
     if (value != myPercussionSet.cend())
@@ -642,14 +664,6 @@ void DirectionType::removePercussion(const PercussionSetIterConst &value)
         {
             myPercussionSet.erase(value);
         }
-    }
-}
-
-void DirectionType::addPercussion(const PercussionPtr &value)
-{
-    if (value)
-    {
-        myPercussionSet.push_back(value);
     }
 }
 
@@ -685,6 +699,5 @@ void DirectionType::setOtherDirection(const OtherDirectionPtr &value)
 }
 
 MX_FROM_XELEMENT_UNUSED(DirectionType);
-
 } // namespace core
 } // namespace mx

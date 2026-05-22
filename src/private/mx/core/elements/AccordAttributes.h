@@ -25,7 +25,7 @@ struct AccordAttributes : public AttributesInterface
     AccordAttributes();
     virtual bool hasValues() const;
     virtual std::ostream &toStream(std::ostream &os) const;
-    StringNumber string;
+    StringNumber string_;
     bool hasString;
 
   private:

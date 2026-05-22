@@ -11,17 +11,18 @@ namespace mx
 namespace core
 {
 RootAlterAttributes::RootAlterAttributes()
-    : printObject(), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(FontSize{CssFontSize::medium}), fontWeight(FontWeight::normal), location(), hasPrintObject(false),
-      hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false),
-      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasLocation(false)
+    : printObject(YesNo::no), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(),
+      fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), location(),
+      hasPrintObject(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
+      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false),
+      hasLocation(false)
 {
 }
 
 bool RootAlterAttributes::hasValues() const
 {
     return hasPrintObject || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily ||
-           hasFontStyle || hasFontSize || hasFontWeight || hasLocation;
+           hasFontStyle || hasFontSize || hasFontWeight || hasColor || hasLocation;
 }
 
 std::ostream &RootAlterAttributes::toStream(std::ostream &os) const
@@ -37,6 +38,7 @@ std::ostream &RootAlterAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, location, "location", hasLocation);
     }
     return os;
@@ -89,13 +91,17 @@ bool RootAlterAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElem
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
         if (parseAttribute(message, it, className, isSuccess, location, hasLocation, "location", &parseLeftRight))
         {
             continue;
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

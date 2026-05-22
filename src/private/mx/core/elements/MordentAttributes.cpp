@@ -12,13 +12,13 @@ namespace core
 {
 MordentAttributes::MordentAttributes()
     : defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), placement(AboveBelow::below),
-      startNote(StartNote::main), trillStep(TrillStep::half), twoNoteTurn(TwoNoteTurn::none), accelerate(YesNo::no),
-      beats(), secondBeat(), lastBeat(), long_(YesNo::no), approach(AboveBelow::below), departure(AboveBelow::below),
-      hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false),
-      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false), hasPlacement(false),
-      hasStartNote(false), hasTrillStep(false), hasTwoNoteTurn(false), hasAccelerate(false), hasBeats(false),
-      hasSecondBeat(false), hasLastBeat(false), hasLong(false), hasApproach(false), hasDeparture(false)
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), placement(AboveBelow::below), startNote(),
+      trillStep(), twoNoteTurn(), accelerate(YesNo::no), beats(), secondBeat(), lastBeat(), long_(YesNo::no),
+      approach(AboveBelow::below), departure(AboveBelow::below), hasDefaultX(false), hasDefaultY(false),
+      hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false),
+      hasFontWeight(false), hasColor(false), hasPlacement(false), hasStartNote(false), hasTrillStep(false),
+      hasTwoNoteTurn(false), hasAccelerate(false), hasBeats(false), hasSecondBeat(false), hasLastBeat(false),
+      hasLong(false), hasApproach(false), hasDeparture(false)
 {
 }
 

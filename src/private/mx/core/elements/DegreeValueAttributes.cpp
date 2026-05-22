@@ -12,16 +12,16 @@ namespace core
 {
 DegreeValueAttributes::DegreeValueAttributes()
     : symbol(), text(), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(FontSize{CssFontSize::medium}), fontWeight(FontWeight::normal), hasSymbol(false), hasText(false),
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), hasSymbol(false), hasText(false),
       hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false),
-      hasFontStyle(false), hasFontSize(false), hasFontWeight(false)
+      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false)
 {
 }
 
 bool DegreeValueAttributes::hasValues() const
 {
     return hasSymbol || hasText || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily ||
-           hasFontStyle || hasFontSize || hasFontWeight;
+           hasFontStyle || hasFontSize || hasFontWeight || hasColor;
 }
 
 std::ostream &DegreeValueAttributes::toStream(std::ostream &os) const
@@ -38,6 +38,7 @@ std::ostream &DegreeValueAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -90,6 +91,10 @@ bool DegreeValueAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEl
         }
         if (parseAttribute(message, it, className, isSuccess, fontWeight, hasFontWeight, "font-weight",
                            &parseFontWeight))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
         {
             continue;
         }

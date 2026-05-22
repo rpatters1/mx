@@ -8,10 +8,8 @@
 #include "mx/core/elements/Directive.h"
 #include "mx/core/elements/Divisions.h"
 #include "mx/core/elements/EditorialGroup.h"
-#include "mx/core/elements/Footnote.h"
 #include "mx/core/elements/Instruments.h"
 #include "mx/core/elements/Key.h"
-#include "mx/core/elements/Level.h"
 #include "mx/core/elements/MeasureStyle.h"
 #include "mx/core/elements/PartSymbol.h"
 #include "mx/core/elements/StaffDetails.h"
@@ -57,70 +55,72 @@ bool Properties::hasContents() const
 
 std::ostream &Properties::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    if (this->hasContents())
+    if (myEditorialGroup->hasContents())
     {
-        if (myEditorialGroup->hasContents())
-        {
-            os << std::endl;
-            myEditorialGroup->streamContents(os, indentLevel + 1, isOneLineOnly);
-        }
-        if (myHasDivisions)
-        {
-            os << std::endl;
-            myDivisions->toStream(os, indentLevel + 1);
-        }
-        for (auto x : myKeySet)
-        {
-            os << std::endl;
-            x->toStream(os, indentLevel + 1);
-        }
-        for (auto x : myTimeSet)
-        {
-            os << std::endl;
-            x->toStream(os, indentLevel + 1);
-        }
-        if (myHasStaves)
-        {
-            os << std::endl;
-            myStaves->toStream(os, indentLevel + 1);
-        }
-        if (myHasPartSymbol)
-        {
-            os << std::endl;
-            myPartSymbol->toStream(os, indentLevel + 1);
-        }
-        if (myHasInstruments)
-        {
-            os << std::endl;
-            myInstruments->toStream(os, indentLevel + 1);
-        }
-        for (auto x : myClefSet)
-        {
-            os << std::endl;
-            x->toStream(os, indentLevel + 1);
-        }
-        for (auto x : myStaffDetailsSet)
-        {
-            os << std::endl;
-            x->toStream(os, indentLevel + 1);
-        }
-        for (auto x : myTransposeSet)
-        {
-            os << std::endl;
-            x->toStream(os, indentLevel + 1);
-        }
-        for (auto x : myDirectiveSet)
-        {
-            os << std::endl;
-            x->toStream(os, indentLevel + 1);
-        }
-        for (auto x : myMeasureStyleSet)
-        {
-            os << std::endl;
-            x->toStream(os, indentLevel + 1);
-        }
         os << std::endl;
+        myEditorialGroup->streamContents(os, indentLevel + 1, isOneLineOnly);
+    }
+    if (myHasDivisions)
+    {
+        os << std::endl;
+        myDivisions->toStream(os, indentLevel + 1);
+    }
+    for (auto x : myKeySet)
+    {
+        os << std::endl;
+        x->toStream(os, indentLevel + 1);
+    }
+    for (auto x : myTimeSet)
+    {
+        os << std::endl;
+        x->toStream(os, indentLevel + 1);
+    }
+    if (myHasStaves)
+    {
+        os << std::endl;
+        myStaves->toStream(os, indentLevel + 1);
+    }
+    if (myHasPartSymbol)
+    {
+        os << std::endl;
+        myPartSymbol->toStream(os, indentLevel + 1);
+    }
+    if (myHasInstruments)
+    {
+        os << std::endl;
+        myInstruments->toStream(os, indentLevel + 1);
+    }
+    for (auto x : myClefSet)
+    {
+        os << std::endl;
+        x->toStream(os, indentLevel + 1);
+    }
+    for (auto x : myStaffDetailsSet)
+    {
+        os << std::endl;
+        x->toStream(os, indentLevel + 1);
+    }
+    for (auto x : myTransposeSet)
+    {
+        os << std::endl;
+        x->toStream(os, indentLevel + 1);
+    }
+    for (auto x : myDirectiveSet)
+    {
+        os << std::endl;
+        x->toStream(os, indentLevel + 1);
+    }
+    for (auto x : myMeasureStyleSet)
+    {
+        os << std::endl;
+        x->toStream(os, indentLevel + 1);
+    }
+    if (true || myHasDivisions || myKeySet.size() > 0 || myTimeSet.size() > 0 || myHasStaves || myHasPartSymbol ||
+        myHasInstruments || myClefSet.size() > 0 || myStaffDetailsSet.size() > 0 || myTransposeSet.size() > 0 ||
+        myDirectiveSet.size() > 0 || myMeasureStyleSet.size() > 0)
+    {
         isOneLineOnly = false;
+        os << std::endl;
     }
     else
     {
@@ -482,37 +482,17 @@ MeasureStylePtr Properties::getMeasureStyle(const MeasureStyleSetIterConst &setI
 bool Properties::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     bool isSuccess = true;
-    ::ezxml::XElementIterator end = xelement.end();
 
-    bool hasFootnote = false;
-    bool hasLevel = false;
-
-    for (auto it = xelement.begin(); it != end; ++it)
+    auto endIter = xelement.end();
+    for (auto it = xelement.begin(); it != endIter; ++it)
     {
-        importElement(message, *it, isSuccess, *myEditorialGroup->getFootnote(), hasFootnote);
-        if (hasFootnote)
-        {
-            myEditorialGroup->setHasFootnote(true);
-        }
-
-        importElement(message, *it, isSuccess, *myEditorialGroup->getLevel(), hasLevel);
-        if (hasLevel)
-        {
-            myEditorialGroup->setHasLevel(true);
-        }
-
+        importGroup(message, it, endIter, isSuccess, myEditorialGroup);
         if (importElement(message, *it, isSuccess, *myDivisions, myHasDivisions))
         {
             continue;
         }
-        if (importElementSet(message, it, end, isSuccess, "key", myKeySet))
-        {
-            continue;
-        }
-        if (importElementSet(message, it, end, isSuccess, "time", myTimeSet))
-        {
-            continue;
-        }
+        importElementSet(message, it, endIter, isSuccess, "key", myKeySet);
+        importElementSet(message, it, endIter, isSuccess, "time", myTimeSet);
         if (importElement(message, *it, isSuccess, *myStaves, myHasStaves))
         {
             continue;
@@ -525,26 +505,11 @@ bool Properties::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xele
         {
             continue;
         }
-        if (importElementSet(message, it, end, isSuccess, "clef", myClefSet))
-        {
-            continue;
-        }
-        if (importElementSet(message, it, end, isSuccess, "staff-details", myStaffDetailsSet))
-        {
-            continue;
-        }
-        if (importElementSet(message, it, end, isSuccess, "transpose", myTransposeSet))
-        {
-            continue;
-        }
-        if (importElementSet(message, it, end, isSuccess, "directive", myDirectiveSet))
-        {
-            continue;
-        }
-        if (importElementSet(message, it, end, isSuccess, "measure-style", myMeasureStyleSet))
-        {
-            continue;
-        }
+        importElementSet(message, it, endIter, isSuccess, "clef", myClefSet);
+        importElementSet(message, it, endIter, isSuccess, "staff-details", myStaffDetailsSet);
+        importElementSet(message, it, endIter, isSuccess, "transpose", myTransposeSet);
+        importElementSet(message, it, endIter, isSuccess, "directive", myDirectiveSet);
+        importElementSet(message, it, endIter, isSuccess, "measure-style", myMeasureStyleSet);
     }
 
     MX_RETURN_IS_SUCCESS;

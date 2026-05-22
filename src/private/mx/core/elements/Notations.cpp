@@ -145,126 +145,130 @@ bool Notations::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelem
     bool isSuccess = true;
     isSuccess &= myAttributes->fromXElement(message, xelement);
 
-    for (auto it = xelement.begin(); it != xelement.end(); ++it)
+    auto endIter = xelement.end();
+    for (auto it = xelement.begin(); it != endIter; ++it)
     {
-        const std::string elementName = it->getName();
-
-        if (elementName == "footnote")
+        if (it->getName() == "footnote" || it->getName() == "level")
         {
-            myEditorialGroup->setHasFootnote(true);
-            isSuccess &= myEditorialGroup->getFootnote()->fromXElement(message, *it);
+            importGroup(message, it, endIter, isSuccess, myEditorialGroup);
+            continue;
         }
-        else if (elementName == "level")
-        {
-            myEditorialGroup->setHasLevel(true);
-            isSuccess &= myEditorialGroup->getLevel()->fromXElement(message, *it);
-        }
-        else if (elementName == "tied")
+        if (it->getName() == "tied")
         {
             auto choice = makeNotationsChoice();
             choice->setChoice(NotationsChoice::Choice::tied);
             isSuccess &= choice->getTied()->fromXElement(message, *it);
             myNotationsChoiceSet.push_back(choice);
+            continue;
         }
-        else if (elementName == "tuplet")
-        {
-            auto choice = makeNotationsChoice();
-            choice->setChoice(NotationsChoice::Choice::tuplet);
-            isSuccess &= choice->getTuplet()->fromXElement(message, *it);
-            myNotationsChoiceSet.push_back(choice);
-        }
-        else if (elementName == "slur")
+        if (it->getName() == "slur")
         {
             auto choice = makeNotationsChoice();
             choice->setChoice(NotationsChoice::Choice::slur);
             isSuccess &= choice->getSlur()->fromXElement(message, *it);
             myNotationsChoiceSet.push_back(choice);
+            continue;
         }
-        else if (elementName == "glissando")
+        if (it->getName() == "tuplet")
+        {
+            auto choice = makeNotationsChoice();
+            choice->setChoice(NotationsChoice::Choice::tuplet);
+            isSuccess &= choice->getTuplet()->fromXElement(message, *it);
+            myNotationsChoiceSet.push_back(choice);
+            continue;
+        }
+        if (it->getName() == "glissando")
         {
             auto choice = makeNotationsChoice();
             choice->setChoice(NotationsChoice::Choice::glissando);
             isSuccess &= choice->getGlissando()->fromXElement(message, *it);
             myNotationsChoiceSet.push_back(choice);
+            continue;
         }
-        else if (elementName == "slide")
+        if (it->getName() == "slide")
         {
             auto choice = makeNotationsChoice();
             choice->setChoice(NotationsChoice::Choice::slide);
             isSuccess &= choice->getSlide()->fromXElement(message, *it);
             myNotationsChoiceSet.push_back(choice);
+            continue;
         }
-        else if (elementName == "ornaments")
+        if (it->getName() == "ornaments")
         {
             auto choice = makeNotationsChoice();
             choice->setChoice(NotationsChoice::Choice::ornaments);
             isSuccess &= choice->getOrnaments()->fromXElement(message, *it);
             myNotationsChoiceSet.push_back(choice);
+            continue;
         }
-        else if (elementName == "technical")
+        if (it->getName() == "technical")
         {
             auto choice = makeNotationsChoice();
             choice->setChoice(NotationsChoice::Choice::technical);
             isSuccess &= choice->getTechnical()->fromXElement(message, *it);
             myNotationsChoiceSet.push_back(choice);
+            continue;
         }
-        else if (elementName == "articulations")
+        if (it->getName() == "articulations")
         {
             auto choice = makeNotationsChoice();
             choice->setChoice(NotationsChoice::Choice::articulations);
             isSuccess &= choice->getArticulations()->fromXElement(message, *it);
             myNotationsChoiceSet.push_back(choice);
+            continue;
         }
-        else if (elementName == "dynamics")
+        if (it->getName() == "dynamics")
         {
             auto choice = makeNotationsChoice();
             choice->setChoice(NotationsChoice::Choice::dynamics);
             isSuccess &= choice->getDynamics()->fromXElement(message, *it);
             myNotationsChoiceSet.push_back(choice);
+            continue;
         }
-        else if (elementName == "fermata")
+        if (it->getName() == "fermata")
         {
             auto choice = makeNotationsChoice();
             choice->setChoice(NotationsChoice::Choice::fermata);
             isSuccess &= choice->getFermata()->fromXElement(message, *it);
             myNotationsChoiceSet.push_back(choice);
+            continue;
         }
-        else if (elementName == "arpeggiate")
+        if (it->getName() == "arpeggiate")
         {
             auto choice = makeNotationsChoice();
             choice->setChoice(NotationsChoice::Choice::arpeggiate);
             isSuccess &= choice->getArpeggiate()->fromXElement(message, *it);
             myNotationsChoiceSet.push_back(choice);
+            continue;
         }
-        else if (elementName == "non-arpeggiate")
+        if (it->getName() == "non-arpeggiate")
         {
             auto choice = makeNotationsChoice();
             choice->setChoice(NotationsChoice::Choice::nonArpeggiate);
             isSuccess &= choice->getNonArpeggiate()->fromXElement(message, *it);
             myNotationsChoiceSet.push_back(choice);
+            continue;
         }
-        else if (elementName == "accidental-mark")
+        if (it->getName() == "accidental-mark")
         {
             auto choice = makeNotationsChoice();
             choice->setChoice(NotationsChoice::Choice::accidentalMark);
             isSuccess &= choice->getAccidentalMark()->fromXElement(message, *it);
             myNotationsChoiceSet.push_back(choice);
+            continue;
         }
-        else if (elementName == "other-notations")
+        if (it->getName() == "other-notation")
         {
             auto choice = makeNotationsChoice();
             choice->setChoice(NotationsChoice::Choice::otherNotation);
             isSuccess &= choice->getOtherNotation()->fromXElement(message, *it);
             myNotationsChoiceSet.push_back(choice);
-        }
-        else
-        {
-            isSuccess = false;
-            message << "Notations: fromXElement unexpected element '" << elementName << "' encountered" << std::endl;
+            continue;
         }
     }
 
     MX_RETURN_IS_SUCCESS;
 }
+
 } // namespace core
 } // namespace mx

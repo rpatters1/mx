@@ -11,8 +11,8 @@ namespace mx
 namespace core
 {
 LevelAttributes::LevelAttributes()
-    : reference(), parentheses(), bracket(), size(), hasReference(false), hasParentheses(false), hasBracket(false),
-      hasSize(false)
+    : reference(YesNo::no), parentheses(YesNo::no), bracket(YesNo::no), size(SymbolSize::full), hasReference(false),
+      hasParentheses(false), hasBracket(false), hasSize(false)
 {
 }
 

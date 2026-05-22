@@ -67,7 +67,10 @@ TimeChoicePtr Time::getTimeChoice() const
 
 void Time::setTimeChoice(const TimeChoicePtr &value)
 {
-    myChoice = value;
+    if (value)
+    {
+        myChoice = value;
+    }
 }
 
 bool Time::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)

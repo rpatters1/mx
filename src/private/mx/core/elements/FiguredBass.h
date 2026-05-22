@@ -39,7 +39,7 @@ class FiguredBass : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     FiguredBassAttributesPtr getAttributes() const;
-    void setAttributes(const FiguredBassAttributesPtr &value);
+    void setAttributes(const FiguredBassAttributesPtr &attributes);
 
     /* _________ Figure minOccurs = 1, maxOccurs = unbounded _________ */
     const FigureSet &getFigureSet() const;

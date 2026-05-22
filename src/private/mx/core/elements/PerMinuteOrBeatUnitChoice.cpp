@@ -40,18 +40,16 @@ bool PerMinuteOrBeatUnitChoice::hasContents() const
 std::ostream &PerMinuteOrBeatUnitChoice::streamContents(std::ostream &os, const int indentLevel,
                                                         bool &isOneLineOnly) const
 {
-    switch (myChoice)
+    if (myChoice == Choice::perMinute)
     {
-    case Choice::perMinute: {
         myPerMinute->toStream(os, indentLevel);
     }
-    break;
-    case Choice::beatUnitGroup: {
-        myBeatUnitGroup->streamContents(os, indentLevel, isOneLineOnly);
-    }
-    break;
-    default:
-        break;
+    if (myChoice == Choice::beatUnitGroup)
+    {
+        if (myBeatUnitGroup)
+        {
+            myBeatUnitGroup->streamContents(os, indentLevel, isOneLineOnly);
+        }
     }
     isOneLineOnly = false;
     return os;
@@ -62,7 +60,7 @@ PerMinuteOrBeatUnitChoice::Choice PerMinuteOrBeatUnitChoice::getChoice() const
     return myChoice;
 }
 
-void PerMinuteOrBeatUnitChoice::setChoice(const PerMinuteOrBeatUnitChoice::Choice value)
+void PerMinuteOrBeatUnitChoice::setChoice(const Choice value)
 {
     myChoice = value;
 }
@@ -93,12 +91,7 @@ void PerMinuteOrBeatUnitChoice::setBeatUnitGroup(const BeatUnitGroupPtr &value)
     }
 }
 
-bool PerMinuteOrBeatUnitChoice::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
-{
-    MX_CHOICE_IF(perMinute, "per-minute", PerMinute);
-    MX_CHOICE_IF(beatUnitGroup, "beat-unit-group", BeatUnitGroup);
-    MX_BAD_ELEMENT_FAILURE(PerMinuteOrBeatUnitChoice);
-}
+MX_FROM_XELEMENT_UNUSED(PerMinuteOrBeatUnitChoice);
 
 } // namespace core
 } // namespace mx

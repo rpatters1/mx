@@ -12,15 +12,15 @@ namespace core
 {
 DashesAttributes::DashesAttributes()
     : type(StartStopContinue::start), number(), dashLength(), spaceLength(), defaultX(), defaultY(), relativeX(),
-      relativeY(), hasType(true), hasNumber(false), hasDashLength(false), hasSpaceLength(false), hasDefaultX(false),
-      hasDefaultY(false), hasRelativeX(false), hasRelativeY(false)
+      relativeY(), color(), hasType(true), hasNumber(false), hasDashLength(false), hasSpaceLength(false),
+      hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasColor(false)
 {
 }
 
 bool DashesAttributes::hasValues() const
 {
     return hasType || hasNumber || hasDashLength || hasSpaceLength || hasDefaultX || hasDefaultY || hasRelativeX ||
-           hasRelativeY;
+           hasRelativeY || hasColor;
 }
 
 std::ostream &DashesAttributes::toStream(std::ostream &os) const
@@ -35,6 +35,7 @@ std::ostream &DashesAttributes::toStream(std::ostream &os) const
         streamAttribute(os, defaultY, "default-y", hasDefaultY);
         streamAttribute(os, relativeX, "relative-x", hasRelativeX);
         streamAttribute(os, relativeY, "relative-y", hasRelativeY);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -82,12 +83,16 @@ bool DashesAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
     }
 
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

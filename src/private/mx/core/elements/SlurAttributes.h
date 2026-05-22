@@ -22,34 +22,12 @@ namespace core
 
 MX_FORWARD_DECLARE_ATTRIBUTES(SlurAttributes)
 
-/*
- <xs:attribute name="type" type="start-stop-continue" use="required"/>
- <xs:attribute name="number" type="number-level" default="1"/>
- <xs:attributeGroup ref="line-type"/>
- <xs:attributeGroup ref="dashed-formatting"/>
- <xs:attributeGroup ref="position"/>
- <xs:attributeGroup ref="placement"/>
- <xs:attributeGroup ref="orientation"/>
- <xs:attributeGroup ref="bezier"/>
- <xs:attributeGroup ref="color"/>
- */
-
-/*
-<xs:attribute name="bezier-offset" type="divisions"/>
-<xs:attribute name="bezier-offset2" type="divisions"/>
-<xs:attribute name="bezier-x" type="tenths"/>
-<xs:attribute name="bezier-y" type="tenths"/>
-<xs:attribute name="bezier-x2" type="tenths"/>
-<xs:attribute name="bezier-y2" type="tenths"/>
-*/
-
 struct SlurAttributes : public AttributesInterface
 {
   public:
     SlurAttributes();
     virtual bool hasValues() const;
     virtual std::ostream &toStream(std::ostream &os) const;
-
     StartStopContinue type;
     NumberLevel number;
     LineType lineType;
@@ -68,7 +46,6 @@ struct SlurAttributes : public AttributesInterface
     TenthsValue bezierX2;
     TenthsValue bezierY2;
     Color color;
-
     const bool hasType;
     bool hasNumber;
     bool hasLineType;

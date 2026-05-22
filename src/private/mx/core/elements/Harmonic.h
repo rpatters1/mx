@@ -12,14 +12,19 @@
 #include <memory>
 #include <vector>
 
+namespace ezxml
+{
+class XElementIterator;
+}
+
 namespace mx
 {
 namespace core
 {
 
 MX_FORWARD_DECLARE_ATTRIBUTES(HarmonicAttributes)
-MX_FORWARD_DECLARE_ELEMENT(HarmonicInfoChoice)
 MX_FORWARD_DECLARE_ELEMENT(HarmonicTypeChoice)
+MX_FORWARD_DECLARE_ELEMENT(HarmonicInfoChoice)
 MX_FORWARD_DECLARE_ELEMENT(Harmonic)
 
 inline HarmonicPtr makeHarmonic()

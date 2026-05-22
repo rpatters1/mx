@@ -38,20 +38,15 @@ bool BendChoice::hasContents() const
 
 std::ostream &BendChoice::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    MX_UNUSED(isOneLineOnly);
-    switch (myChoice)
+    if (myChoice == Choice::preBend)
     {
-    case Choice::preBend: {
         myPreBend->toStream(os, indentLevel);
     }
-    break;
-    case Choice::release: {
+    if (myChoice == Choice::release)
+    {
         myRelease->toStream(os, indentLevel);
     }
-    break;
-    default:
-        break;
-    }
+    isOneLineOnly = false;
     return os;
 }
 
@@ -60,7 +55,7 @@ BendChoice::Choice BendChoice::getChoice() const
     return myChoice;
 }
 
-void BendChoice::setChoice(BendChoice::Choice value)
+void BendChoice::setChoice(const Choice value)
 {
     myChoice = value;
 }

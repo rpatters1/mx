@@ -51,10 +51,14 @@ std::ostream &VirtualInstrument::streamContents(std::ostream &os, const int inde
         os << std::endl;
         myVirtualName->toStream(os, indentLevel + 1);
     }
-    isOneLineOnly = !hasContents();
-    if (!isOneLineOnly)
+    if (myHasVirtualLibrary || myHasVirtualName)
     {
+        isOneLineOnly = false;
         os << std::endl;
+    }
+    else
+    {
+        isOneLineOnly = true;
     }
     return os;
 }

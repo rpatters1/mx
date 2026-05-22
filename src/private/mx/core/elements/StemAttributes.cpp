@@ -11,14 +11,14 @@ namespace mx
 namespace core
 {
 StemAttributes::StemAttributes()
-    : defaultX(), defaultY(), relativeX(), relativeY(), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false),
-      hasRelativeY(false)
+    : defaultX(), defaultY(), relativeX(), relativeY(), color(), hasDefaultX(false), hasDefaultY(false),
+      hasRelativeX(false), hasRelativeY(false), hasColor(false)
 {
 }
 
 bool StemAttributes::hasValues() const
 {
-    return hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY;
+    return hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasColor;
 }
 
 std::ostream &StemAttributes::toStream(std::ostream &os) const
@@ -29,6 +29,7 @@ std::ostream &StemAttributes::toStream(std::ostream &os) const
         streamAttribute(os, defaultY, "default-y", hasDefaultY);
         streamAttribute(os, relativeX, "relative-x", hasRelativeX);
         streamAttribute(os, relativeY, "relative-y", hasRelativeY);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -56,6 +57,10 @@ bool StemAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
             continue;
         }
         if (parseAttribute(message, it, className, isSuccess, relativeY, hasRelativeY, "relative-y"))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
         {
             continue;
         }

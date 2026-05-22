@@ -11,8 +11,8 @@ namespace mx
 namespace core
 {
 StaffDetailsAttributes::StaffDetailsAttributes()
-    : number(), showFrets(ShowFrets::numbers), printObject(YesNo::no), printSpacing(YesNo::no), hasNumber(false),
-      hasShowFrets(false), hasPrintObject(false), hasPrintSpacing(false)
+    : number(), showFrets(), printObject(YesNo::no), printSpacing(YesNo::no), hasNumber(false), hasShowFrets(false),
+      hasPrintObject(false), hasPrintSpacing(false)
 {
 }
 
@@ -62,7 +62,7 @@ bool StaffDetailsAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XE
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

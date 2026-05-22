@@ -39,7 +39,7 @@ class Hole : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     HoleAttributesPtr getAttributes() const;
-    void setAttributes(const HoleAttributesPtr &value);
+    void setAttributes(const HoleAttributesPtr &attributes);
 
     /* _________ HoleType minOccurs = 0, maxOccurs = 1 _________ */
     HoleTypePtr getHoleType() const;

@@ -11,8 +11,8 @@ namespace mx
 namespace core
 {
 OpusAttributes::OpusAttributes()
-    : href(), type(XlinkType::simple), role(), title(), show(XlinkShow::replace), actuate(XlinkActuate::onRequest),
-      hasHref(true), hasType(false), hasRole(false), hasTitle(false), hasShow(false), hasActuate(false)
+    : href(), type(), role(), title(), show(), actuate(), hasHref(true), hasType(false), hasRole(false),
+      hasTitle(false), hasShow(false), hasActuate(false)
 {
 }
 
@@ -46,30 +46,27 @@ bool OpusAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
 
     for (; it != endIter; ++it)
     {
-        if (parseAttribute(message, it, className, isSuccess, href, isHrefFound, "href"))
+        if (parseAttribute(message, it, className, isSuccess, href, isHrefFound, "xlink:href"))
         {
             continue;
         }
-
-        if (it->getName() == "xlink:type")
-        {
-            hasType = true;
-            continue;
-        }
-
-        if (parseAttribute(message, it, className, isSuccess, role, hasRole, "role"))
+        if (parseAttribute(message, it, className, isSuccess, type, hasType, "xlink:type", &parseXlinkType))
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, title, hasTitle, "title"))
+        if (parseAttribute(message, it, className, isSuccess, role, hasRole, "xlink:role"))
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, show, hasShow, "show", &parseXlinkShow))
+        if (parseAttribute(message, it, className, isSuccess, title, hasTitle, "xlink:title"))
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, actuate, hasActuate, "actuate", &parseXlinkActuate))
+        if (parseAttribute(message, it, className, isSuccess, show, hasShow, "xlink:show", &parseXlinkShow))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, actuate, hasActuate, "xlink:actuate", &parseXlinkActuate))
         {
             continue;
         }
@@ -78,10 +75,10 @@ bool OpusAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
     if (!isHrefFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'xlink:href' is a required attribute but was not found" << std::endl;
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

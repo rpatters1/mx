@@ -5,11 +5,11 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
-#include "mx/core/CommaSeparatedText.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
 #include "mx/core/ForwardDeclare.h"
 #include "mx/core/Integers.h"
+#include "mx/core/XsToken.h"
 
 #include <iosfwd>
 #include <memory>

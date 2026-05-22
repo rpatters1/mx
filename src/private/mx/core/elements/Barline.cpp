@@ -90,10 +90,15 @@ std::ostream &Barline::streamContents(std::ostream &os, const int indentLevel, b
         os << std::endl;
         myRepeat->toStream(os, indentLevel + 1);
     }
-    isOneLineOnly = !hasContents();
-    if (!isOneLineOnly)
+    if (myHasBarStyle || true || myHasWavyLine || myHasSegno || myHasCoda || myFermataSet.size() > 0 || myHasEnding ||
+        myHasRepeat)
     {
+        isOneLineOnly = false;
         os << std::endl;
+    }
+    else
+    {
+        isOneLineOnly = true;
     }
     return os;
 }
@@ -225,10 +230,7 @@ void Barline::removeFermata(const FermataSetIterConst &value)
 {
     if (value != myFermataSet.cend())
     {
-        if (myFermataSet.size() > 0)
-        {
-            myFermataSet.erase(value);
-        }
+        myFermataSet.erase(value);
     }
 }
 
@@ -236,10 +238,7 @@ void Barline::addFermata(const FermataPtr &value)
 {
     if (value)
     {
-        if (myFermataSet.size() < 2)
-        {
-            myFermataSet.push_back(value);
-        }
+        myFermataSet.push_back(value);
     }
 }
 

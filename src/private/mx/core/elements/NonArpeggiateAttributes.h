@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
 #include "mx/core/ForwardDeclare.h"
@@ -34,6 +35,7 @@ struct NonArpeggiateAttributes : public AttributesInterface
     TenthsValue relativeX;
     TenthsValue relativeY;
     AboveBelow placement;
+    Color color;
     const bool hasType;
     bool hasNumber;
     bool hasDefaultX;
@@ -41,6 +43,7 @@ struct NonArpeggiateAttributes : public AttributesInterface
     bool hasRelativeX;
     bool hasRelativeY;
     bool hasPlacement;
+    bool hasColor;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

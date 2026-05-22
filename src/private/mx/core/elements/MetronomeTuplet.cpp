@@ -5,7 +5,9 @@
 #include "mx/core/elements/MetronomeTuplet.h"
 #include "mx/core/FromXElement.h"
 #include "mx/core/elements/ActualNotes.h"
+#include "mx/core/elements/NormalDot.h"
 #include "mx/core/elements/NormalNotes.h"
+#include "mx/core/elements/NormalType.h"
 #include "mx/core/elements/TimeModificationNormalTypeNormalDot.h"
 #include <iostream>
 
@@ -44,6 +46,7 @@ bool MetronomeTuplet::hasContents() const
 
 std::ostream &MetronomeTuplet::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    isOneLineOnly = false;
     os << std::endl;
     myActualNotes->toStream(os, indentLevel + 1);
     os << std::endl;
@@ -54,7 +57,6 @@ std::ostream &MetronomeTuplet::streamContents(std::ostream &os, const int indent
         myTimeModificationNormalTypeNormalDot->streamContents(os, indentLevel + 1, isOneLineOnly);
     }
     os << std::endl;
-    isOneLineOnly = false;
     return os;
 }
 
@@ -145,16 +147,6 @@ bool MetronomeTuplet::fromXElementImpl(std::ostream &message, ::ezxml::XElement 
         }
     }
 
-    if (!isActualNotesFound)
-    {
-        message << "MetronomeTuplet: '" << myActualNotes->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
-    if (!isNormalNotesFound)
-    {
-        message << "MetronomeTuplet: '" << myNormalNotes->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

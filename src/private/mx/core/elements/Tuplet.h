@@ -38,7 +38,7 @@ class Tuplet : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     TupletAttributesPtr getAttributes() const;
-    void setAttributes(const TupletAttributesPtr &value);
+    void setAttributes(const TupletAttributesPtr &attributes);
 
     /* _________ TupletActual minOccurs = 0, maxOccurs = 1 _________ */
     TupletActualPtr getTupletActual() const;

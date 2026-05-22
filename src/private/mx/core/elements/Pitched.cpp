@@ -60,7 +60,6 @@ void Pitched::setValue(const PitchedEnum &value)
 bool Pitched::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     MX_UNUSED(message);
-    MX_UNUSED(xelement);
     myValue = parsePitchedEnum(xelement.getValue());
     return true;
 }

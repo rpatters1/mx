@@ -11,15 +11,16 @@ namespace mx
 namespace core
 {
 ArpeggiateAttributes::ArpeggiateAttributes()
-    : number(), direction(), defaultX(), defaultY(), relativeX(), relativeY(), placement(AboveBelow::below),
+    : number(), direction(), defaultX(), defaultY(), relativeX(), relativeY(), placement(AboveBelow::below), color(),
       hasNumber(false), hasDirection(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false),
-      hasRelativeY(false), hasPlacement(false)
+      hasRelativeY(false), hasPlacement(false), hasColor(false)
 {
 }
 
 bool ArpeggiateAttributes::hasValues() const
 {
-    return hasNumber || hasDirection || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasPlacement;
+    return hasNumber || hasDirection || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasPlacement ||
+           hasColor;
 }
 
 std::ostream &ArpeggiateAttributes::toStream(std::ostream &os) const
@@ -33,6 +34,7 @@ std::ostream &ArpeggiateAttributes::toStream(std::ostream &os) const
         streamAttribute(os, relativeX, "relative-x", hasRelativeX);
         streamAttribute(os, relativeY, "relative-y", hasRelativeY);
         streamAttribute(os, placement, "placement", hasPlacement);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -51,7 +53,7 @@ bool ArpeggiateAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEle
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, direction, hasDirection, "direction", &parseUpDownNone))
+        if (parseAttribute(message, it, className, isSuccess, direction, hasDirection, "direction", &parseUpDown))
         {
             continue;
         }
@@ -75,9 +77,13 @@ bool ArpeggiateAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEle
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

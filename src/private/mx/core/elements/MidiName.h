@@ -16,6 +16,7 @@ namespace mx
 {
 namespace core
 {
+
 MX_FORWARD_DECLARE_ELEMENT(MidiName)
 
 inline MidiNamePtr makeMidiName()

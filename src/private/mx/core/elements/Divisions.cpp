@@ -60,6 +60,7 @@ void Divisions::setValue(const PositiveDivisionsValue &value)
 bool Divisions::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     MX_UNUSED(message);
+    MX_UNUSED(xelement);
     myValue.parse(xelement.getValue());
     return true;
 }

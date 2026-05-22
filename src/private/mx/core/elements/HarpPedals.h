@@ -37,7 +37,7 @@ class HarpPedals : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     HarpPedalsAttributesPtr getAttributes() const;
-    void setAttributes(const HarpPedalsAttributesPtr &value);
+    void setAttributes(const HarpPedalsAttributesPtr &attributes);
 
     /* _________ PedalTuning minOccurs = 1, maxOccurs = unbounded _________ */
     const PedalTuningSet &getPedalTuningSet() const;

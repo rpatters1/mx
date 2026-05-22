@@ -49,7 +49,7 @@ class ScorePart : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     ScorePartAttributesPtr getAttributes() const;
-    void setAttributes(const ScorePartAttributesPtr &value);
+    void setAttributes(const ScorePartAttributesPtr &attributes);
 
     /* _________ Identification minOccurs = 0, maxOccurs = 1 _________ */
     IdentificationPtr getIdentification() const;

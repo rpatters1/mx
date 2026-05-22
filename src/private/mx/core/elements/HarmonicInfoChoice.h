@@ -17,8 +17,8 @@ namespace core
 {
 
 MX_FORWARD_DECLARE_ELEMENT(BasePitch)
-MX_FORWARD_DECLARE_ELEMENT(SoundingPitch)
 MX_FORWARD_DECLARE_ELEMENT(TouchingPitch)
+MX_FORWARD_DECLARE_ELEMENT(SoundingPitch)
 MX_FORWARD_DECLARE_ELEMENT(HarmonicInfoChoice)
 
 inline HarmonicInfoChoicePtr makeHarmonicInfoChoice()
@@ -31,9 +31,9 @@ class HarmonicInfoChoice : public ElementInterface
   public:
     enum class Choice
     {
-        basePitch = 1,
-        touchingPitch = 2,
-        soundingPitch = 3
+        basePitch = 0,
+        touchingPitch = 1,
+        soundingPitch = 2
     };
     HarmonicInfoChoice();
 
@@ -42,20 +42,12 @@ class HarmonicInfoChoice : public ElementInterface
     virtual std::ostream &streamName(std::ostream &os) const;
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
-
-    /* _________ Choice minOccurs = 1, maxOccurs = 1 _________ */
-    HarmonicInfoChoice::Choice getChoice() const;
-    void setChoice(const HarmonicInfoChoice::Choice value);
-
-    /* _________ BasePitch minOccurs = 1, maxOccurs = 1 _________ */
+    Choice getChoice() const;
+    void setChoice(const Choice value);
     BasePitchPtr getBasePitch() const;
     void setBasePitch(const BasePitchPtr &value);
-
-    /* _________ TouchingPitch minOccurs = 1, maxOccurs = 1 _________ */
     TouchingPitchPtr getTouchingPitch() const;
     void setTouchingPitch(const TouchingPitchPtr &value);
-
-    /* _________ SoundingPitch minOccurs = 1, maxOccurs = 1 _________ */
     SoundingPitchPtr getSoundingPitch() const;
     void setSoundingPitch(const SoundingPitchPtr &value);
 

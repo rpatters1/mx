@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/Enums.h"
 #include "mx/core/ForwardDeclare.h"
 #include "mx/core/Integers.h"
@@ -29,9 +30,11 @@ struct BeamAttributes : public AttributesInterface
     BeamLevel number;
     YesNo repeater;
     Fan fan;
+    Color color;
     bool hasNumber;
     bool hasRepeater;
     bool hasFan;
+    bool hasColor;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

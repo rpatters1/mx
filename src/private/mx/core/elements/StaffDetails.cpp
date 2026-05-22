@@ -45,7 +45,6 @@ bool StaffDetails::hasContents() const
 
 std::ostream &StaffDetails::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    isOneLineOnly = !(myHasStaffType || myHasStaffLines || myStaffTuningSet.size() > 0 || myHasCapo || myHasStaffSize);
     if (myHasStaffType)
     {
         os << std::endl;
@@ -71,9 +70,14 @@ std::ostream &StaffDetails::streamContents(std::ostream &os, const int indentLev
         os << std::endl;
         myStaffSize->toStream(os, indentLevel + 1);
     }
-    if (hasContents())
+    if (myHasStaffType || myHasStaffLines || myStaffTuningSet.size() > 0 || myHasCapo || myHasStaffSize)
     {
+        isOneLineOnly = false;
         os << std::endl;
+    }
+    else
+    {
+        isOneLineOnly = true;
     }
     return os;
 }
@@ -161,6 +165,15 @@ void StaffDetails::addStaffTuning(const StaffTuningPtr &value)
 void StaffDetails::clearStaffTuningSet()
 {
     myStaffTuningSet.clear();
+}
+
+StaffTuningPtr StaffDetails::getStaffTuning(const StaffTuningSetIterConst &setIterator) const
+{
+    if (setIterator != myStaffTuningSet.cend())
+    {
+        return *setIterator;
+    }
+    return StaffTuningPtr();
 }
 
 CapoPtr StaffDetails::getCapo() const

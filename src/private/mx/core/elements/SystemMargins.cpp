@@ -93,17 +93,7 @@ bool SystemMargins::fromXElementImpl(std::ostream &message, ::ezxml::XElement &x
         }
     }
 
-    if (!isLeftMarginFound)
-    {
-        message << "SystemMargins: '" << myLeftMargin->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
-    if (!isRightMarginFound)
-    {
-        message << "SystemMargins: '" << myRightMargin->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

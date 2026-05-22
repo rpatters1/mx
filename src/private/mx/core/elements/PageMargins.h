@@ -40,7 +40,7 @@ class PageMargins : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     PageMarginsAttributesPtr getAttributes() const;
-    void setAttributes(const PageMarginsAttributesPtr &value);
+    void setAttributes(const PageMarginsAttributesPtr &attributes);
 
     /* _________ LeftMargin minOccurs = 1, maxOccurs = 1 _________ */
     LeftMarginPtr getLeftMargin() const;

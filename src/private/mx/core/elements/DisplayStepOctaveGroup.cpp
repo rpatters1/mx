@@ -39,10 +39,16 @@ bool DisplayStepOctaveGroup::hasContents() const
 
 std::ostream &DisplayStepOctaveGroup::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    MX_UNUSED(isOneLineOnly);
+    bool isFirst = true;
+    if (!isFirst)
+        os << std::endl;
     myDisplayStep->toStream(os, indentLevel);
-    os << std::endl;
+    isFirst = false;
+    if (!isFirst)
+        os << std::endl;
     myDisplayOctave->toStream(os, indentLevel);
+    isFirst = false;
+    isOneLineOnly = !hasContents();
     return os;
 }
 
@@ -72,44 +78,7 @@ void DisplayStepOctaveGroup::setDisplayOctave(const DisplayOctavePtr &value)
     }
 }
 
-bool DisplayStepOctaveGroup::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
-{
-    bool isSuccess = true;
-    bool isDisplayStepFound = false;
-    bool isDisplayOctaveFound = false;
-
-    for (auto it = xelement.begin(); it != xelement.end(); ++it)
-    {
-        const std::string elementName = it->getName();
-
-        if (elementName == "display-step")
-        {
-            isDisplayStepFound = true;
-            isSuccess &= myDisplayStep->fromXElement(message, *it);
-        }
-        else if (elementName == "display-octave")
-        {
-            isDisplayOctaveFound = true;
-            isSuccess &= myDisplayOctave->fromXElement(message, *it);
-        }
-        else
-        {
-            if (!isDisplayStepFound)
-            {
-                isSuccess = false;
-                message << "DisplayStepOctaveGroup: 'display-step' element is required but was not found" << std::endl;
-            }
-            if (!isDisplayOctaveFound)
-            {
-                isSuccess = false;
-                message << "DisplayStepOctaveGroup: 'display-octave' element is required but was not found"
-                        << std::endl;
-            }
-            break;
-        }
-    }
-    MX_RETURN_IS_SUCCESS;
-}
+MX_FROM_XELEMENT_UNUSED(DisplayStepOctaveGroup);
 
 } // namespace core
 } // namespace mx
