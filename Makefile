@@ -96,13 +96,16 @@ endif
 # build/<mode>/<BUILD_TYPE> for the given mode ($1).
 mode_dir = $(BUILD_ROOT)/$(1)/$(BUILD_TYPE)
 
-# Configure + build a mode. $1 = mode name, then the three MX_BUILD_* values.
+# Configure + build a mode. $1 = mode name, then the three MX_BUILD_* values
+# followed by MX_CORE_DEV. core-dev passes MX_CORE_DEV=on with the three
+# MX_BUILD_* flags off; every other mode passes MX_CORE_DEV=off.
 define cmake_build
 	$(CMAKE) -S . -B $(call mode_dir,$(1)) \
 		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-DMX_BUILD_TESTS=$(2) \
 		-DMX_BUILD_CORE_TESTS=$(3) \
 		-DMX_BUILD_EXAMPLES=$(4) \
+		-DMX_CORE_DEV=$(5) \
 		$(GEN_ARG)
 	$(CMAKE) --build $(call mode_dir,$(1)) --parallel $(JOBS) --config $(BUILD_TYPE)
 endef
@@ -131,7 +134,8 @@ endef
 
 .DEFAULT_GOAL := help
 .PHONY: help lib dev core test test-all examples-run all clean clean-docker \
-        check-docker fmt check xcode-gen xcode-build xcode-test
+        check-docker fmt check core-dev check-core-dev test-core-dev \
+        xcode-gen xcode-build xcode-test
 
 help:
 	@echo 'mx build/test targets (see the comments at the top of the Makefile):'
@@ -164,19 +168,33 @@ help:
 	@echo '  make xcode-build    Build the Xcode project.'
 	@echo '  make xcode-test     Run tests via xcodebuild.'
 	@echo ''
+	@echo 'Core development (codegen):'
+	@echo '  make core-dev           Build trimmed library (mx/core + ezxml + utility) and'
+	@echo '                          mxtest-core-dev. No mx/api or mx/impl compiled.'
+	@echo '  make check-core-dev     fmt-check + warning-free build for core-dev (Docker).'
+	@echo '  make test-core-dev      Build core-dev then run the core roundtrip suite.'
+	@echo '                          Each file under data/ is a separate Catch2 test case.'
+	@echo "                          Filter: make test-core-dev ARGS='[core-roundtrip] lysuite/*'"
+	@echo ''
 	@echo 'Knobs:  JOBS (=$(JOBS))  BUILD_TYPE (=$(BUILD_TYPE))  GENERATOR  ARGS  DOCKER'
 	@echo 'Layout: $(BUILD_ROOT)/<mode>/$(BUILD_TYPE)/'
 
 # --- Compile-only targets ---------------------------------------------------
 
 lib:
-	$(call cmake_build,lib,off,off,off)
+	$(call cmake_build,lib,off,off,off,off)
 
 dev:
-	$(call cmake_build,dev,on,off,on)
+	$(call cmake_build,dev,on,off,on,off)
 
 core:
-	$(call cmake_build,core,on,on,on)
+	$(call cmake_build,core,on,on,on,off)
+
+# Core-dev mode: trimmed build (mx/core + ezxml + utility) plus the core
+# roundtrip test binary. mx/api and mx/impl are not compiled. Intended for
+# codegen iteration on mx/core. See AGENTS.md and docs/ai/projects/core-dev/.
+core-dev:
+	$(call cmake_build,core-dev,off,off,off,on)
 
 # --- Run targets ------------------------------------------------------------
 
@@ -187,6 +205,13 @@ test: dev
 test-all: core
 	$(call run_examples,$(call mode_dir,core))
 	$(call run_bin,$(call mode_dir,core),mxtest,$(ARGS))
+
+# Run the core roundtrip suite from the trimmed build. ARGS is forwarded to
+# the binary (e.g., make test-core-dev ARGS='[core-roundtrip] lysuite/').
+# --allow-running-no-tests keeps the target green when ARGS filters to an
+# empty set, and also during Phase A before any test cases are registered.
+test-core-dev: core-dev
+	$(call run_bin,$(call mode_dir,core-dev),mxtest-core-dev,--allow-running-no-tests $(ARGS))
 
 examples-run: dev
 	$(call run_examples,$(call mode_dir,dev))
@@ -244,6 +269,7 @@ check:
 		-DMX_BUILD_TESTS=on \
 		-DMX_BUILD_CORE_TESTS=off \
 		-DMX_BUILD_EXAMPLES=on \
+		-DMX_CORE_DEV=off \
 		$(GEN_ARG) > $(BUILD_ROOT)/build.log 2>&1 \
 		|| { cat $(BUILD_ROOT)/build.log; \
 		     echo "ERROR: cmake configure failed (see above)"; exit 1; }
@@ -258,6 +284,33 @@ check:
 		fi
 	@echo "=== check passed ==="
 
+# fmt-check + warning-free build for core-dev mode. Same shape as `check`
+# but configures with MX_CORE_DEV=on and the three MX_BUILD_* flags off.
+check-core-dev:
+	@echo "=== fmt-check ==="
+	@$(FIND_CPP) | xargs clang-format --dry-run --Werror
+	@echo "=== build (warning-free, core-dev) ==="
+	@mkdir -p $(BUILD_ROOT)
+	@$(CMAKE) -S . -B $(call mode_dir,core-dev) \
+		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+		-DMX_BUILD_TESTS=off \
+		-DMX_BUILD_CORE_TESTS=off \
+		-DMX_BUILD_EXAMPLES=off \
+		-DMX_CORE_DEV=on \
+		$(GEN_ARG) > $(BUILD_ROOT)/build.log 2>&1 \
+		|| { cat $(BUILD_ROOT)/build.log; \
+		     echo "ERROR: cmake configure failed (see above)"; exit 1; }
+	@$(CMAKE) --build $(call mode_dir,core-dev) --parallel $(JOBS) --config $(BUILD_TYPE) \
+		>> $(BUILD_ROOT)/build.log 2>&1; status=$$?; \
+		cat $(BUILD_ROOT)/build.log; \
+		if [ $$status -ne 0 ]; then \
+			echo "ERROR: build failed (see above)"; exit $$status; \
+		fi; \
+		if grep -q 'warning:' $(BUILD_ROOT)/build.log; then \
+			echo "ERROR: build emitted warnings (see above)"; exit 1; \
+		fi
+	@echo "=== check-core-dev passed ==="
+
 else
 
 # ===== Outside the container: delegate to Docker ===========================
@@ -269,6 +322,12 @@ fmt: check-docker
 
 check: check-docker
 	$(DOCKER) buildx build --target run \
+		--output type=cacheonly $(DOCKER_CACHE) .
+
+# Core-dev mirror of `check`: delegates to a parallel `run-core-dev` Docker
+# stage that hardcodes `make check-core-dev` against the pinned toolchain.
+check-core-dev: check-docker
+	$(DOCKER) buildx build --target run-core-dev \
 		--output type=cacheonly $(DOCKER_CACHE) .
 
 endif

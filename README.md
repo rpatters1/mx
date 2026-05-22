@@ -52,6 +52,8 @@ switching modes never recompiles another mode's tree. Knobs: `JOBS` (parallelism
 `BUILD_TYPE` (default `Debug`), `GENERATOR` (default: CMake's platform default), and `ARGS`
 (forwarded to `mxtest`, e.g. `make test ARGS='[core]'`).
 
+A `core-dev` mode exists for codegen iteration on `mx/core`; see `AGENTS.md` for details.
+
 ### Build Tenets
 
 * `mx` should not depend on any outside libraries (no deps).
