@@ -12,9 +12,9 @@ namespace core
 {
 PartAbbreviationAttributes::PartAbbreviationAttributes()
     : defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(FontSize{CssFontSize::medium}), fontWeight(FontWeight::normal), printObject(),
-      justify(LeftCenterRight::center), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false),
-      hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false),
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), printObject(YesNo::no),
+      justify(LeftCenterRight::left), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
+      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false),
       hasPrintObject(false), hasJustify(false)
 {
 }
@@ -22,7 +22,7 @@ PartAbbreviationAttributes::PartAbbreviationAttributes()
 bool PartAbbreviationAttributes::hasValues() const
 {
     return hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize ||
-           hasFontWeight || hasPrintObject || hasJustify;
+           hasFontWeight || hasColor || hasPrintObject || hasJustify;
 }
 
 std::ostream &PartAbbreviationAttributes::toStream(std::ostream &os) const
@@ -37,6 +37,7 @@ std::ostream &PartAbbreviationAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, printObject, "print-object", hasPrintObject);
         streamAttribute(os, justify, "justify", hasJustify);
     }
@@ -83,6 +84,10 @@ bool PartAbbreviationAttributes::fromXElementImpl(std::ostream &message, ::ezxml
         }
         if (parseAttribute(message, it, className, isSuccess, fontWeight, hasFontWeight, "font-weight",
                            &parseFontWeight))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
         {
             continue;
         }

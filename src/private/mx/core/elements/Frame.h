@@ -40,7 +40,7 @@ class Frame : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     FrameAttributesPtr getAttributes() const;
-    void setAttributes(const FrameAttributesPtr &value);
+    void setAttributes(const FrameAttributesPtr &attributes);
 
     /* _________ FrameStrings minOccurs = 1, maxOccurs = 1 _________ */
     FrameStringsPtr getFrameStrings() const;

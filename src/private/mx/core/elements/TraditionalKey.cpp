@@ -7,7 +7,6 @@
 #include "mx/core/elements/Cancel.h"
 #include "mx/core/elements/Fifths.h"
 #include "mx/core/elements/Mode.h"
-
 #include <iostream>
 
 namespace mx
@@ -15,9 +14,7 @@ namespace mx
 namespace core
 {
 TraditionalKey::TraditionalKey()
-    : ElementInterface(), myCancel(std::make_shared<Cancel>(FifthsValue{0})),
-      myFifths(std::make_shared<Fifths>(FifthsValue{0})), myMode(std::make_shared<Mode>()), myHasCancel(false),
-      myHasMode(false)
+    : myCancel(makeCancel()), myHasCancel(false), myFifths(makeFifths()), myMode(makeMode()), myHasMode(false)
 {
 }
 
@@ -43,20 +40,26 @@ bool TraditionalKey::hasContents() const
 
 std::ostream &TraditionalKey::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    if (getHasCancel() && myCancel)
+    isOneLineOnly = false;
+    bool isFirst = true;
+    if (myHasCancel)
     {
-        myCancel->toStream(os, indentLevel) << std::endl;
+        if (!isFirst)
+            os << std::endl;
+        myCancel->toStream(os, indentLevel);
+        isFirst = false;
     }
-    if (myFifths)
-    {
-        myFifths->toStream(os, indentLevel);
-    }
-    if (getHasMode() && myMode)
-    {
+    if (!isFirst)
         os << std::endl;
+    myFifths->toStream(os, indentLevel);
+    isFirst = false;
+    if (myHasMode)
+    {
+        if (!isFirst)
+            os << std::endl;
         myMode->toStream(os, indentLevel);
+        isFirst = false;
     }
-    isOneLineOnly = (!myCancel && !myMode);
     return os;
 }
 
@@ -119,34 +122,7 @@ void TraditionalKey::setHasMode(const bool value)
     myHasMode = value;
 }
 
-bool TraditionalKey::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
-{
-    bool isSuccess = true;
-    bool isFifthsFound = false;
-
-    auto endIter = xelement.end();
-    for (auto it = xelement.begin(); it != endIter; ++it)
-    {
-        if (importElement(message, *it, isSuccess, *myCancel, myHasCancel))
-        {
-            continue;
-        }
-        if (importElement(message, *it, isSuccess, *myFifths, isFifthsFound))
-        {
-            continue;
-        }
-        if (importElement(message, *it, isSuccess, *myMode, myHasMode))
-        {
-            continue;
-        }
-    }
-
-    if (!isFifthsFound)
-    {
-        message << "TraditionalKey: '" << myFifths->getElementName() << "' is required but was not found" << std::endl;
-    }
-    MX_RETURN_IS_SUCCESS;
-}
+MX_FROM_XELEMENT_UNUSED(TraditionalKey);
 
 } // namespace core
 } // namespace mx

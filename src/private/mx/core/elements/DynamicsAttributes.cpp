@@ -11,10 +11,13 @@ namespace mx
 namespace core
 {
 DynamicsAttributes::DynamicsAttributes()
-    : hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false),
-      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false), hasHalign(false),
-      hasValign(false), hasPlacement(false), hasUnderline(false), hasOverline(false), hasLineThrough(false),
-      hasEnclosure(false)
+    : defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), halign(LeftCenterRight::left),
+      valign(Valign::bottom), placement(AboveBelow::below), underline(), overline(), lineThrough(),
+      enclosure(EnclosureShape::none), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
+      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false),
+      hasHalign(false), hasValign(false), hasPlacement(false), hasUnderline(false), hasOverline(false),
+      hasLineThrough(false), hasEnclosure(false)
 {
 }
 

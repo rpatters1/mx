@@ -79,16 +79,7 @@ bool Accidental::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xele
 {
     bool isSuccess = true;
     isSuccess &= myAttributes->fromXElement(message, xelement);
-    if (xelement.getValue() == "double-flat")
-    {
-        message << "Accidental: 'double-flat' is not a valid MusicXML 'accidental' value - converting it to 'flat-flat'"
-                << std::endl;
-        myValue = parseAccidentalValue("flat-flat");
-    }
-    else
-    {
-        myValue = parseAccidentalValue(xelement.getValue());
-    }
+    myValue = parseAccidentalValue(xelement.getValue());
     MX_RETURN_IS_SUCCESS;
 }
 

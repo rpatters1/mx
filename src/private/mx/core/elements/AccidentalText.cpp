@@ -81,7 +81,7 @@ bool AccidentalText::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
     bool isSuccess = true;
     isSuccess &= myAttributes->fromXElement(message, xelement);
     myValue = parseAccidentalValue(xelement.getValue());
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

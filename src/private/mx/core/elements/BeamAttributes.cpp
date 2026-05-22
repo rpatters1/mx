@@ -10,13 +10,15 @@ namespace mx
 {
 namespace core
 {
-BeamAttributes::BeamAttributes() : number(1), repeater(), fan(), hasNumber(false), hasRepeater(false), hasFan(false)
+BeamAttributes::BeamAttributes()
+    : number(), repeater(YesNo::no), fan(), color(), hasNumber(false), hasRepeater(false), hasFan(false),
+      hasColor(false)
 {
 }
 
 bool BeamAttributes::hasValues() const
 {
-    return hasNumber || hasRepeater || hasFan;
+    return hasNumber || hasRepeater || hasFan || hasColor;
 }
 
 std::ostream &BeamAttributes::toStream(std::ostream &os) const
@@ -26,6 +28,7 @@ std::ostream &BeamAttributes::toStream(std::ostream &os) const
         streamAttribute(os, number, "number", hasNumber);
         streamAttribute(os, repeater, "repeater", hasRepeater);
         streamAttribute(os, fan, "fan", hasFan);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -52,9 +55,13 @@ bool BeamAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

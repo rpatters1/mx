@@ -52,6 +52,7 @@ bool ScorePart::hasContents() const
 
 std::ostream &ScorePart::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    isOneLineOnly = false;
     if (myHasIdentification)
     {
         os << std::endl;
@@ -92,7 +93,6 @@ std::ostream &ScorePart::streamContents(std::ostream &os, const int indentLevel,
             x->streamContents(os, indentLevel + 1, isOneLineOnly);
         }
     }
-    isOneLineOnly = false;
     os << std::endl;
     return os;
 }
@@ -290,19 +290,19 @@ const MidiDeviceInstrumentGroupSet &ScorePart::getMidiDeviceInstrumentGroupSet()
     return myMidiDeviceInstrumentGroupSet;
 }
 
-void ScorePart::addMidiDeviceInstrumentGroup(const MidiDeviceInstrumentGroupPtr &value)
-{
-    if (value)
-    {
-        myMidiDeviceInstrumentGroupSet.push_back(value);
-    }
-}
-
 void ScorePart::removeMidiDeviceInstrumentGroup(const MidiDeviceInstrumentGroupSetIterConst &value)
 {
     if (value != myMidiDeviceInstrumentGroupSet.cend())
     {
         myMidiDeviceInstrumentGroupSet.erase(value);
+    }
+}
+
+void ScorePart::addMidiDeviceInstrumentGroup(const MidiDeviceInstrumentGroupPtr &value)
+{
+    if (value)
+    {
+        myMidiDeviceInstrumentGroupSet.push_back(value);
     }
 }
 
@@ -325,26 +325,34 @@ bool ScorePart::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelem
 {
     bool isSuccess = true;
     isSuccess &= myAttributes->fromXElement(message, xelement);
-
     bool isPartNameFound = false;
 
-    ::ezxml::XElementIterator end = xelement.end();
-
-    for (auto it = xelement.begin(); it != end; ++it)
+    auto endIter = xelement.end();
+    for (auto it = xelement.begin(); it != endIter; ++it)
     {
-        importElement(message, *it, isSuccess, *myIdentification, myHasIdentification);
-        importElement(message, *it, isSuccess, *myPartName, isPartNameFound);
-        importElement(message, *it, isSuccess, *myPartNameDisplay, myHasPartNameDisplay);
-        importElement(message, *it, isSuccess, *myPartAbbreviation, myHasPartAbbreviation);
-        importElement(message, *it, isSuccess, *myPartAbbreviationDisplay, myHasPartAbbreviationDisplay);
-        importElementSet(message, it, end, isSuccess, "group", myGroupSet);
-        importElementSet(message, it, end, isSuccess, "score-instrument", myScoreInstrumentSet);
-        importMidiDeviceInstrumentGroupSet(message, it, end, isSuccess);
-    }
-
-    if (!isPartNameFound)
-    {
-        message << "ScorePart: 'part-name' element is required but was not found" << std::endl;
+        if (importElement(message, *it, isSuccess, *myIdentification, myHasIdentification))
+        {
+            continue;
+        }
+        if (importElement(message, *it, isSuccess, *myPartName, isPartNameFound))
+        {
+            continue;
+        }
+        if (importElement(message, *it, isSuccess, *myPartNameDisplay, myHasPartNameDisplay))
+        {
+            continue;
+        }
+        if (importElement(message, *it, isSuccess, *myPartAbbreviation, myHasPartAbbreviation))
+        {
+            continue;
+        }
+        if (importElement(message, *it, isSuccess, *myPartAbbreviationDisplay, myHasPartAbbreviationDisplay))
+        {
+            continue;
+        }
+        importElementSet(message, it, endIter, isSuccess, "group", myGroupSet);
+        importElementSet(message, it, endIter, isSuccess, "score-instrument", myScoreInstrumentSet);
+        importMidiDeviceInstrumentGroupSet(message, it, endIter, isSuccess);
     }
 
     MX_RETURN_IS_SUCCESS;

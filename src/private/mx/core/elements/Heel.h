@@ -36,7 +36,7 @@ class Heel : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     HeelAttributesPtr getAttributes() const;
-    void setAttributes(const HeelAttributesPtr &value);
+    void setAttributes(const HeelAttributesPtr &attributes);
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

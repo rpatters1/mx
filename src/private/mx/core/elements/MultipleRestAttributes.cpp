@@ -10,7 +10,7 @@ namespace mx
 {
 namespace core
 {
-MultipleRestAttributes::MultipleRestAttributes() : useSymbols(), hasUseSymbols(false)
+MultipleRestAttributes::MultipleRestAttributes() : useSymbols(YesNo::no), hasUseSymbols(false)
 {
 }
 

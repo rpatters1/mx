@@ -42,6 +42,9 @@ std::ostream &Unpitched::streamContents(std::ostream &os, const int indentLevel,
     {
         os << std::endl;
         myDisplayStepOctaveGroup->streamContents(os, indentLevel + 1, isOneLineOnly);
+    }
+    if (myHasDisplayStepOctaveGroup)
+    {
         isOneLineOnly = false;
         os << std::endl;
     }
@@ -79,9 +82,12 @@ bool Unpitched::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelem
 {
     bool isSuccess = true;
 
-    auto it = xelement.begin();
     auto endIter = xelement.end();
-    importGroup(message, it, endIter, isSuccess, myDisplayStepOctaveGroup, myHasDisplayStepOctaveGroup);
+    for (auto it = xelement.begin(); it != endIter; ++it)
+    {
+        importGroup(message, it, endIter, isSuccess, myDisplayStepOctaveGroup, myHasDisplayStepOctaveGroup);
+    }
+
     MX_RETURN_IS_SUCCESS;
 }
 

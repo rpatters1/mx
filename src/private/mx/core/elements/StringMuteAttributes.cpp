@@ -12,16 +12,17 @@ namespace core
 {
 StringMuteAttributes::StringMuteAttributes()
     : type(OnOff::on), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), halign(LeftCenterRight::center), hasType(true),
-      hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false),
-      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasHalign(false)
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), halign(LeftCenterRight::left),
+      valign(Valign::bottom), hasType(true), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false),
+      hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false),
+      hasColor(false), hasHalign(false), hasValign(false)
 {
 }
 
 bool StringMuteAttributes::hasValues() const
 {
     return hasType || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle ||
-           hasFontSize || hasFontWeight || hasHalign;
+           hasFontSize || hasFontWeight || hasColor || hasHalign || hasValign;
 }
 
 std::ostream &StringMuteAttributes::toStream(std::ostream &os) const
@@ -37,7 +38,9 @@ std::ostream &StringMuteAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, halign, "halign", hasHalign);
+        streamAttribute(os, valign, "valign", hasValign);
     }
     return os;
 }
@@ -90,7 +93,15 @@ bool StringMuteAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEle
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
         if (parseAttribute(message, it, className, isSuccess, halign, hasHalign, "halign", &parseLeftCenterRight))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, valign, hasValign, "valign", &parseValign))
         {
             continue;
         }
@@ -99,7 +110,7 @@ bool StringMuteAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEle
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

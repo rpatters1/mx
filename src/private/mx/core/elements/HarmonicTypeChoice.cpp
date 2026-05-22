@@ -39,16 +39,13 @@ bool HarmonicTypeChoice::hasContents() const
 
 std::ostream &HarmonicTypeChoice::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    switch (myChoice)
+    if (myChoice == Choice::natural)
     {
-    case Choice::natural:
         myNatural->toStream(os, indentLevel);
-        break;
-    case Choice::artificial:
+    }
+    if (myChoice == Choice::artificial)
+    {
         myArtificial->toStream(os, indentLevel);
-        break;
-    default:
-        break;
     }
     isOneLineOnly = false;
     return os;
@@ -59,7 +56,7 @@ HarmonicTypeChoice::Choice HarmonicTypeChoice::getChoice() const
     return myChoice;
 }
 
-void HarmonicTypeChoice::setChoice(const HarmonicTypeChoice::Choice value)
+void HarmonicTypeChoice::setChoice(const Choice value)
 {
     myChoice = value;
 }

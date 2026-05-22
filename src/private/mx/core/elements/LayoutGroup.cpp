@@ -31,7 +31,6 @@ std::ostream &LayoutGroup::streamAttributes(std::ostream &os) const
 
 std::ostream &LayoutGroup::streamName(std::ostream &os) const
 {
-    os << "work";
     return os;
 }
 
@@ -42,48 +41,29 @@ bool LayoutGroup::hasContents() const
 
 std::ostream &LayoutGroup::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    if (hasContents())
+    bool isFirst = true;
+    if (myHasPageLayout)
     {
-        bool isFirst = true;
-        if (myHasPageLayout)
-        {
-            myPageLayout->toStream(os, indentLevel);
-            isFirst = false;
-        }
-        if (myHasSystemLayout)
-        {
-            if (!isFirst)
-            {
-                os << std::endl;
-                isFirst = false;
-            }
-            mySystemLayout->toStream(os, indentLevel);
-        }
-        if (myStaffLayoutSet.size() > 0)
-        {
-            for (auto it = myStaffLayoutSet.cbegin(); it != myStaffLayoutSet.cend(); ++it)
-            {
-                if (it == myStaffLayoutSet.cbegin())
-                {
-                    if (!isFirst)
-                    {
-                        os << std::endl;
-                        isFirst = false;
-                    }
-                }
-                else
-                {
-                    os << std::endl;
-                }
-                (*it)->toStream(os, indentLevel);
-            }
-        }
-        isOneLineOnly = false;
+        if (!isFirst)
+            os << std::endl;
+        myPageLayout->toStream(os, indentLevel);
+        isFirst = false;
     }
-    else
+    if (myHasSystemLayout)
     {
-        isOneLineOnly = true;
+        if (!isFirst)
+            os << std::endl;
+        mySystemLayout->toStream(os, indentLevel);
+        isFirst = false;
     }
+    for (auto x : myStaffLayoutSet)
+    {
+        if (!isFirst)
+            os << std::endl;
+        x->toStream(os, indentLevel);
+        isFirst = false;
+    }
+    isOneLineOnly = !hasContents();
     return os;
 }
 
@@ -138,19 +118,19 @@ const StaffLayoutSet &LayoutGroup::getStaffLayoutSet() const
     return myStaffLayoutSet;
 }
 
-void LayoutGroup::addStaffLayout(const StaffLayoutPtr &value)
-{
-    if (value)
-    {
-        myStaffLayoutSet.push_back(value);
-    }
-}
-
 void LayoutGroup::removeStaffLayout(const StaffLayoutSetIterConst &value)
 {
     if (value != myStaffLayoutSet.cend())
     {
         myStaffLayoutSet.erase(value);
+    }
+}
+
+void LayoutGroup::addStaffLayout(const StaffLayoutPtr &value)
+{
+    if (value)
+    {
+        myStaffLayoutSet.push_back(value);
     }
 }
 

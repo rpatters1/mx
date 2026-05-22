@@ -5,11 +5,13 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/CommaSeparatedText.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
 #include "mx/core/FontSize.h"
 #include "mx/core/ForwardDeclare.h"
+#include "mx/core/XsToken.h"
 
 #include <iosfwd>
 #include <memory>
@@ -38,6 +40,7 @@ struct DegreeValueAttributes : public AttributesInterface
     FontStyle fontStyle;
     FontSize fontSize;
     FontWeight fontWeight;
+    Color color;
     bool hasSymbol;
     bool hasText;
     bool hasDefaultX;
@@ -48,6 +51,7 @@ struct DegreeValueAttributes : public AttributesInterface
     bool hasFontStyle;
     bool hasFontSize;
     bool hasFontWeight;
+    bool hasColor;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

@@ -43,7 +43,7 @@ std::ostream &Miscellaneous::streamContents(std::ostream &os, const int indentLe
         os << std::endl;
         x->toStream(os, indentLevel + 1);
     }
-    if (hasContents())
+    if (myMiscellaneousFieldSet.size() > 0)
     {
         isOneLineOnly = false;
         os << std::endl;

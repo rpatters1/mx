@@ -11,19 +11,19 @@ namespace mx
 namespace core
 {
 EndingAttributes::EndingAttributes()
-    : number("1"), type(StartStopDiscontinue::start), printObject(), defaultX(), defaultY(), relativeX(), relativeY(),
-      fontFamily(), fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}),
-      fontWeight(FontWeight::normal), endLength(), textX(), textY(), hasNumber(true), hasType(true),
-      hasPrintObject(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
-      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasEndLength(false),
-      hasTextX(false), hasTextY(false)
+    : number("1"), type(), printObject(YesNo::no), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(),
+      fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), endLength(),
+      textX(), textY(), hasNumber(true), hasType(true), hasPrintObject(false), hasDefaultX(false), hasDefaultY(false),
+      hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false),
+      hasFontWeight(false), hasColor(false), hasEndLength(false), hasTextX(false), hasTextY(false)
 {
 }
 
 bool EndingAttributes::hasValues() const
 {
     return hasNumber || hasType || hasPrintObject || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY ||
-           hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasEndLength || hasTextX || hasTextY;
+           hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasColor || hasEndLength || hasTextX ||
+           hasTextY;
 }
 
 std::ostream &EndingAttributes::toStream(std::ostream &os) const
@@ -41,6 +41,7 @@ std::ostream &EndingAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, endLength, "end-length", hasEndLength);
         streamAttribute(os, textX, "text-x", hasTextX);
         streamAttribute(os, textY, "text-y", hasTextY);
@@ -62,7 +63,6 @@ bool EndingAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement
     {
         if (parseAttribute(message, it, className, isSuccess, number, isNumberFound, "number"))
         {
-            number.setUseSpaceBetweenItems(it->getValue().find(" ") != std::string::npos);
             continue;
         }
         if (parseAttribute(message, it, className, isSuccess, type, isTypeFound, "type", &parseStartStopDiscontinue))
@@ -106,6 +106,10 @@ bool EndingAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
         if (parseAttribute(message, it, className, isSuccess, endLength, hasEndLength, "end-length"))
         {
             continue;
@@ -125,10 +129,11 @@ bool EndingAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement
         isSuccess = false;
         message << className << ": 'number' is a required attribute but was not found" << std::endl;
     }
+
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

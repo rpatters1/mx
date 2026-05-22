@@ -34,37 +34,21 @@ std::ostream &DisplayTextOrAccidentalText::streamName(std::ostream &os) const
 
 bool DisplayTextOrAccidentalText::hasContents() const
 {
-    if (myChoice == Choice::accidentalText)
-    {
-        return myAccidentalText->hasContents();
-    }
-    if (myChoice == Choice::displayText)
-    {
-        return myDisplayText->hasContents();
-    }
-    return false;
+    return true;
 }
 
 std::ostream &DisplayTextOrAccidentalText::streamContents(std::ostream &os, const int indentLevel,
                                                           bool &isOneLineOnly) const
 {
-    MX_UNUSED(isOneLineOnly);
-    if (hasContents())
+    if (myChoice == Choice::displayText)
     {
-        switch (myChoice)
-        {
-        case Choice::accidentalText: {
-            myAccidentalText->toStream(os, indentLevel);
-        }
-        break;
-        case Choice::displayText: {
-            myDisplayText->toStream(os, indentLevel);
-        }
-        break;
-        default:
-            break;
-        }
+        myDisplayText->toStream(os, indentLevel);
     }
+    if (myChoice == Choice::accidentalText)
+    {
+        myAccidentalText->toStream(os, indentLevel);
+    }
+    isOneLineOnly = false;
     return os;
 }
 
@@ -73,7 +57,7 @@ DisplayTextOrAccidentalText::Choice DisplayTextOrAccidentalText::getChoice() con
     return myChoice;
 }
 
-void DisplayTextOrAccidentalText::setChoice(const DisplayTextOrAccidentalText::Choice value)
+void DisplayTextOrAccidentalText::setChoice(const Choice value)
 {
     myChoice = value;
 }
@@ -104,12 +88,7 @@ void DisplayTextOrAccidentalText::setAccidentalText(const AccidentalTextPtr &val
     }
 }
 
-bool DisplayTextOrAccidentalText::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
-{
-    MX_CHOICE_IF(displayText, "display-text", DisplayText);
-    MX_CHOICE_IF(accidentalText, "accidental-text", AccidentalText);
-    MX_BAD_ELEMENT_FAILURE(DisplayTextOrAccidentalText);
-}
+MX_FROM_XELEMENT_UNUSED(DisplayTextOrAccidentalText);
 
 } // namespace core
 } // namespace mx

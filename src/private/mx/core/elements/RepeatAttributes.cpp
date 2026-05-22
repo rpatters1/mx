@@ -11,8 +11,7 @@ namespace mx
 namespace core
 {
 RepeatAttributes::RepeatAttributes()
-    : direction(BackwardForward::backward), times(), winged(Winged::none), hasDirection(true), hasTimes(false),
-      hasWinged(false)
+    : direction(), times(), winged(), hasDirection(true), hasTimes(false), hasWinged(false)
 {
 }
 
@@ -61,7 +60,7 @@ bool RepeatAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement
     if (!isDirectionFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'direction' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

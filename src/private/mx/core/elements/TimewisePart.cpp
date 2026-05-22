@@ -19,7 +19,6 @@
 #include "mx/core/elements/Print.h"
 #include "mx/core/elements/Properties.h"
 #include "mx/core/elements/Sound.h"
-
 #include <iostream>
 
 namespace mx

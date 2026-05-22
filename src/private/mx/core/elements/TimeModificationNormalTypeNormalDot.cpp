@@ -40,13 +40,19 @@ bool TimeModificationNormalTypeNormalDot::hasContents() const
 std::ostream &TimeModificationNormalTypeNormalDot::streamContents(std::ostream &os, const int indentLevel,
                                                                   bool &isOneLineOnly) const
 {
-    isOneLineOnly = false;
+    bool isFirst = true;
+    if (!isFirst)
+        os << std::endl;
     myNormalType->toStream(os, indentLevel);
+    isFirst = false;
     for (auto x : myNormalDotSet)
     {
-        os << std::endl;
+        if (!isFirst)
+            os << std::endl;
         x->toStream(os, indentLevel);
+        isFirst = false;
     }
+    isOneLineOnly = !hasContents();
     return os;
 }
 
@@ -102,22 +108,43 @@ bool TimeModificationNormalTypeNormalDot::fromXElementImpl(std::ostream &message
 {
     bool isSuccess = true;
     bool isNormalTypeFound = false;
-
-    auto endIter = xelement.end();
-    for (auto it = xelement.begin(); it != endIter; ++it)
+    bool isFirstNormalDotAdded = false;
+    for (auto it = xelement.begin(); it != xelement.end(); ++it)
     {
-        if (importElement(message, *it, isSuccess, *myNormalType, isNormalTypeFound))
+        const std::string elementName = it->getName();
+
+        if (elementName == "normal-type")
         {
-            continue;
+            isNormalTypeFound = true;
+            isSuccess &= myNormalType->fromXElement(message, *it);
         }
-        importElementSet(message, it, endIter, isSuccess, "normal-dot", myNormalDotSet);
+        else if (elementName == "normal-dot")
+        {
+            auto normalDot = makeNormalDot();
+            isSuccess &= normalDot->fromXElement(message, *it);
+
+            if (!isFirstNormalDotAdded && myNormalDotSet.size() == 1)
+            {
+                *(myNormalDotSet.begin()) = normalDot;
+                isFirstNormalDotAdded = true;
+            }
+            else
+            {
+                myNormalDotSet.push_back(normalDot);
+                isFirstNormalDotAdded = true;
+            }
+        }
+        else
+        {
+            if (!isNormalTypeFound)
+            {
+                message << "TimeModificationNormalTypeNormalDot: a 'normal-type' element is required but was not found"
+                        << std::endl;
+                return false;
+            }
+        }
     }
 
-    if (!isNormalTypeFound)
-    {
-        message << "TimeModificationNormalTypeNormalDot: '" << myNormalType->getElementName()
-                << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

@@ -15,7 +15,7 @@ namespace mx
 namespace core
 {
 Play::Play()
-    : myAttributes(std::make_shared<PlayAttributes>()), myChoice(Choice::ipa), myIpa(makeIpa()), myMute(makeMute()),
+    : myChoice(Choice::ipa), myAttributes(std::make_shared<PlayAttributes>()), myIpa(makeIpa()), myMute(makeMute()),
       mySemiPitched(makeSemiPitched()), myOtherPlay(makeOtherPlay())
 {
 }
@@ -43,30 +43,39 @@ bool Play::hasContents() const
 
 std::ostream &Play::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    os << std::endl;
     switch (myChoice)
     {
     case Choice::ipa: {
+        os << std::endl;
         myIpa->toStream(os, indentLevel + 1);
+        os << std::endl;
+        isOneLineOnly = false;
     }
     break;
     case Choice::mute: {
+        os << std::endl;
         myMute->toStream(os, indentLevel + 1);
+        os << std::endl;
+        isOneLineOnly = false;
     }
     break;
     case Choice::semiPitched: {
+        os << std::endl;
         mySemiPitched->toStream(os, indentLevel + 1);
+        os << std::endl;
+        isOneLineOnly = false;
     }
     break;
     case Choice::otherPlay: {
+        os << std::endl;
         myOtherPlay->toStream(os, indentLevel + 1);
+        os << std::endl;
+        isOneLineOnly = false;
     }
     break;
     default:
         break;
     }
-    isOneLineOnly = false;
-    os << std::endl;
     return os;
 }
 
@@ -147,29 +156,35 @@ void Play::setOtherPlay(const OtherPlayPtr &value)
 
 bool Play::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
-    if (xelement.getName() == "ipa")
+    bool isSuccess = true;
+    isSuccess &= myAttributes->fromXElement(message, xelement);
+
+    auto endIter = xelement.end();
+    for (auto it = xelement.begin(); it != endIter; ++it)
     {
-        myChoice = Choice::ipa;
-        return getIpa()->fromXElement(message, xelement);
-    }
-    else if (xelement.getName() == "mute")
-    {
-        myChoice = Choice::mute;
-        return getMute()->fromXElement(message, xelement);
-    }
-    else if (xelement.getName() == "semi-pitched")
-    {
-        myChoice = Choice::semiPitched;
-        return getSemiPitched()->fromXElement(message, xelement);
-    }
-    else if (xelement.getName() == "other-play")
-    {
-        myChoice = Choice::otherPlay;
-        return getOtherPlay()->fromXElement(message, xelement);
+        if (it->getName() == "ipa")
+        {
+            myChoice = Choice::ipa;
+            isSuccess &= myIpa->fromXElement(message, *it);
+        }
+        if (it->getName() == "mute")
+        {
+            myChoice = Choice::mute;
+            isSuccess &= myMute->fromXElement(message, *it);
+        }
+        if (it->getName() == "semi-pitched")
+        {
+            myChoice = Choice::semiPitched;
+            isSuccess &= mySemiPitched->fromXElement(message, *it);
+        }
+        if (it->getName() == "other-play")
+        {
+            myChoice = Choice::otherPlay;
+            isSuccess &= myOtherPlay->fromXElement(message, *it);
+        }
     }
 
-    message << "Encoding: '" << xelement.getName() << "' is not valid" << std::endl;
-    return false;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

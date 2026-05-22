@@ -40,8 +40,8 @@ class BeatUnitPerOrNoteRelationNoteChoice : public ElementInterface
     virtual std::ostream &streamName(std::ostream &os) const;
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
-    BeatUnitPerOrNoteRelationNoteChoice::Choice getChoice() const;
-    void setChoice(const BeatUnitPerOrNoteRelationNoteChoice::Choice value);
+    Choice getChoice() const;
+    void setChoice(const Choice value);
     BeatUnitPerPtr getBeatUnitPer() const;
     void setBeatUnitPer(const BeatUnitPerPtr &value);
     NoteRelationNotePtr getNoteRelationNote() const;

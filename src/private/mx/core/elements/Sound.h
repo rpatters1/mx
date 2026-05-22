@@ -20,6 +20,7 @@ namespace core
 MX_FORWARD_DECLARE_ATTRIBUTES(SoundAttributes)
 MX_FORWARD_DECLARE_ELEMENT(MidiDevice)
 MX_FORWARD_DECLARE_ELEMENT(MidiInstrument)
+MX_FORWARD_DECLARE_ELEMENT(Offset)
 MX_FORWARD_DECLARE_ELEMENT(Play)
 MX_FORWARD_DECLARE_ELEMENT(Sound)
 
@@ -39,7 +40,7 @@ class Sound : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     SoundAttributesPtr getAttributes() const;
-    void setAttributes(const SoundAttributesPtr &value);
+    void setAttributes(const SoundAttributesPtr &attributes);
 
     /* _________ MidiDevice minOccurs = 0, maxOccurs = 1 _________ */
     MidiDevicePtr getMidiDevice() const;
@@ -59,6 +60,12 @@ class Sound : public ElementInterface
     bool getHasPlay() const;
     void setHasPlay(const bool value);
 
+    /* _________ Offset minOccurs = 0, maxOccurs = 1 _________ */
+    OffsetPtr getOffset() const;
+    void setOffset(const OffsetPtr &value);
+    bool getHasOffset() const;
+    void setHasOffset(const bool value);
+
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);
 
@@ -70,6 +77,8 @@ class Sound : public ElementInterface
     bool myHasMidiInstrument;
     PlayPtr myPlay;
     bool myHasPlay;
+    OffsetPtr myOffset;
+    bool myHasOffset;
 };
 } // namespace core
 } // namespace mx

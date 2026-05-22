@@ -46,12 +46,20 @@ class MeasureStyleChoice : public ElementInterface
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     Choice getChoice() const;
     void setChoice(const Choice value);
+
+    /* _________ MultipleRest minOccurs = 1, maxOccurs = 1 _________ */
     MultipleRestPtr getMultipleRest() const;
     void setMultipleRest(const MultipleRestPtr &value);
+
+    /* _________ MeasureRepeat minOccurs = 1, maxOccurs = 1 _________ */
     MeasureRepeatPtr getMeasureRepeat() const;
     void setMeasureRepeat(const MeasureRepeatPtr &value);
+
+    /* _________ BeatRepeat minOccurs = 1, maxOccurs = 1 _________ */
     BeatRepeatPtr getBeatRepeat() const;
     void setBeatRepeat(const BeatRepeatPtr &value);
+
+    /* _________ Slash minOccurs = 1, maxOccurs = 1 _________ */
     SlashPtr getSlash() const;
     void setSlash(const SlashPtr &value);
 

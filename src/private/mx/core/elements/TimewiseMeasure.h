@@ -18,8 +18,8 @@ namespace core
 {
 
 MX_FORWARD_DECLARE_ATTRIBUTES(MeasureAttributes)
-MX_FORWARD_DECLARE_ELEMENT(TimewisePart)
 MX_FORWARD_DECLARE_ELEMENT(TimewiseMeasure)
+MX_FORWARD_DECLARE_ELEMENT(TimewisePart)
 
 inline TimewiseMeasurePtr makeTimewiseMeasure()
 {
@@ -39,7 +39,7 @@ class TimewiseMeasure : public ElementInterface
     MeasureAttributesPtr getAttributes() const;
     void setAttributes(const MeasureAttributesPtr &value);
 
-    /* _________ TimewisePart minOccurs = 1, maxOccurs = unbounded _________ */
+    /* _________ TimewisePart minOccurs = 0, maxOccurs = unbounded _________ */
     const TimewisePartSet &getTimewisePartSet() const;
     void addTimewisePart(const TimewisePartPtr &value);
     void removeTimewisePart(const TimewisePartSetIterConst &value);

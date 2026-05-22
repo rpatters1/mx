@@ -39,7 +39,7 @@ class Accord : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     AccordAttributesPtr getAttributes() const;
-    void setAttributes(const AccordAttributesPtr &value);
+    void setAttributes(const AccordAttributesPtr &attributes);
 
     /* _________ TuningStep minOccurs = 1, maxOccurs = 1 _________ */
     TuningStepPtr getTuningStep() const;

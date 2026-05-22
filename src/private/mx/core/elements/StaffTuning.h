@@ -39,7 +39,7 @@ class StaffTuning : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     StaffTuningAttributesPtr getAttributes() const;
-    void setAttributes(const StaffTuningAttributesPtr &value);
+    void setAttributes(const StaffTuningAttributesPtr &attributes);
 
     /* _________ TuningStep minOccurs = 1, maxOccurs = 1 _________ */
     TuningStepPtr getTuningStep() const;

@@ -11,15 +11,15 @@ namespace mx
 namespace core
 {
 CreditImageAttributes::CreditImageAttributes()
-    : source(), type(), defaultX(), defaultY(), relativeX(), relativeY(), halign(LeftCenterRight::center),
-      hasSource(true), hasType(true), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
-      hasHalign(false)
+    : source(), type(), defaultX(), defaultY(), relativeX(), relativeY(), halign(LeftCenterRight::left),
+      valign(ValignImage::bottom), hasSource(true), hasType(true), hasDefaultX(false), hasDefaultY(false),
+      hasRelativeX(false), hasRelativeY(false), hasHalign(false), hasValign(false)
 {
 }
 
 bool CreditImageAttributes::hasValues() const
 {
-    return hasSource || hasType || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasHalign;
+    return hasSource || hasType || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasHalign || hasValign;
 }
 
 std::ostream &CreditImageAttributes::toStream(std::ostream &os) const
@@ -33,6 +33,7 @@ std::ostream &CreditImageAttributes::toStream(std::ostream &os) const
         streamAttribute(os, relativeX, "relative-x", hasRelativeX);
         streamAttribute(os, relativeY, "relative-y", hasRelativeY);
         streamAttribute(os, halign, "halign", hasHalign);
+        streamAttribute(os, valign, "valign", hasValign);
     }
     return os;
 }
@@ -77,17 +78,22 @@ bool CreditImageAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEl
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, valign, hasValign, "valign", &parseValignImage))
+        {
+            continue;
+        }
     }
 
     if (!isSourceFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'source' is a required attribute but was not found" << std::endl;
     }
+
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

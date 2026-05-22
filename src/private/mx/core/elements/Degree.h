@@ -39,7 +39,7 @@ class Degree : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     DegreeAttributesPtr getAttributes() const;
-    void setAttributes(const DegreeAttributesPtr &value);
+    void setAttributes(const DegreeAttributesPtr &attributes);
 
     /* _________ DegreeValue minOccurs = 1, maxOccurs = 1 _________ */
     DegreeValuePtr getDegreeValue() const;

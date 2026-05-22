@@ -11,7 +11,7 @@ namespace mx
 namespace core
 {
 SlurAttributes::SlurAttributes()
-    : type(StartStopContinue::start), number(1), lineType(LineType::solid), dashLength(), spaceLength(), defaultX(),
+    : type(StartStopContinue::start), number(), lineType(LineType::solid), dashLength(), spaceLength(), defaultX(),
       defaultY(), relativeX(), relativeY(), placement(AboveBelow::below), orientation(), bezierOffset(),
       bezierOffset2(), bezierX(), bezierY(), bezierX2(), bezierY2(), color(), hasType(true), hasNumber(false),
       hasLineType(false), hasDashLength(false), hasSpaceLength(false), hasDefaultX(false), hasDefaultY(false),
@@ -23,9 +23,9 @@ SlurAttributes::SlurAttributes()
 
 bool SlurAttributes::hasValues() const
 {
-    return hasType || hasNumber || hasDashLength || hasSpaceLength || hasDefaultX || hasDefaultY || hasRelativeX ||
-           hasRelativeY || hasPlacement || hasOrientation || hasBezierOffset || hasBezierOffset2 || hasBezierX ||
-           hasBezierY || hasBezierX2 || hasBezierY2;
+    return hasType || hasNumber || hasLineType || hasDashLength || hasSpaceLength || hasDefaultX || hasDefaultY ||
+           hasRelativeX || hasRelativeY || hasPlacement || hasOrientation || hasBezierOffset || hasBezierOffset2 ||
+           hasBezierX || hasBezierY || hasBezierX2 || hasBezierY2 || hasColor;
 }
 
 std::ostream &SlurAttributes::toStream(std::ostream &os) const
@@ -146,7 +146,7 @@ bool SlurAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
         message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

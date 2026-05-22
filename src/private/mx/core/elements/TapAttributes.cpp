@@ -12,16 +12,16 @@ namespace core
 {
 TapAttributes::TapAttributes()
     : defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(FontSize{CssFontSize::medium}), fontWeight(FontWeight::normal), placement(), hasDefaultX(false),
-      hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false),
-      hasFontSize(false), hasFontWeight(false), hasPlacement(false)
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), placement(AboveBelow::below),
+      hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false),
+      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false), hasPlacement(false)
 {
 }
 
 bool TapAttributes::hasValues() const
 {
     return hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize ||
-           hasFontWeight || hasPlacement;
+           hasFontWeight || hasColor || hasPlacement;
 }
 
 std::ostream &TapAttributes::toStream(std::ostream &os) const
@@ -36,6 +36,7 @@ std::ostream &TapAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, placement, "placement", hasPlacement);
     }
     return os;
@@ -81,6 +82,10 @@ bool TapAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &x
         }
         if (parseAttribute(message, it, className, isSuccess, fontWeight, hasFontWeight, "font-weight",
                            &parseFontWeight))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
         {
             continue;
         }

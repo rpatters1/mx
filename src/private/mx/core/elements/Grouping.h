@@ -37,7 +37,7 @@ class Grouping : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     GroupingAttributesPtr getAttributes() const;
-    void setAttributes(const GroupingAttributesPtr &value);
+    void setAttributes(const GroupingAttributesPtr &attributes);
 
     /* _________ Feature minOccurs = 0, maxOccurs = unbounded _________ */
     const FeatureSet &getFeatureSet() const;

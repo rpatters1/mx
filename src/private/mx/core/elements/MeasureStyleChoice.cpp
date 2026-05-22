@@ -15,7 +15,6 @@ namespace mx
 namespace core
 {
 MeasureStyleChoice::MeasureStyleChoice()
-
     : myChoice(MeasureStyleChoice::Choice::multipleRest), myMultipleRest(makeMultipleRest()),
       myMeasureRepeat(makeMeasureRepeat()), myBeatRepeat(makeBeatRepeat()), mySlash(makeSlash())
 {
@@ -69,7 +68,7 @@ MeasureStyleChoice::Choice MeasureStyleChoice::getChoice() const
     return myChoice;
 }
 
-void MeasureStyleChoice::setChoice(const Choice value)
+void MeasureStyleChoice::setChoice(const MeasureStyleChoice::Choice value)
 {
     myChoice = value;
 }

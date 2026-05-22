@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/CommaSeparatedText.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
@@ -37,6 +38,7 @@ struct RootAlterAttributes : public AttributesInterface
     FontStyle fontStyle;
     FontSize fontSize;
     FontWeight fontWeight;
+    Color color;
     LeftRight location;
     bool hasPrintObject;
     bool hasDefaultX;
@@ -47,6 +49,7 @@ struct RootAlterAttributes : public AttributesInterface
     bool hasFontStyle;
     bool hasFontSize;
     bool hasFontWeight;
+    bool hasColor;
     bool hasLocation;
 
   private:

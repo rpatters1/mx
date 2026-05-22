@@ -36,7 +36,7 @@ class Mordent : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     MordentAttributesPtr getAttributes() const;
-    void setAttributes(const MordentAttributesPtr &value);
+    void setAttributes(const MordentAttributesPtr &attributes);
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

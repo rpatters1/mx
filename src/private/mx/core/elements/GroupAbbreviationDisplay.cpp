@@ -4,6 +4,8 @@
 
 #include "mx/core/elements/GroupAbbreviationDisplay.h"
 #include "mx/core/FromXElement.h"
+#include "mx/core/elements/AccidentalText.h"
+#include "mx/core/elements/DisplayText.h"
 #include "mx/core/elements/DisplayTextOrAccidentalText.h"
 #include <iostream>
 
@@ -40,17 +42,13 @@ bool GroupAbbreviationDisplay::hasContents() const
 std::ostream &GroupAbbreviationDisplay::streamContents(std::ostream &os, const int indentLevel,
                                                        bool &isOneLineOnly) const
 {
-    if (hasContents())
+    for (auto x : myDisplayTextOrAccidentalTextSet)
     {
-        for (auto x : myDisplayTextOrAccidentalTextSet)
-        {
-            os << std::endl;
-            x->streamContents(os, indentLevel + 1, isOneLineOnly);
-        }
-        isOneLineOnly = false;
         os << std::endl;
+        x->streamContents(os, indentLevel + 1, isOneLineOnly);
     }
-    isOneLineOnly = !hasContents();
+    isOneLineOnly = false;
+    os << std::endl;
     return os;
 }
 
@@ -67,7 +65,7 @@ void GroupAbbreviationDisplay::setAttributes(const GroupAbbreviationDisplayAttri
     }
 }
 
-const DisplayTextOrAccidentalTextSet &GroupAbbreviationDisplay::getDisplayTextOrAccidentalText() const
+const DisplayTextOrAccidentalTextSet &GroupAbbreviationDisplay::getDisplayTextOrAccidentalTextSet() const
 {
     return myDisplayTextOrAccidentalTextSet;
 }
@@ -80,12 +78,11 @@ void GroupAbbreviationDisplay::addDisplayTextOrAccidentalText(const DisplayTextO
     }
 }
 
-void GroupAbbreviationDisplay::removeDisplayTextOrAccidentalText(
-    const DisplayTextOrAccidentalTextSetIterConst &setIterator)
+void GroupAbbreviationDisplay::removeDisplayTextOrAccidentalText(const DisplayTextOrAccidentalTextSetIterConst &value)
 {
-    if (setIterator != myDisplayTextOrAccidentalTextSet.cend())
+    if (value != myDisplayTextOrAccidentalTextSet.cend())
     {
-        myDisplayTextOrAccidentalTextSet.erase(setIterator);
+        myDisplayTextOrAccidentalTextSet.erase(value);
     }
 }
 
@@ -101,12 +98,7 @@ DisplayTextOrAccidentalTextPtr GroupAbbreviationDisplay::getDisplayTextOrAcciden
     {
         return *setIterator;
     }
-    return makeDisplayTextOrAccidentalText();
-}
-
-const DisplayTextOrAccidentalTextSet &GroupAbbreviationDisplay::getDisplayTextOrAccidentalTextSet() const
-{
-    return myDisplayTextOrAccidentalTextSet;
+    return DisplayTextOrAccidentalTextPtr();
 }
 
 bool GroupAbbreviationDisplay::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
@@ -117,9 +109,22 @@ bool GroupAbbreviationDisplay::fromXElementImpl(std::ostream &message, ::ezxml::
     auto endIter = xelement.end();
     for (auto it = xelement.begin(); it != endIter; ++it)
     {
-        auto item = makeDisplayTextOrAccidentalText();
-        isSuccess &= item->fromXElement(message, *it);
-        myDisplayTextOrAccidentalTextSet.push_back(item);
+        if (it->getName() == "display-text")
+        {
+            auto choice = makeDisplayTextOrAccidentalText();
+            choice->setChoice(DisplayTextOrAccidentalText::Choice::displayText);
+            isSuccess &= choice->getDisplayText()->fromXElement(message, *it);
+            myDisplayTextOrAccidentalTextSet.push_back(choice);
+            continue;
+        }
+        if (it->getName() == "accidental-text")
+        {
+            auto choice = makeDisplayTextOrAccidentalText();
+            choice->setChoice(DisplayTextOrAccidentalText::Choice::accidentalText);
+            isSuccess &= choice->getAccidentalText()->fromXElement(message, *it);
+            myDisplayTextOrAccidentalTextSet.push_back(choice);
+            continue;
+        }
     }
 
     MX_RETURN_IS_SUCCESS;

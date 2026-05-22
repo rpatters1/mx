@@ -39,7 +39,7 @@ class AccordionRegistration : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     AccordionRegistrationAttributesPtr getAttributes() const;
-    void setAttributes(const AccordionRegistrationAttributesPtr &value);
+    void setAttributes(const AccordionRegistrationAttributesPtr &attributes);
 
     /* _________ AccordionHigh minOccurs = 0, maxOccurs = 1 _________ */
     AccordionHighPtr getAccordionHigh() const;

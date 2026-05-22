@@ -11,10 +11,10 @@ namespace mx
 namespace core
 {
 FermataAttributes::FermataAttributes()
-    : type(UprightInverted::upright), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(),
-      fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}), fontWeight(FontWeight::normal), color(),
-      hasType(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
-      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false)
+    : type(), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), hasType(false), hasDefaultX(false),
+      hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false),
+      hasFontSize(false), hasFontWeight(false), hasColor(false)
 {
 }
 

@@ -37,7 +37,7 @@ class StaffLayout : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     StaffLayoutAttributesPtr getAttributes() const;
-    void setAttributes(const StaffLayoutAttributesPtr &value);
+    void setAttributes(const StaffLayoutAttributesPtr &attributes);
 
     /* _________ StaffDistance minOccurs = 0, maxOccurs = 1 _________ */
     StaffDistancePtr getStaffDistance() const;

@@ -42,6 +42,7 @@ bool Forward::hasContents() const
 
 std::ostream &Forward::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    isOneLineOnly = false;
     os << std::endl;
     myDuration->toStream(os, indentLevel + 1);
     if (myEditorialVoiceGroup->hasContents())
@@ -54,7 +55,6 @@ std::ostream &Forward::streamContents(std::ostream &os, const int indentLevel, b
         os << std::endl;
         myStaff->toStream(os, indentLevel + 1);
     }
-    isOneLineOnly = false;
     os << std::endl;
     return os;
 }

@@ -10,7 +10,7 @@ namespace mx
 {
 namespace core
 {
-GroupBarlineAttributes::GroupBarlineAttributes() : color("#FFFFFF"), hasColor(false)
+GroupBarlineAttributes::GroupBarlineAttributes() : color(), hasColor(false)
 {
 }
 

@@ -57,7 +57,7 @@ std::ostream &TupletNormal::streamContents(std::ostream &os, const int indentLev
         os << std::endl;
         x->toStream(os, indentLevel + 1);
     }
-    if (hasContents())
+    if (myHasTupletNumber || myHasTupletType || myTupletDotSet.size() > 0)
     {
         isOneLineOnly = false;
         os << std::endl;

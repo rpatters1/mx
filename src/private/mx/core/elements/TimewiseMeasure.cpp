@@ -146,6 +146,5 @@ bool TimewiseMeasure::fromXElementImpl(std::ostream &message, ::ezxml::XElement 
 
     return isSuccess;
 }
-
 } // namespace core
 } // namespace mx

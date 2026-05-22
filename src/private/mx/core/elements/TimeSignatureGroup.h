@@ -36,10 +36,16 @@ class TimeSignatureGroup : public ElementInterface
     virtual std::ostream &streamName(std::ostream &os) const;
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
+
+    /* _________ Beats minOccurs = 1, maxOccurs = 1 _________ */
     BeatsPtr getBeats() const;
     void setBeats(const BeatsPtr &value);
+
+    /* _________ BeatType minOccurs = 1, maxOccurs = 1 _________ */
     BeatTypePtr getBeatType() const;
     void setBeatType(const BeatTypePtr &value);
+
+    /* _________ Interchangeable minOccurs = 0, maxOccurs = 1 _________ */
     InterchangeablePtr getInterchangeable() const;
     void setInterchangeable(const InterchangeablePtr &value);
     bool getHasInterchangeable() const;

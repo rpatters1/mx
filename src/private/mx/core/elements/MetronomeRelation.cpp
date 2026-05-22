@@ -54,12 +54,13 @@ XsString MetronomeRelation::getValue() const
 
 void MetronomeRelation::setValue(const XsString &value)
 {
-    myValue.setValue(value.getValue());
+    myValue = value;
 }
 
 bool MetronomeRelation::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     MX_UNUSED(message);
+    MX_UNUSED(xelement);
     myValue.setValue(xelement.getValue());
     return true;
 }

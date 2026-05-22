@@ -39,20 +39,23 @@ bool EditorialGroup::hasContents() const
 
 std::ostream &EditorialGroup::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    bool firstItem = true;
     isOneLineOnly = true;
     if (myHasFootnote)
     {
-        myFootnote->toStream(os, indentLevel);
-        if (myHasLevel)
-        {
+        if (!firstItem)
             os << std::endl;
-            isOneLineOnly = false;
-        }
+        myFootnote->toStream(os, indentLevel);
+        firstItem = false;
     }
     if (myHasLevel)
     {
+        if (!firstItem)
+            os << std::endl;
         myLevel->toStream(os, indentLevel);
+        firstItem = false;
     }
+    isOneLineOnly = !hasContents();
     return os;
 }
 
@@ -103,5 +106,6 @@ void EditorialGroup::setHasLevel(const bool value)
 }
 
 MX_FROM_XELEMENT_UNUSED(EditorialGroup);
+
 } // namespace core
 } // namespace mx

@@ -39,6 +39,7 @@ bool Bass::hasContents() const
 
 std::ostream &Bass::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    isOneLineOnly = false;
     os << std::endl;
     myBassStep->toStream(os, indentLevel + 1);
     if (myHasBassAlter)
@@ -47,7 +48,6 @@ std::ostream &Bass::streamContents(std::ostream &os, const int indentLevel, bool
         myBassAlter->toStream(os, indentLevel + 1);
     }
     os << std::endl;
-    isOneLineOnly = false;
     return os;
 }
 
@@ -105,10 +105,6 @@ bool Bass::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
         }
     }
 
-    if (!isBassStepFound)
-    {
-        message << "Bass: '" << myBassStep->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

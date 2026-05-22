@@ -13,7 +13,7 @@ namespace core
 MetronomeAttributes::MetronomeAttributes()
     : defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
       fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), halign(LeftCenterRight::center),
-      valign(Valign::baseline), justify(LeftCenterRight::center), parentheses(YesNo::no), hasDefaultX(false),
+      valign(Valign::bottom), justify(LeftCenterRight::center), parentheses(YesNo::no), hasDefaultX(false),
       hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false),
       hasFontSize(false), hasFontWeight(false), hasColor(false), hasHalign(false), hasValign(false), hasJustify(false),
       hasParentheses(false)
@@ -112,7 +112,7 @@ bool MetronomeAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElem
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

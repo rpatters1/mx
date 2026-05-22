@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
 #include "mx/core/ForwardDeclare.h"
@@ -35,6 +36,7 @@ struct DashesAttributes : public AttributesInterface
     TenthsValue defaultY;
     TenthsValue relativeX;
     TenthsValue relativeY;
+    Color color;
     const bool hasType;
     bool hasNumber;
     bool hasDashLength;
@@ -43,6 +45,7 @@ struct DashesAttributes : public AttributesInterface
     bool hasDefaultY;
     bool hasRelativeX;
     bool hasRelativeY;
+    bool hasColor;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

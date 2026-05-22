@@ -11,9 +11,10 @@ namespace mx
 namespace core
 {
 FrameAttributes::FrameAttributes()
-    : defaultX(), defaultY(), relativeX(), relativeY(), color(), halign(LeftCenterRight::center), valign(), height(),
-      width(), unplayed(), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
-      hasColor(false), hasHalign(false), hasValign(false), hasHeight(false), hasWidth(false), hasUnplayed(false)
+    : defaultX(), defaultY(), relativeX(), relativeY(), color(), halign(LeftCenterRight::left),
+      valign(ValignImage::bottom), height(), width(), unplayed(), hasDefaultX(false), hasDefaultY(false),
+      hasRelativeX(false), hasRelativeY(false), hasColor(false), hasHalign(false), hasValign(false), hasHeight(false),
+      hasWidth(false), hasUnplayed(false)
 {
 }
 

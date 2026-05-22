@@ -10,11 +10,11 @@ namespace mx
 {
 namespace core
 {
-String::String() : myAttributes(std::make_shared<StringAttributes>()), myValue()
+String::String() : myValue(), myAttributes(std::make_shared<StringAttributes>())
 {
 }
 
-String::String(const StringNumber &value) : myAttributes(std::make_shared<StringAttributes>()), myValue(value)
+String::String(const StringNumber &value) : myValue(value), myAttributes(std::make_shared<StringAttributes>())
 {
 }
 
@@ -25,7 +25,11 @@ bool String::hasAttributes() const
 
 std::ostream &String::streamAttributes(std::ostream &os) const
 {
-    return myAttributes->toStream(os);
+    if (myAttributes)
+    {
+        myAttributes->toStream(os);
+    }
+    return os;
 }
 
 std::ostream &String::streamName(std::ostream &os) const
@@ -43,7 +47,7 @@ std::ostream &String::streamContents(std::ostream &os, const int indentLevel, bo
 {
     MX_UNUSED(indentLevel);
     isOneLineOnly = true;
-    core::toStream(os, myValue);
+    os << myValue;
     return os;
 }
 

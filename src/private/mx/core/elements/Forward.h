@@ -18,7 +18,6 @@ namespace core
 
 MX_FORWARD_DECLARE_ELEMENT(Duration)
 MX_FORWARD_DECLARE_ELEMENT(EditorialVoiceGroup)
-MX_FORWARD_DECLARE_ELEMENT(Footnote)
 MX_FORWARD_DECLARE_ELEMENT(Staff)
 MX_FORWARD_DECLARE_ELEMENT(Forward)
 
@@ -42,7 +41,7 @@ class Forward : public ElementInterface
     DurationPtr getDuration() const;
     void setDuration(const DurationPtr &value);
 
-    /* _________ Footnote minOccurs = 1, maxOccurs = 1 _________ */
+    /* _________ EditorialVoiceGroup minOccurs = 1, maxOccurs = 1 _________ */
     EditorialVoiceGroupPtr getEditorialVoiceGroup() const;
     void setEditorialVoiceGroup(const EditorialVoiceGroupPtr &value);
 

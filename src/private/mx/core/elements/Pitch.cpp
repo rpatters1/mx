@@ -40,6 +40,7 @@ bool Pitch::hasContents() const
 
 std::ostream &Pitch::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    isOneLineOnly = false;
     os << std::endl;
     myStep->toStream(os, indentLevel + 1);
     if (myHasAlter)
@@ -49,7 +50,6 @@ std::ostream &Pitch::streamContents(std::ostream &os, const int indentLevel, boo
     }
     os << std::endl;
     myOctave->toStream(os, indentLevel + 1);
-    isOneLineOnly = false;
     os << std::endl;
     return os;
 }
@@ -124,16 +124,6 @@ bool Pitch::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
         {
             continue;
         }
-    }
-
-    if (!isStepFound)
-    {
-        message << "Pitch: 'step' element is required but was not found" << std::endl;
-    }
-
-    if (!isOctaveFound)
-    {
-        message << "Pitch: 'octave' element is required but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

@@ -11,18 +11,18 @@ namespace mx
 namespace core
 {
 OtherNotationAttributes::OtherNotationAttributes()
-    : type(StartStopSingle::start), number(1), printObject(), defaultX(), defaultY(), relativeX(), relativeY(),
-      fontFamily(), fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}),
-      fontWeight(FontWeight::normal), placement(), hasType(true), hasNumber(false), hasPrintObject(false),
-      hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false),
-      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasPlacement(false)
+    : type(StartStopSingle::start), number(), printObject(YesNo::no), defaultX(), defaultY(), relativeX(), relativeY(),
+      fontFamily(), fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal),
+      color(), placement(AboveBelow::below), hasType(true), hasNumber(false), hasPrintObject(false), hasDefaultX(false),
+      hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false),
+      hasFontSize(false), hasFontWeight(false), hasColor(false), hasPlacement(false)
 {
 }
 
 bool OtherNotationAttributes::hasValues() const
 {
     return hasType || hasNumber || hasPrintObject || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY ||
-           hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasPlacement;
+           hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasColor || hasPlacement;
 }
 
 std::ostream &OtherNotationAttributes::toStream(std::ostream &os) const
@@ -40,6 +40,7 @@ std::ostream &OtherNotationAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, placement, "placement", hasPlacement);
     }
     return os;
@@ -101,6 +102,10 @@ bool OtherNotationAttributes::fromXElementImpl(std::ostream &message, ::ezxml::X
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
         if (parseAttribute(message, it, className, isSuccess, placement, hasPlacement, "placement", &parseAboveBelow))
         {
             continue;
@@ -110,7 +115,7 @@ bool OtherNotationAttributes::fromXElementImpl(std::ostream &message, ::ezxml::X
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

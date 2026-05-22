@@ -12,17 +12,17 @@ namespace core
 {
 TremoloAttributes::TremoloAttributes()
     : type(StartStopSingle::single), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(),
-      fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}), fontWeight(FontWeight::normal),
+      fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(),
       placement(AboveBelow::below), hasType(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false),
       hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false),
-      hasPlacement(false)
+      hasColor(false), hasPlacement(false)
 {
 }
 
 bool TremoloAttributes::hasValues() const
 {
     return hasType || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle ||
-           hasFontSize || hasFontWeight || hasPlacement;
+           hasFontSize || hasFontWeight || hasColor || hasPlacement;
 }
 
 std::ostream &TremoloAttributes::toStream(std::ostream &os) const
@@ -38,6 +38,7 @@ std::ostream &TremoloAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, placement, "placement", hasPlacement);
     }
     return os;
@@ -87,6 +88,10 @@ bool TremoloAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElemen
         }
         if (parseAttribute(message, it, className, isSuccess, fontWeight, hasFontWeight, "font-weight",
                            &parseFontWeight))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
         {
             continue;
         }

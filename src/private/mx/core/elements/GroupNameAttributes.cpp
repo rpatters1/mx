@@ -12,16 +12,16 @@ namespace core
 {
 GroupNameAttributes::GroupNameAttributes()
     : defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(FontSize{CssFontSize::medium}), fontWeight(FontWeight::normal), justify(LeftCenterRight::center),
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), justify(LeftCenterRight::left),
       hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false),
-      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasJustify(false)
+      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false), hasJustify(false)
 {
 }
 
 bool GroupNameAttributes::hasValues() const
 {
     return hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize ||
-           hasFontWeight || hasJustify;
+           hasFontWeight || hasColor || hasJustify;
 }
 
 std::ostream &GroupNameAttributes::toStream(std::ostream &os) const
@@ -36,6 +36,7 @@ std::ostream &GroupNameAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, justify, "justify", hasJustify);
     }
     return os;
@@ -81,6 +82,10 @@ bool GroupNameAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElem
         }
         if (parseAttribute(message, it, className, isSuccess, fontWeight, hasFontWeight, "font-weight",
                            &parseFontWeight))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
         {
             continue;
         }

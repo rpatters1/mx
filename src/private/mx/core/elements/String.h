@@ -48,7 +48,7 @@ class String : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     StringAttributesPtr getAttributes() const;
-    void setAttributes(const StringAttributesPtr &value);
+    void setAttributes(const StringAttributesPtr &attributes);
     StringNumber getValue() const;
     void setValue(const StringNumber &value);
 
@@ -56,8 +56,8 @@ class String : public ElementInterface
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);
 
   private:
-    StringAttributesPtr myAttributes;
     StringNumber myValue;
+    StringAttributesPtr myAttributes;
 };
 } // namespace core
 } // namespace mx

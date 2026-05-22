@@ -41,7 +41,7 @@ class StaffDetails : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     StaffDetailsAttributesPtr getAttributes() const;
-    void setAttributes(const StaffDetailsAttributesPtr &value);
+    void setAttributes(const StaffDetailsAttributesPtr &attributes);
 
     /* _________ StaffType minOccurs = 0, maxOccurs = 1 _________ */
     StaffTypePtr getStaffType() const;
@@ -59,9 +59,8 @@ class StaffDetails : public ElementInterface
     const StaffTuningSet &getStaffTuningSet() const;
     void addStaffTuning(const StaffTuningPtr &value);
     void removeStaffTuning(const StaffTuningSetIterConst &value);
-    bool getHasStaffTuning() const;
-    void setHasStaffTuning(const bool value);
     void clearStaffTuningSet();
+    StaffTuningPtr getStaffTuning(const StaffTuningSetIterConst &setIterator) const;
 
     /* _________ Capo minOccurs = 0, maxOccurs = 1 _________ */
     CapoPtr getCapo() const;

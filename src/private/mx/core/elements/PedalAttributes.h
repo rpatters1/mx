@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/CommaSeparatedText.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
@@ -39,7 +40,9 @@ struct PedalAttributes : public AttributesInterface
     FontStyle fontStyle;
     FontSize fontSize;
     FontWeight fontWeight;
+    Color color;
     LeftCenterRight halign;
+    Valign valign;
     const bool hasType;
     bool hasLine;
     bool hasSign;
@@ -51,7 +54,9 @@ struct PedalAttributes : public AttributesInterface
     bool hasFontStyle;
     bool hasFontSize;
     bool hasFontWeight;
+    bool hasColor;
     bool hasHalign;
+    bool hasValign;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

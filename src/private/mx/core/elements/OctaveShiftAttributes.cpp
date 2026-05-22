@@ -11,18 +11,18 @@ namespace mx
 namespace core
 {
 OctaveShiftAttributes::OctaveShiftAttributes()
-    : type(UpDownStopContinue::up), number(), size(8), dashLength(), spaceLength(), defaultX(), defaultY(), relativeX(),
-      relativeY(), fontFamily(), fontStyle(FontStyle::normal), fontSize(CssFontSize::medium),
-      fontWeight(FontWeight::normal), hasType(true), hasNumber(false), hasSize(false), hasDashLength(false),
-      hasSpaceLength(false), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
-      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false)
+    : type(), number(), size(), dashLength(), spaceLength(), defaultX(), defaultY(), relativeX(), relativeY(),
+      fontFamily(), fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal),
+      color(), hasType(true), hasNumber(false), hasSize(false), hasDashLength(false), hasSpaceLength(false),
+      hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false),
+      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false)
 {
 }
 
 bool OctaveShiftAttributes::hasValues() const
 {
     return hasType || hasNumber || hasSize || hasDashLength || hasSpaceLength || hasDefaultX || hasDefaultY ||
-           hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight;
+           hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasColor;
 }
 
 std::ostream &OctaveShiftAttributes::toStream(std::ostream &os) const
@@ -42,6 +42,7 @@ std::ostream &OctaveShiftAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -110,15 +111,19 @@ bool OctaveShiftAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEl
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
     }
 
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

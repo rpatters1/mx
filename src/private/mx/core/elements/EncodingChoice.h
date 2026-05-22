@@ -47,7 +47,7 @@ class EncodingChoice : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
 
-    /* _________ Choice _________ */
+    /* _________ Choice minOccurs = 1, maxOccurs = 1 _________ */
     EncodingChoice::Choice getChoice() const;
     void setChoice(const EncodingChoice::Choice value);
 

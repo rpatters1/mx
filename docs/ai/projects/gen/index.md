@@ -1,5 +1,7 @@
 ---
 created: 2026-05-18
+m1_completed: 2026-05-21
+m2_completed: 2026-05-22
 ---
 
 # gen
@@ -7,58 +9,58 @@ created: 2026-05-18
 ## Goal
 
 Reverse engineer the codegen process that produced `mx/core` from MusicXML XSD. Build a generator
-that re-produces the existing C++ code from `docs/musicxml.xsd` with minimal unexplained diff, then
-point it at MusicXML 4.0 to generate updated types.
+that re-produces the existing C++ code from `docs/musicxml.xsd`, then point it at MusicXML 4.0 to
+generate updated types.
 
-## Index
+## Files
 
-- `plan.md` - milestones from reverse-engineering through MusicXML 4.0 PR
+- `plan.md` - milestones and exit criteria
 - `state.md` - current session state and next-session instructions
 - `log.md` - append-only session log
-- `iteration-notes.md` - detailed per-iteration findings from the experiment phase (iters 1-7)
-- `design/` - design docs (current-state snapshots, not historical)
-  - `overrides.md` - override taxonomy (RULE/EXC/FIX/SUBSTRATE/ANOMALY) and catalog
-  - `scoring.md` - CHANGE_PENALTY mechanism and Phase 1 exit gates
-  - `forensics.md` - analysis of the original Ruby codegen and mx/core patterns
 
-## Instructions
+## Generator location and how to run
 
-### Generator location and how to run
-
-The generator and eval tools live at `gen/` (not a subdirectory of the project docs):
+The generator lives at `gen/` (not under this project directory):
 
 ```
-python3 gen/generate.py          # regenerates C++ on top of src/private/mx/core/elements/
-python3 gen/eval.py              # scores the diff
-python3 gen/eval.py --verbose    # shows individual penalized lines
+python3 gen/generate.py          # regenerates C++ into src/private/mx/core/elements/
+python3 gen/eval.py              # scores diff against checked-in mx/core (secondary signal)
 ```
 
-After studying the diff, reset with `git checkout -- src/private/mx/core/`.
+Workflow: `python3 gen/generate.py && make fmt && make test-all`, then reset:
+`git checkout -- src/private/mx/core/ && git clean -fd src/private/mx/core/`.
 
 Quality gates: `make fmt && make check && make test-all`.
 
-### Key files outside the project directory
+## Fitness function
 
-- `gen/generate.py` - the generator (~2800 lines Python)
-- `gen/eval.py` - diff scoring script
-- `gen/eval_config.yaml` - scoring category rules
-- `docs/musicxml.xsd` - the input XSD schema
-- `src/private/mx/core/elements/` - the target output directory (591 .h/.cpp pairs)
-- `docs/ai/projects/build-and-ci-design.md` - repo-wide build/CI/formatting docs
+`make test-all` pass/fail. **Always use `make test-all`, never `make test`** — the latter builds
+`dev` and skips the slow `mxtest/file/` round-trippers, under-reporting failures. `make test-all`
+takes >10 minutes. Every iteration ends with a recorded `make test-all` result.
 
-### Eval config policy
+## Cardinal rules
 
-Do NOT autonomously add or change entries in `gen/eval_config.yaml`. When studying the diff, if you
-see a pattern that should be zero or low cost, flag it to the user with the pattern, a sample diff
-line, and your reasoning. The user decides whether to add it to the config.
+- Never change tests.
+- Never change `mx/api`.
+- Minimize changes to `mx/impl`; prefer fixing the generator.
+- Do not autonomously edit `gen/eval_config.yaml`. Flag patterns to the user with sample diff + reasoning.
+- Reset generated `mx/core/` before commit.
 
-### Commit discipline
+## Bespoke generator functions
 
-Each iteration should end with a commit containing generator changes, eval changes, and updated
-project docs (state.md, log.md, and any design doc changes). Reset generated code before committing
-(`git checkout -- src/private/mx/core/`).
+Six bespoke handlers exist (credit, lyric, part-list, harmony, score-wrapper-family, note,
+direction), registered in `BESPOKE_ELEMENTS` in `gen/generate.py`. They are acceptable when an
+element's shape cannot be expressed by the shared rule-based path, but they must still read the
+parsed XSD model so spec changes propagate. Pattern: "custom algorithm, schema-driven data" — not
+a hardcoded string dump.
 
-### Design doc maintenance
+Always prefer extending a reusable rule-based path (`TREE_ELEMENTS`, `TREE_ELEMENT_CONFIG` flags,
+shared helpers) over a new bespoke handler. If a pattern could plausibly recur for another
+element, the fix belongs in the shared path with a config-driven flag.
 
-Design docs in `design/` describe current design state only. When the design evolves, update the doc
-in place. Record design changes and rationale in `log.md`.
+## Key external files
+
+- `gen/generate.py` — the generator (~2800 lines of Python)
+- `gen/eval.py`, `gen/eval_config.yaml` — diff scoring
+- `docs/musicxml.xsd` — input schema (currently MusicXML 3.x; swapped to 4.0 in M5)
+- `src/private/mx/core/elements/` — target output (591 .h/.cpp pairs)

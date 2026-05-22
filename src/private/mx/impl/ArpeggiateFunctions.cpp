@@ -25,17 +25,14 @@ api::MarkData ArpeggiateFunctions::parseArpeggiate() const
 
         switch (attr->direction)
         {
-        case core::UpDownNone::up:
+        case core::UpDown::up:
             markType = api::MarkType::arpeggiateUp;
             break;
 
-        case core::UpDownNone::down:
+        case core::UpDown::down:
             markType = api::MarkType::arpeggiateDown;
             break;
-
-        case core::UpDownNone::none: // MusicXML 4.0 Backport
-            markType = api::MarkType::arpeggiate;
-            break;
+            // TODO: fixme - MusicXML 4.0 adds UpDownNone with 'none' value
         }
     }
     api::MarkData markData{markType};

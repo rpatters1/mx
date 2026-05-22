@@ -47,67 +47,54 @@ bool ScoreHeaderGroup::hasContents() const
 
 std::ostream &ScoreHeaderGroup::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    isOneLineOnly = false;
     bool isFirst = true;
     if (myHasWork)
     {
         if (!isFirst)
-        {
             os << std::endl;
-        }
         myWork->toStream(os, indentLevel);
         isFirst = false;
     }
     if (myHasMovementNumber)
     {
         if (!isFirst)
-        {
             os << std::endl;
-        }
         myMovementNumber->toStream(os, indentLevel);
         isFirst = false;
     }
     if (myHasMovementTitle)
     {
         if (!isFirst)
-        {
             os << std::endl;
-        }
         myMovementTitle->toStream(os, indentLevel);
         isFirst = false;
     }
     if (myHasIdentification)
     {
         if (!isFirst)
-        {
             os << std::endl;
-        }
         myIdentification->toStream(os, indentLevel);
         isFirst = false;
     }
     if (myHasDefaults)
     {
         if (!isFirst)
-        {
             os << std::endl;
-        }
         myDefaults->toStream(os, indentLevel);
         isFirst = false;
     }
     for (auto x : myCreditSet)
     {
         if (!isFirst)
-        {
             os << std::endl;
-        }
         x->toStream(os, indentLevel);
         isFirst = false;
     }
     if (!isFirst)
-    {
         os << std::endl;
-    }
     myPartList->toStream(os, indentLevel);
+    isFirst = false;
+    isOneLineOnly = !hasContents();
     return os;
 }
 
@@ -231,19 +218,19 @@ const CreditSet &ScoreHeaderGroup::getCreditSet() const
     return myCreditSet;
 }
 
-void ScoreHeaderGroup::addCredit(const CreditPtr &value)
-{
-    if (value)
-    {
-        myCreditSet.push_back(value);
-    }
-}
-
 void ScoreHeaderGroup::removeCredit(const CreditSetIterConst &value)
 {
     if (value != myCreditSet.cend())
     {
         myCreditSet.erase(value);
+    }
+}
+
+void ScoreHeaderGroup::addCredit(const CreditPtr &value)
+{
+    if (value)
+    {
+        myCreditSet.push_back(value);
     }
 }
 

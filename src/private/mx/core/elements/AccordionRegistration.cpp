@@ -43,7 +43,6 @@ bool AccordionRegistration::hasContents() const
 
 std::ostream &AccordionRegistration::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    isOneLineOnly = !hasContents();
     if (myHasAccordionHigh)
     {
         os << std::endl;
@@ -59,9 +58,14 @@ std::ostream &AccordionRegistration::streamContents(std::ostream &os, const int 
         os << std::endl;
         myAccordionLow->toStream(os, indentLevel + 1);
     }
-    if (hasContents())
+    if (myHasAccordionHigh || myHasAccordionMiddle || myHasAccordionLow)
     {
+        isOneLineOnly = false;
         os << std::endl;
+    }
+    else
+    {
+        isOneLineOnly = true;
     }
     return os;
 }

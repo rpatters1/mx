@@ -79,7 +79,7 @@ bool Notehead::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xeleme
     bool isSuccess = true;
     isSuccess &= myAttributes->fromXElement(message, xelement);
     myValue = parseNoteheadValue(xelement.getValue());
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

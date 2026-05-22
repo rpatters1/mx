@@ -64,7 +64,7 @@ PerMinuteOrBeatUnitChoicePtr BeatUnitPer::getPerMinuteOrBeatUnitChoice() const
     return myPerMinuteOrBeatUnitChoice;
 }
 
-void BeatUnitPer::setPerMinuteOtBeatUnitChoice(const PerMinuteOrBeatUnitChoicePtr &value)
+void BeatUnitPer::setPerMinuteOrBeatUnitChoice(const PerMinuteOrBeatUnitChoicePtr &value)
 {
     if (value)
     {
@@ -72,22 +72,7 @@ void BeatUnitPer::setPerMinuteOtBeatUnitChoice(const PerMinuteOrBeatUnitChoicePt
     }
 }
 
-bool BeatUnitPer::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
-{
-    bool isSuccess = true;
-
-    auto endIter = xelement.end();
-    for (auto it = xelement.begin(); it != endIter; ++it)
-    {
-        importGroup(message, it, endIter, isSuccess, myBeatUnitGroup);
-        if (it->getName() == "beat-unit-per" || it->getName() == "note-relation-note")
-        {
-            isSuccess &= myPerMinuteOrBeatUnitChoice->fromXElement(message, *it);
-        }
-    }
-
-    MX_RETURN_IS_SUCCESS;
-}
+MX_FROM_XELEMENT_UNUSED(BeatUnitPer);
 
 } // namespace core
 } // namespace mx

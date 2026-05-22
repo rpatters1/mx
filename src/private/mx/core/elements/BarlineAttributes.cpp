@@ -11,8 +11,7 @@ namespace mx
 namespace core
 {
 BarlineAttributes::BarlineAttributes()
-    : location(RightLeftMiddle::right), segno(), coda(), divisions(), hasLocation(false), hasSegno(false),
-      hasCoda(false), hasDivisions(false)
+    : location(), segno(), coda(), divisions(), hasLocation(false), hasSegno(false), hasCoda(false), hasDivisions(false)
 {
 }
 

@@ -154,10 +154,6 @@ bool Clef::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
         }
     }
 
-    if (!isSignFound)
-    {
-        message << "Clef: '" << mySign->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

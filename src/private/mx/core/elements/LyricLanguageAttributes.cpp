@@ -54,16 +54,12 @@ bool LyricLanguageAttributes::fromXElementImpl(std::ostream &message, ::ezxml::X
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, lang, isLangFound, "lang"))
-        {
-            continue;
-        }
     }
 
     if (!isLangFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'xml:lang' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

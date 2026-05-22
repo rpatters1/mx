@@ -101,7 +101,7 @@ bool HarmonicAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEleme
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

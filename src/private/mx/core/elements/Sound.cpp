@@ -6,6 +6,7 @@
 #include "mx/core/FromXElement.h"
 #include "mx/core/elements/MidiDevice.h"
 #include "mx/core/elements/MidiInstrument.h"
+#include "mx/core/elements/Offset.h"
 #include "mx/core/elements/Play.h"
 #include <iostream>
 
@@ -15,7 +16,8 @@ namespace core
 {
 Sound::Sound()
     : myAttributes(std::make_shared<SoundAttributes>()), myMidiDevice(makeMidiDevice()), myHasMidiDevice(false),
-      myMidiInstrument(makeMidiInstrument()), myHasMidiInstrument(false), myPlay(makePlay()), myHasPlay(false)
+      myMidiInstrument(makeMidiInstrument()), myHasMidiInstrument(false), myPlay(makePlay()), myHasPlay(false),
+      myOffset(makeOffset()), myHasOffset(false)
 {
 }
 
@@ -37,7 +39,7 @@ std::ostream &Sound::streamName(std::ostream &os) const
 
 bool Sound::hasContents() const
 {
-    return myHasMidiDevice || myHasMidiInstrument || myHasPlay;
+    return myHasMidiDevice || myHasMidiInstrument || myHasPlay || myHasOffset;
 }
 
 std::ostream &Sound::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
@@ -47,7 +49,7 @@ std::ostream &Sound::streamContents(std::ostream &os, const int indentLevel, boo
         os << std::endl;
         myMidiDevice->toStream(os, indentLevel + 1);
     }
-    if (myMidiInstrument)
+    if (myHasMidiInstrument)
     {
         os << std::endl;
         myMidiInstrument->toStream(os, indentLevel + 1);
@@ -57,10 +59,15 @@ std::ostream &Sound::streamContents(std::ostream &os, const int indentLevel, boo
         os << std::endl;
         myPlay->toStream(os, indentLevel + 1);
     }
-    if (hasContents())
+    if (myHasOffset)
     {
         os << std::endl;
+        myOffset->toStream(os, indentLevel + 1);
+    }
+    if (myHasMidiDevice || myHasMidiInstrument || myHasPlay || myHasOffset)
+    {
         isOneLineOnly = false;
+        os << std::endl;
     }
     else
     {
@@ -151,6 +158,29 @@ void Sound::setHasPlay(const bool value)
     myHasPlay = value;
 }
 
+OffsetPtr Sound::getOffset() const
+{
+    return myOffset;
+}
+
+void Sound::setOffset(const OffsetPtr &value)
+{
+    if (value)
+    {
+        myOffset = value;
+    }
+}
+
+bool Sound::getHasOffset() const
+{
+    return myHasOffset;
+}
+
+void Sound::setHasOffset(const bool value)
+{
+    myHasOffset = value;
+}
+
 bool Sound::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     bool isSuccess = true;
@@ -168,6 +198,10 @@ bool Sound::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
             continue;
         }
         if (importElement(message, *it, isSuccess, *myPlay, myHasPlay))
+        {
+            continue;
+        }
+        if (importElement(message, *it, isSuccess, *myOffset, myHasOffset))
         {
             continue;
         }

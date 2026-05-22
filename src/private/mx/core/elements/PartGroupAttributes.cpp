@@ -54,7 +54,7 @@ bool PartGroupAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElem
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

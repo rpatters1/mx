@@ -13,7 +13,7 @@ namespace mx
 namespace core
 {
 KeyChoice::KeyChoice()
-    : myChoice(Choice::traditionalKey), myTraditionalKey(std::make_shared<TraditionalKey>()), myNonTraditionalKeySet()
+    : myChoice(Choice::traditionalKey), myTraditionalKey(makeTraditionalKey()), myNonTraditionalKeySet()
 {
 }
 
@@ -46,7 +46,7 @@ std::ostream &KeyChoice::streamContents(std::ostream &os, const int indentLevel,
             myTraditionalKey->streamContents(os, indentLevel, isOneLineOnly);
         }
     }
-    else if (myChoice == Choice::nonTraditionalKey)
+    if (myChoice == Choice::nonTraditionalKey)
     {
         for (auto it = myNonTraditionalKeySet.cbegin(); it != myNonTraditionalKeySet.cend(); ++it)
         {
@@ -61,6 +61,7 @@ std::ostream &KeyChoice::streamContents(std::ostream &os, const int indentLevel,
             isOneLineOnly = false;
         }
     }
+    isOneLineOnly = false;
     return os;
 }
 

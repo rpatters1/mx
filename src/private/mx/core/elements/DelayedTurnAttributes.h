@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/CommaSeparatedText.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
@@ -36,6 +37,7 @@ struct DelayedTurnAttributes : public AttributesInterface
     FontStyle fontStyle;
     FontSize fontSize;
     FontWeight fontWeight;
+    Color color;
     AboveBelow placement;
     StartNote startNote;
     TrillStep trillStep;
@@ -53,6 +55,7 @@ struct DelayedTurnAttributes : public AttributesInterface
     bool hasFontStyle;
     bool hasFontSize;
     bool hasFontWeight;
+    bool hasColor;
     bool hasPlacement;
     bool hasStartNote;
     bool hasTrillStep;

@@ -44,7 +44,7 @@ class PartGroup : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     PartGroupAttributesPtr getAttributes() const;
-    void setAttributes(const PartGroupAttributesPtr &value);
+    void setAttributes(const PartGroupAttributesPtr &attributes);
 
     /* _________ GroupName minOccurs = 0, maxOccurs = 1 _________ */
     GroupNamePtr getGroupName() const;

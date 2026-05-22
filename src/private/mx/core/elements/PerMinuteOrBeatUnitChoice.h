@@ -16,8 +16,8 @@ namespace mx
 namespace core
 {
 
-MX_FORWARD_DECLARE_ELEMENT(BeatUnitGroup)
 MX_FORWARD_DECLARE_ELEMENT(PerMinute)
+MX_FORWARD_DECLARE_ELEMENT(BeatUnitGroup)
 MX_FORWARD_DECLARE_ELEMENT(PerMinuteOrBeatUnitChoice)
 
 inline PerMinuteOrBeatUnitChoicePtr makePerMinuteOrBeatUnitChoice()
@@ -40,8 +40,8 @@ class PerMinuteOrBeatUnitChoice : public ElementInterface
     virtual std::ostream &streamName(std::ostream &os) const;
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
-    PerMinuteOrBeatUnitChoice::Choice getChoice() const;
-    void setChoice(const PerMinuteOrBeatUnitChoice::Choice value);
+    Choice getChoice() const;
+    void setChoice(const Choice value);
     PerMinutePtr getPerMinute() const;
     void setPerMinute(const PerMinutePtr &value);
     BeatUnitGroupPtr getBeatUnitGroup() const;

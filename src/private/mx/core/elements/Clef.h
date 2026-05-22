@@ -39,7 +39,7 @@ class Clef : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     ClefAttributesPtr getAttributes() const;
-    void setAttributes(const ClefAttributesPtr &value);
+    void setAttributes(const ClefAttributesPtr &attributes);
 
     /* _________ Sign minOccurs = 1, maxOccurs = 1 _________ */
     SignPtr getSign() const;

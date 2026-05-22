@@ -395,17 +395,17 @@ core::NotationsPtr NotationsWriter::getNotations() const
 
             if (mark.markType == api::MarkType::arpeggiate)
             {
-                attr.direction = core::UpDownNone::none; // MusicXML 4.0 Backport
+                // TODO: fixme - MusicXML 4.0 adds UpDownNone with 'none' value
                 attr.hasDirection = false;
             }
             else if (mark.markType == api::MarkType::arpeggiateUp)
             {
-                attr.direction = core::UpDownNone::up;
+                attr.direction = core::UpDown::up;
                 attr.hasDirection = true;
             }
             else if (mark.markType == api::MarkType::arpeggiateDown)
             {
-                attr.direction = core::UpDownNone::down;
+                attr.direction = core::UpDown::down;
                 attr.hasDirection = true;
             }
         }

@@ -14,8 +14,8 @@ namespace mx
 namespace core
 {
 NonTraditionalKey::NonTraditionalKey()
-    : ElementInterface(), myKeyStep(std::make_shared<KeyStep>()), myKeyAlter(std::make_shared<KeyAlter>()),
-      myKeyAccidental(std::make_shared<KeyAccidental>()), myHasKeyAccidental(false)
+    : myKeyStep(makeKeyStep()), myKeyAlter(makeKeyAlter()), myKeyAccidental(makeKeyAccidental()),
+      myHasKeyAccidental(false)
 {
 }
 
@@ -42,18 +42,21 @@ bool NonTraditionalKey::hasContents() const
 std::ostream &NonTraditionalKey::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
     isOneLineOnly = false;
-    if (myKeyStep)
-    {
-        myKeyStep->toStream(os, indentLevel) << std::endl;
-    }
-    if (myKeyAlter)
-    {
-        myKeyAlter->toStream(os, indentLevel);
-    }
-    if (myKeyAccidental && myHasKeyAccidental)
-    {
+    bool isFirst = true;
+    if (!isFirst)
         os << std::endl;
+    myKeyStep->toStream(os, indentLevel);
+    isFirst = false;
+    if (!isFirst)
+        os << std::endl;
+    myKeyAlter->toStream(os, indentLevel);
+    isFirst = false;
+    if (myHasKeyAccidental)
+    {
+        if (!isFirst)
+            os << std::endl;
         myKeyAccidental->toStream(os, indentLevel);
+        isFirst = false;
     }
     return os;
 }
@@ -107,41 +110,7 @@ void NonTraditionalKey::setHasKeyAccidental(const bool value)
     myHasKeyAccidental = value;
 }
 
-bool NonTraditionalKey::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
-{
-    bool isSuccess = true;
-    bool isKeyStepFound = false;
-    bool isKeyAlterFound = false;
-
-    auto endIter = xelement.end();
-    for (auto it = xelement.begin(); it != endIter; ++it)
-    {
-        if (importElement(message, *it, isSuccess, *myKeyStep, isKeyStepFound))
-        {
-            continue;
-        }
-        if (importElement(message, *it, isSuccess, *myKeyAlter, isKeyAlterFound))
-        {
-            continue;
-        }
-        if (importElement(message, *it, isSuccess, *myKeyAccidental, myHasKeyAccidental))
-        {
-            continue;
-        }
-    }
-
-    if (!isKeyStepFound)
-    {
-        message << "NonTraditionalKey: '" << myKeyStep->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
-    if (!isKeyAlterFound)
-    {
-        message << "NonTraditionalKey: '" << myKeyAlter->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
-    MX_RETURN_IS_SUCCESS;
-}
+MX_FROM_XELEMENT_UNUSED(NonTraditionalKey);
 
 } // namespace core
 } // namespace mx

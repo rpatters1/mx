@@ -62,7 +62,7 @@ bool EmptyFontAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElem
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

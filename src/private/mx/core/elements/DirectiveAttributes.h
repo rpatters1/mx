@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/CommaSeparatedText.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
@@ -37,6 +38,7 @@ struct DirectiveAttributes : public AttributesInterface
     FontStyle fontStyle;
     FontSize fontSize;
     FontWeight fontWeight;
+    Color color;
     XmlLang lang;
     bool hasDefaultX;
     bool hasDefaultY;
@@ -46,6 +48,7 @@ struct DirectiveAttributes : public AttributesInterface
     bool hasFontStyle;
     bool hasFontSize;
     bool hasFontWeight;
+    bool hasColor;
     bool hasLang;
 
   private:

@@ -74,8 +74,8 @@ std::ostream &Print::streamContents(std::ostream &os, const int indentLevel, boo
             os << std::endl;
             myPartAbbreviationDisplay->toStream(os, indentLevel + 1);
         }
-        os << std::endl;
         isOneLineOnly = false;
+        os << std::endl;
     }
     else
     {

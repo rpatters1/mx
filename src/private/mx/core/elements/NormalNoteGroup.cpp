@@ -47,6 +47,7 @@ std::ostream &NormalNoteGroup::streamContents(std::ostream &os, const int indent
         os << std::endl;
         x->toStream(os, indentLevel);
     }
+    isOneLineOnly = false;
     return os;
 }
 
@@ -115,5 +116,6 @@ TiePtr NormalNoteGroup::getTie(const TieSetIterConst &setIterator) const
 }
 
 MX_FROM_XELEMENT_UNUSED(NormalNoteGroup);
+
 } // namespace core
 } // namespace mx

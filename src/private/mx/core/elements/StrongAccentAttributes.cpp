@@ -12,10 +12,10 @@ namespace core
 {
 StrongAccentAttributes::StrongAccentAttributes()
     : defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), placement(AboveBelow::below),
-      type(UpDown::up), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
-      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false),
-      hasPlacement(false), hasType(false)
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), placement(AboveBelow::below), type(),
+      hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false),
+      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false), hasPlacement(false),
+      hasType(false)
 {
 }
 

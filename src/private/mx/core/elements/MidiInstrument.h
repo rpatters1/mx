@@ -44,7 +44,7 @@ class MidiInstrument : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     MidiInstrumentAttributesPtr getAttributes() const;
-    void setAttributes(const MidiInstrumentAttributesPtr &value);
+    void setAttributes(const MidiInstrumentAttributesPtr &attributes);
 
     /* _________ MidiChannel minOccurs = 0, maxOccurs = 1 _________ */
     MidiChannelPtr getMidiChannel() const;

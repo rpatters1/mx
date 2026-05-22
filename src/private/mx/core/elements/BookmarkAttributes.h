@@ -9,6 +9,7 @@
 #include "mx/core/Integers.h"
 #include "mx/core/XsID.h"
 #include "mx/core/XsNMToken.h"
+#include "mx/core/XsToken.h"
 
 #include <iosfwd>
 #include <memory>

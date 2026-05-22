@@ -16,8 +16,8 @@ namespace mx
 namespace core
 {
 
-MX_FORWARD_DECLARE_ELEMENT(NonTraditionalKey)
 MX_FORWARD_DECLARE_ELEMENT(TraditionalKey)
+MX_FORWARD_DECLARE_ELEMENT(NonTraditionalKey)
 MX_FORWARD_DECLARE_ELEMENT(KeyChoice)
 
 inline KeyChoicePtr makeKeyChoice()

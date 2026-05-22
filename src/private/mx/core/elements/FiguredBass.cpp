@@ -43,6 +43,7 @@ bool FiguredBass::hasContents() const
 
 std::ostream &FiguredBass::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    isOneLineOnly = false;
     for (auto x : myFigureSet)
     {
         os << std::endl;
@@ -59,7 +60,6 @@ std::ostream &FiguredBass::streamContents(std::ostream &os, const int indentLeve
         myEditorialGroup->streamContents(os, indentLevel + 1, isOneLineOnly);
     }
     os << std::endl;
-    isOneLineOnly = false;
     return os;
 }
 
@@ -103,10 +103,7 @@ void FiguredBass::addFigure(const FigurePtr &value)
 void FiguredBass::clearFigureSet()
 {
     myFigureSet.clear();
-    while (myFigureSet.size() < 1)
-    {
-        myFigureSet.push_back(makeFigure());
-    }
+    myFigureSet.push_back(makeFigure());
 }
 
 FigurePtr FiguredBass::getFigure(const FigureSetIterConst &setIterator) const
@@ -170,7 +167,7 @@ bool FiguredBass::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xel
         importGroup(message, it, endIter, isSuccess, myEditorialGroup);
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

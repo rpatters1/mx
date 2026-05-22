@@ -12,16 +12,16 @@ namespace core
 {
 DirectiveAttributes::DirectiveAttributes()
     : defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), lang("it"), hasDefaultX(false), hasDefaultY(false),
-      hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false),
-      hasFontWeight(false), hasLang(false)
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), lang("it"), hasDefaultX(false),
+      hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false),
+      hasFontSize(false), hasFontWeight(false), hasColor(false), hasLang(false)
 {
 }
 
 bool DirectiveAttributes::hasValues() const
 {
     return hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize ||
-           hasFontWeight || hasLang;
+           hasFontWeight || hasColor || hasLang;
 }
 
 std::ostream &DirectiveAttributes::toStream(std::ostream &os) const
@@ -36,6 +36,7 @@ std::ostream &DirectiveAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, lang, "xml:lang", hasLang);
     }
     return os;
@@ -84,7 +85,7 @@ bool DirectiveAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElem
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, lang, hasLang, "lang"))
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
         {
             continue;
         }
@@ -94,7 +95,7 @@ bool DirectiveAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElem
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

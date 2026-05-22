@@ -44,6 +44,9 @@ std::ostream &Rest::streamContents(std::ostream &os, const int indentLevel, bool
     {
         os << std::endl;
         myDisplayStepOctaveGroup->streamContents(os, indentLevel + 1, isOneLineOnly);
+    }
+    if (myHasDisplayStepOctaveGroup)
+    {
         isOneLineOnly = false;
         os << std::endl;
     }
@@ -95,9 +98,12 @@ bool Rest::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
     bool isSuccess = true;
     isSuccess &= myAttributes->fromXElement(message, xelement);
 
-    auto it = xelement.begin();
     auto endIter = xelement.end();
-    importGroup(message, it, endIter, isSuccess, myDisplayStepOctaveGroup, myHasDisplayStepOctaveGroup);
+    for (auto it = xelement.begin(); it != endIter; ++it)
+    {
+        importGroup(message, it, endIter, isSuccess, myDisplayStepOctaveGroup, myHasDisplayStepOctaveGroup);
+    }
+
     MX_RETURN_IS_SUCCESS;
 }
 

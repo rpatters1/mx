@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/CommaSeparatedText.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/EndingNumber.h"
@@ -40,6 +41,7 @@ struct EndingAttributes : public AttributesInterface
     FontStyle fontStyle;
     FontSize fontSize;
     FontWeight fontWeight;
+    Color color;
     TenthsValue endLength;
     TenthsValue textX;
     TenthsValue textY;
@@ -54,6 +56,7 @@ struct EndingAttributes : public AttributesInterface
     bool hasFontStyle;
     bool hasFontSize;
     bool hasFontWeight;
+    bool hasColor;
     bool hasEndLength;
     bool hasTextX;
     bool hasTextY;

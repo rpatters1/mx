@@ -3,7 +3,7 @@
 // Distributed under the MIT License
 
 #include "mx/core/elements/HoleClosed.h"
-#include "ezxml/XElement.h"
+#include "mx/core/FromXElement.h"
 #include <iostream>
 
 namespace mx
@@ -77,10 +77,11 @@ void HoleClosed::setValue(const HoleClosedValue &value)
 
 bool HoleClosed::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
-    MX_UNUSED(message);
-    MX_UNUSED(xelement);
+    bool isSuccess = true;
+    isSuccess &= myAttributes->fromXElement(message, xelement);
     myValue = parseHoleClosedValue(xelement.getValue());
-    return true;
+    MX_RETURN_IS_SUCCESS;
 }
+
 } // namespace core
 } // namespace mx

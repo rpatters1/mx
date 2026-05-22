@@ -68,6 +68,19 @@ std::ostream &Harmonic::streamContents(std::ostream &os, const int indentLevel, 
     return os;
 }
 
+HarmonicAttributesPtr Harmonic::getAttributes() const
+{
+    return myAttributes;
+}
+
+void Harmonic::setAttributes(const HarmonicAttributesPtr &value)
+{
+    if (value)
+    {
+        myAttributes = value;
+    }
+}
+
 HarmonicTypeChoicePtr Harmonic::getHarmonicTypeChoice() const
 {
     return myHarmonicTypeChoice;
@@ -89,19 +102,6 @@ bool Harmonic::getHasHarmonicTypeChoice() const
 void Harmonic::setHasHarmonicTypeChoice(const bool value)
 {
     myHasHarmonicTypeChoice = value;
-}
-
-HarmonicAttributesPtr Harmonic::getAttributes() const
-{
-    return myAttributes;
-}
-
-void Harmonic::setAttributes(const HarmonicAttributesPtr &value)
-{
-    if (value)
-    {
-        myAttributes = value;
-    }
 }
 
 HarmonicInfoChoicePtr Harmonic::getHarmonicInfoChoice() const
@@ -135,48 +135,44 @@ bool Harmonic::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xeleme
     auto endIter = xelement.end();
     for (auto it = xelement.begin(); it != endIter; ++it)
     {
-        if (checkSetChoiceMember(message, *it, isSuccess, myHarmonicTypeChoice, "natural",
-                                 &HarmonicTypeChoice::getNatural,
-                                 static_cast<int>(HarmonicTypeChoice::Choice::natural)))
+        if (it->getName() == "natural")
         {
+            myHarmonicTypeChoice->setChoice(HarmonicTypeChoice::Choice::natural);
+            isSuccess &= myHarmonicTypeChoice->getNatural()->fromXElement(message, *it);
             myHasHarmonicTypeChoice = true;
             continue;
         }
-
-        if (checkSetChoiceMember(message, *it, isSuccess, myHarmonicTypeChoice, "artificial",
-                                 &HarmonicTypeChoice::getArtificial,
-                                 static_cast<int>(HarmonicTypeChoice::Choice::artificial)))
+        if (it->getName() == "artificial")
         {
+            myHarmonicTypeChoice->setChoice(HarmonicTypeChoice::Choice::artificial);
+            isSuccess &= myHarmonicTypeChoice->getArtificial()->fromXElement(message, *it);
             myHasHarmonicTypeChoice = true;
             continue;
         }
-
-        if (checkSetChoiceMember(message, *it, isSuccess, myHarmonicInfoChoice, "base-pitch",
-                                 &HarmonicInfoChoice::getBasePitch,
-                                 static_cast<int>(HarmonicInfoChoice::Choice::basePitch)))
+        if (it->getName() == "base-pitch")
         {
+            myHarmonicInfoChoice->setChoice(HarmonicInfoChoice::Choice::basePitch);
+            isSuccess &= myHarmonicInfoChoice->getBasePitch()->fromXElement(message, *it);
             myHasHarmonicInfoChoice = true;
             continue;
         }
-
-        if (checkSetChoiceMember(message, *it, isSuccess, myHarmonicInfoChoice, "touching-pitch",
-                                 &HarmonicInfoChoice::getTouchingPitch,
-                                 static_cast<int>(HarmonicInfoChoice::Choice::touchingPitch)))
+        if (it->getName() == "touching-pitch")
         {
+            myHarmonicInfoChoice->setChoice(HarmonicInfoChoice::Choice::touchingPitch);
+            isSuccess &= myHarmonicInfoChoice->getTouchingPitch()->fromXElement(message, *it);
             myHasHarmonicInfoChoice = true;
             continue;
         }
-
-        if (checkSetChoiceMember(message, *it, isSuccess, myHarmonicInfoChoice, "sounding-pitch",
-                                 &HarmonicInfoChoice::getSoundingPitch,
-                                 static_cast<int>(HarmonicInfoChoice::Choice::soundingPitch)))
+        if (it->getName() == "sounding-pitch")
         {
+            myHarmonicInfoChoice->setChoice(HarmonicInfoChoice::Choice::soundingPitch);
+            isSuccess &= myHarmonicInfoChoice->getSoundingPitch()->fromXElement(message, *it);
             myHasHarmonicInfoChoice = true;
             continue;
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

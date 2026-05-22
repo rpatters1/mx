@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
 #include "mx/core/ForwardDeclare.h"
@@ -29,26 +30,28 @@ struct WedgeAttributes : public AttributesInterface
     virtual std::ostream &toStream(std::ostream &os) const;
     WedgeType type;
     NumberLevel number;
-    LineType lineType;
     TenthsValue spread;
     YesNo niente;
+    LineType lineType;
     TenthsValue dashLength;
     TenthsValue spaceLength;
     TenthsValue defaultX;
     TenthsValue defaultY;
     TenthsValue relativeX;
     TenthsValue relativeY;
+    Color color;
     const bool hasType;
     bool hasNumber;
-    bool hasLineType;
     bool hasSpread;
     bool hasNiente;
+    bool hasLineType;
     bool hasDashLength;
     bool hasSpaceLength;
     bool hasDefaultX;
     bool hasDefaultY;
     bool hasRelativeX;
     bool hasRelativeY;
+    bool hasColor;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

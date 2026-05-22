@@ -33,7 +33,7 @@ struct LinkAttributes : public AttributesInterface
     virtual bool hasValues() const;
     virtual std::ostream &toStream(std::ostream &os) const;
     XlinkHref href;
-    const XlinkType type;
+    XlinkType type;
     XlinkRole role;
     XlinkTitle title;
     XlinkShow show;

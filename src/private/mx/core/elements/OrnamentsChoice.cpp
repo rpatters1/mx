@@ -54,65 +54,59 @@ bool OrnamentsChoice::hasContents() const
 
 std::ostream &OrnamentsChoice::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    MX_UNUSED(isOneLineOnly);
-
-    switch (myChoice)
+    if (myChoice == Choice::trillMark)
     {
-    case Choice::trillMark: {
         myTrillMark->toStream(os, indentLevel);
     }
-    break;
-    case Choice::turn: {
+    if (myChoice == Choice::turn)
+    {
         myTurn->toStream(os, indentLevel);
     }
-    break;
-    case Choice::delayedTurn: {
+    if (myChoice == Choice::delayedTurn)
+    {
         myDelayedTurn->toStream(os, indentLevel);
     }
-    break;
-    case Choice::invertedTurn: {
+    if (myChoice == Choice::invertedTurn)
+    {
         myInvertedTurn->toStream(os, indentLevel);
     }
-    break;
-    case Choice::delayedInvertedTurn: {
+    if (myChoice == Choice::delayedInvertedTurn)
+    {
         myDelayedInvertedTurn->toStream(os, indentLevel);
     }
-    break;
-    case Choice::verticalTurn: {
+    if (myChoice == Choice::verticalTurn)
+    {
         myVerticalTurn->toStream(os, indentLevel);
     }
-    break;
-    case Choice::shake: {
+    if (myChoice == Choice::shake)
+    {
         myShake->toStream(os, indentLevel);
     }
-    break;
-    case Choice::wavyLine: {
+    if (myChoice == Choice::wavyLine)
+    {
         myWavyLine->toStream(os, indentLevel);
     }
-    break;
-    case Choice::mordent: {
+    if (myChoice == Choice::mordent)
+    {
         myMordent->toStream(os, indentLevel);
     }
-    break;
-    case Choice::invertedMordent: {
+    if (myChoice == Choice::invertedMordent)
+    {
         myInvertedMordent->toStream(os, indentLevel);
     }
-    break;
-    case Choice::schleifer: {
+    if (myChoice == Choice::schleifer)
+    {
         mySchleifer->toStream(os, indentLevel);
     }
-    break;
-    case Choice::tremolo: {
+    if (myChoice == Choice::tremolo)
+    {
         myTremolo->toStream(os, indentLevel);
     }
-    break;
-    case Choice::otherOrnament: {
+    if (myChoice == Choice::otherOrnament)
+    {
         myOtherOrnament->toStream(os, indentLevel);
     }
-    break;
-    default:
-        break;
-    }
+    isOneLineOnly = false;
     return os;
 }
 
@@ -121,7 +115,7 @@ OrnamentsChoice::Choice OrnamentsChoice::getChoice() const
     return myChoice;
 }
 
-void OrnamentsChoice::setChoice(const OrnamentsChoice::Choice value)
+void OrnamentsChoice::setChoice(const Choice value)
 {
     myChoice = value;
 }
@@ -295,85 +289,7 @@ void OrnamentsChoice::setOtherOrnament(const OtherOrnamentPtr &value)
     }
 }
 
-bool OrnamentsChoice::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
-{
-    bool isSuccess = true;
-
-    const std::string elementName = xelement.getName();
-
-    if (elementName == "trill-mark")
-    {
-        myChoice = Choice::trillMark;
-        isSuccess &= getTrillMark()->fromXElement(message, xelement);
-    }
-    else if (elementName == "turn")
-    {
-        myChoice = Choice::turn;
-        isSuccess &= getTurn()->fromXElement(message, xelement);
-    }
-    else if (elementName == "delayed-turn")
-    {
-        myChoice = Choice::delayedTurn;
-        isSuccess &= getDelayedTurn()->fromXElement(message, xelement);
-    }
-    else if (elementName == "inverted-turn")
-    {
-        myChoice = Choice::invertedTurn;
-        isSuccess &= getInvertedTurn()->fromXElement(message, xelement);
-    }
-    else if (elementName == "delayed-inverted-turn")
-    {
-        myChoice = Choice::delayedInvertedTurn;
-        isSuccess &= getDelayedInvertedTurn()->fromXElement(message, xelement);
-    }
-    else if (elementName == "vertical-turn")
-    {
-        myChoice = Choice::verticalTurn;
-        isSuccess &= getVerticalTurn()->fromXElement(message, xelement);
-    }
-    else if (elementName == "shake")
-    {
-        myChoice = Choice::shake;
-        isSuccess &= getShake()->fromXElement(message, xelement);
-    }
-    else if (elementName == "wavy-line")
-    {
-        myChoice = Choice::wavyLine;
-        isSuccess &= getWavyLine()->fromXElement(message, xelement);
-    }
-    else if (elementName == "mordent")
-    {
-        myChoice = Choice::mordent;
-        isSuccess &= getMordent()->fromXElement(message, xelement);
-    }
-    else if (elementName == "inverted-mordent")
-    {
-        myChoice = Choice::invertedMordent;
-        isSuccess &= getInvertedMordent()->fromXElement(message, xelement);
-    }
-    else if (elementName == "schleifer")
-    {
-        myChoice = Choice::schleifer;
-        isSuccess &= getSchleifer()->fromXElement(message, xelement);
-    }
-    else if (elementName == "tremolo")
-    {
-        myChoice = Choice::tremolo;
-        isSuccess &= getTremolo()->fromXElement(message, xelement);
-    }
-    else if (elementName == "other-ornament")
-    {
-        myChoice = Choice::otherOrnament;
-        isSuccess &= getOtherOrnament()->fromXElement(message, xelement);
-    }
-    else
-    {
-        message << "OrnamentsChoice::fromXElement unrecognized element '" << elementName << "'" << std::endl;
-        isSuccess = false;
-    }
-
-    MX_RETURN_IS_SUCCESS;
-}
+MX_FROM_XELEMENT_UNUSED(OrnamentsChoice);
 
 } // namespace core
 } // namespace mx

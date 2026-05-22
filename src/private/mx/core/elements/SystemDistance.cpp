@@ -64,5 +64,6 @@ bool SystemDistance::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
     myValue.parse(xelement.getValue());
     return true;
 }
+
 } // namespace core
 } // namespace mx

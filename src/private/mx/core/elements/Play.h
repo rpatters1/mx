@@ -20,8 +20,8 @@ namespace core
 MX_FORWARD_DECLARE_ATTRIBUTES(PlayAttributes)
 MX_FORWARD_DECLARE_ELEMENT(Ipa)
 MX_FORWARD_DECLARE_ELEMENT(Mute)
-MX_FORWARD_DECLARE_ELEMENT(OtherPlay)
 MX_FORWARD_DECLARE_ELEMENT(SemiPitched)
+MX_FORWARD_DECLARE_ELEMENT(OtherPlay)
 MX_FORWARD_DECLARE_ELEMENT(Play)
 
 inline PlayPtr makePlay()
@@ -49,7 +49,7 @@ class Play : public ElementInterface
     PlayAttributesPtr getAttributes() const;
     void setAttributes(const PlayAttributesPtr &value);
 
-    /* _________ Choice __________ */
+    /* _________ Choice _________ */
     Play::Choice getChoice() const;
     void setChoice(const Play::Choice value);
 
@@ -73,8 +73,8 @@ class Play : public ElementInterface
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);
 
   private:
-    PlayAttributesPtr myAttributes;
     Choice myChoice;
+    PlayAttributesPtr myAttributes;
     IpaPtr myIpa;
     MutePtr myMute;
     SemiPitchedPtr mySemiPitched;

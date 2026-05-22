@@ -17,6 +17,7 @@ namespace mx
 namespace core
 {
 
+MX_FORWARD_DECLARE_ATTRIBUTES(EmptyPrintObjectStyleAlignAttributes)
 MX_FORWARD_DECLARE_ELEMENT(Damp)
 
 inline DampPtr makeDamp()

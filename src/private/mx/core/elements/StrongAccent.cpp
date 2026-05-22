@@ -10,7 +10,7 @@ namespace mx
 {
 namespace core
 {
-StrongAccent::StrongAccent() : myAttributes(std::make_shared<StrongAccentAttributes>())
+StrongAccent::StrongAccent() : ElementInterface(), myAttributes(std::make_shared<StrongAccentAttributes>())
 {
 }
 
@@ -21,7 +21,11 @@ bool StrongAccent::hasAttributes() const
 
 std::ostream &StrongAccent::streamAttributes(std::ostream &os) const
 {
-    return myAttributes->toStream(os);
+    if (myAttributes)
+    {
+        myAttributes->toStream(os);
+    }
+    return os;
 }
 
 std::ostream &StrongAccent::streamName(std::ostream &os) const

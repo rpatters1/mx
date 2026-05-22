@@ -11,8 +11,7 @@ namespace mx
 namespace core
 {
 MetronomeTupletAttributes::MetronomeTupletAttributes()
-    : type(StartStop::start), bracket(YesNo::no), showNumber(ShowTuplet::actual), hasType(true), hasBracket(false),
-      hasShowNumber(false)
+    : type(StartStop::start), bracket(YesNo::no), showNumber(), hasType(true), hasBracket(false), hasShowNumber(false)
 {
 }
 
@@ -61,10 +60,10 @@ bool MetronomeTupletAttributes::fromXElementImpl(std::ostream &message, ::ezxml:
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

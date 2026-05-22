@@ -12,16 +12,16 @@ namespace core
 {
 InversionAttributes::InversionAttributes()
     : defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(FontSize{CssFontSize::medium}), fontWeight(FontWeight::normal), hasDefaultX(false), hasDefaultY(false),
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), hasDefaultX(false), hasDefaultY(false),
       hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false),
-      hasFontWeight(false)
+      hasFontWeight(false), hasColor(false)
 {
 }
 
 bool InversionAttributes::hasValues() const
 {
     return hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize ||
-           hasFontWeight;
+           hasFontWeight || hasColor;
 }
 
 std::ostream &InversionAttributes::toStream(std::ostream &os) const
@@ -36,6 +36,7 @@ std::ostream &InversionAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -83,9 +84,13 @@ bool InversionAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElem
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

@@ -44,7 +44,7 @@ bool GroupNameDisplayAttributes::fromXElementImpl(std::ostream &message, ::ezxml
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

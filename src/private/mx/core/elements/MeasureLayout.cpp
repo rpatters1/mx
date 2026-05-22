@@ -42,8 +42,11 @@ std::ostream &MeasureLayout::streamContents(std::ostream &os, const int indentLe
     {
         os << std::endl;
         myMeasureDistance->toStream(os, indentLevel + 1);
-        os << std::endl;
+    }
+    if (myHasMeasureDistance)
+    {
         isOneLineOnly = false;
+        os << std::endl;
     }
     else
     {
@@ -88,7 +91,7 @@ bool MeasureLayout::fromXElementImpl(std::ostream &message, ::ezxml::XElement &x
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

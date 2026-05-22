@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
+#include "mx/core/Color.h"
 #include "mx/core/Decimals.h"
 #include "mx/core/Enums.h"
 #include "mx/core/ForwardDeclare.h"
@@ -34,6 +35,7 @@ struct WavyLineAttributes : public AttributesInterface
     TenthsValue relativeX;
     TenthsValue relativeY;
     AboveBelow placement;
+    Color color;
     StartNote startNote;
     TrillStep trillStep;
     TwoNoteTurn twoNoteTurn;
@@ -48,6 +50,7 @@ struct WavyLineAttributes : public AttributesInterface
     bool hasRelativeX;
     bool hasRelativeY;
     bool hasPlacement;
+    bool hasColor;
     bool hasStartNote;
     bool hasTrillStep;
     bool hasTwoNoteTurn;

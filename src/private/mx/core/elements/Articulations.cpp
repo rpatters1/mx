@@ -27,7 +27,8 @@ std::ostream &Articulations::streamAttributes(std::ostream &os) const
 
 std::ostream &Articulations::streamName(std::ostream &os) const
 {
-    return os << "articulations";
+    os << "articulations";
+    return os;
 }
 
 bool Articulations::hasContents() const

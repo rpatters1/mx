@@ -110,19 +110,7 @@ void NoteRelationNote::setHasMetronomeRelationGroup(const bool value)
     myHasMetronomeRelationGroup = value;
 }
 
-bool NoteRelationNote::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
-{
-    bool isSuccess = true;
-
-    auto endIter = xelement.end();
-    for (auto it = xelement.begin(); it != endIter; ++it)
-    {
-        importElementSet(message, it, endIter, isSuccess, "metronome-note", myMetronomeNoteSet);
-        importGroup(message, it, endIter, isSuccess, myMetronomeRelationGroup, myHasMetronomeRelationGroup);
-    }
-
-    MX_RETURN_IS_SUCCESS;
-}
+MX_FROM_XELEMENT_UNUSED(NoteRelationNote);
 
 } // namespace core
 } // namespace mx

@@ -11,15 +11,15 @@ namespace mx
 namespace core
 {
 NoteheadAttributes::NoteheadAttributes()
-    : filled(), parentheses(), fontFamily(), fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}),
-      fontWeight(FontWeight::normal), hasFilled(false), hasParentheses(false), hasFontFamily(false),
-      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false)
+    : filled(YesNo::no), parentheses(YesNo::no), fontFamily(), fontStyle(FontStyle::normal),
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), hasFilled(false), hasParentheses(false),
+      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false)
 {
 }
 
 bool NoteheadAttributes::hasValues() const
 {
-    return hasFilled || hasParentheses || hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight | hasColor;
+    return hasFilled || hasParentheses || hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasColor;
 }
 
 std::ostream &NoteheadAttributes::toStream(std::ostream &os) const
@@ -78,7 +78,7 @@ bool NoteheadAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEleme
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

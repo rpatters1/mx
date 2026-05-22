@@ -12,10 +12,10 @@ namespace core
 {
 PartNameAttributes::PartNameAttributes()
     : defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(FontSize{CssFontSize::medium}), fontWeight(FontWeight::normal), color(), printObject(),
-      justify(LeftCenterRight::center), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false),
-      hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false),
-      hasColor(false), hasPrintObject(false), hasJustify(false)
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), printObject(YesNo::no),
+      justify(LeftCenterRight::left), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false),
+      hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false),
+      hasPrintObject(false), hasJustify(false)
 {
 }
 
@@ -101,7 +101,7 @@ bool PartNameAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEleme
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

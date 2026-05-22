@@ -43,12 +43,12 @@ class Directive : public ElementInterface
     Directive(const XsString &value);
 
     virtual bool hasAttributes() const;
+    virtual bool hasContents() const;
     virtual std::ostream &streamAttributes(std::ostream &os) const;
     virtual std::ostream &streamName(std::ostream &os) const;
-    virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     DirectiveAttributesPtr getAttributes() const;
-    void setAttributes(const DirectiveAttributesPtr &value);
+    void setAttributes(const DirectiveAttributesPtr &attributes);
     XsString getValue() const;
     void setValue(const XsString &value);
 
@@ -56,8 +56,8 @@ class Directive : public ElementInterface
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);
 
   private:
-    DirectiveAttributesPtr myAttributes;
     XsString myValue;
+    DirectiveAttributesPtr myAttributes;
 };
 } // namespace core
 } // namespace mx

@@ -41,27 +41,26 @@ bool NoteheadText::hasContents() const
 
 std::ostream &NoteheadText::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    isOneLineOnly = false;
-    for (auto x : myNoteheadTextChoiceSet)
+    if (myNoteheadTextChoiceSet.size() > 0)
     {
+        for (auto x : myNoteheadTextChoiceSet)
+        {
+            os << std::endl;
+            x->streamContents(os, indentLevel + 1, isOneLineOnly);
+        }
+        isOneLineOnly = false;
         os << std::endl;
-        x->streamContents(os, indentLevel + 1, isOneLineOnly);
     }
-    os << std::endl;
+    else
+    {
+        isOneLineOnly = true;
+    }
     return os;
 }
 
 const NoteheadTextChoiceSet &NoteheadText::getNoteheadTextChoiceSet() const
 {
     return myNoteheadTextChoiceSet;
-}
-
-void NoteheadText::removeNoteheadTextChoice(const NoteheadTextChoiceSetIterConst &value)
-{
-    if (value != myNoteheadTextChoiceSet.cend())
-    {
-        myNoteheadTextChoiceSet.erase(value);
-    }
 }
 
 void NoteheadText::addNoteheadTextChoice(const NoteheadTextChoicePtr &value)
@@ -72,54 +71,51 @@ void NoteheadText::addNoteheadTextChoice(const NoteheadTextChoicePtr &value)
     }
 }
 
+void NoteheadText::removeNoteheadTextChoice(const NoteheadTextChoiceSetIterConst &value)
+{
+    if (value != myNoteheadTextChoiceSet.cend())
+    {
+        myNoteheadTextChoiceSet.erase(value);
+    }
+}
+
 void NoteheadText::clearNoteheadTextChoiceSet()
 {
     myNoteheadTextChoiceSet.clear();
     myNoteheadTextChoiceSet.push_back(makeNoteheadTextChoice());
 }
 
+NoteheadTextChoicePtr NoteheadText::getNoteheadTextChoice(const NoteheadTextChoiceSetIterConst &setIterator) const
+{
+    if (setIterator != myNoteheadTextChoiceSet.cend())
+    {
+        return *setIterator;
+    }
+    return NoteheadTextChoicePtr();
+}
+
 bool NoteheadText::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     bool isSuccess = true;
-    bool isFirstItemAdded = false;
-    auto it = xelement.begin();
-    auto endIter = xelement.end();
 
-    for (; it != endIter; ++it)
+    auto endIter = xelement.end();
+    for (auto it = xelement.begin(); it != endIter; ++it)
     {
+        if (it->getName() == "display-text")
+        {
+            auto choice = makeNoteheadTextChoice();
+            choice->setChoice(NoteheadTextChoice::Choice::displayText);
+            isSuccess &= choice->getDisplayText()->fromXElement(message, *it);
+            myNoteheadTextChoiceSet.push_back(choice);
+            continue;
+        }
         if (it->getName() == "accidental-text")
         {
-            auto item = makeNoteheadTextChoice();
-            item->setChoice(NoteheadTextChoice::Choice::accidentalText);
-            isSuccess &= item->getAccidentalText()->fromXElement(message, xelement);
-
-            if (!isFirstItemAdded && myNoteheadTextChoiceSet.size() == 1)
-            {
-                *myNoteheadTextChoiceSet.begin() = item;
-                isFirstItemAdded = true;
-            }
-            else
-            {
-                myNoteheadTextChoiceSet.push_back(item);
-                isFirstItemAdded = true;
-            }
-        }
-        else if (it->getName() == "display-text")
-        {
-            auto item = makeNoteheadTextChoice();
-            item->setChoice(NoteheadTextChoice::Choice::displayText);
-            isSuccess &= item->getDisplayText()->fromXElement(message, xelement);
-
-            if (!isFirstItemAdded && myNoteheadTextChoiceSet.size() == 1)
-            {
-                *myNoteheadTextChoiceSet.begin() = item;
-                isFirstItemAdded = true;
-            }
-            else
-            {
-                myNoteheadTextChoiceSet.push_back(item);
-                isFirstItemAdded = true;
-            }
+            auto choice = makeNoteheadTextChoice();
+            choice->setChoice(NoteheadTextChoice::Choice::accidentalText);
+            isSuccess &= choice->getAccidentalText()->fromXElement(message, *it);
+            myNoteheadTextChoiceSet.push_back(choice);
+            continue;
         }
     }
 

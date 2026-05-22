@@ -60,8 +60,7 @@ void InstrumentSound::setValue(const PlaybackSound &value)
 bool InstrumentSound::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     MX_UNUSED(message);
-    MX_UNUSED(xelement);
-    myValue = (PlaybackSoundFromString(xelement.getValue()));
+    myValue = PlaybackSoundFromString(xelement.getValue());
     return true;
 }
 

@@ -10,7 +10,7 @@ namespace mx
 {
 namespace core
 {
-AccordAttributes::AccordAttributes() : string(), hasString(false)
+AccordAttributes::AccordAttributes() : string_(), hasString(false)
 {
 }
 
@@ -23,7 +23,7 @@ std::ostream &AccordAttributes::toStream(std::ostream &os) const
 {
     if (hasValues())
     {
-        streamAttribute(os, string, "string", hasString);
+        streamAttribute(os, string_, "string", hasString);
     }
     return os;
 }
@@ -38,13 +38,13 @@ bool AccordAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement
 
     for (; it != endIter; ++it)
     {
-        if (parseAttribute(message, it, className, isSuccess, string, hasString, "string"))
+        if (parseAttribute(message, it, className, isSuccess, string_, hasString, "string"))
         {
             continue;
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

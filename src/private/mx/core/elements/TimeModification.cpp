@@ -44,6 +44,7 @@ bool TimeModification::hasContents() const
 
 std::ostream &TimeModification::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    isOneLineOnly = false;
     os << std::endl;
     myActualNotes->toStream(os, indentLevel + 1);
     os << std::endl;
@@ -54,7 +55,6 @@ std::ostream &TimeModification::streamContents(std::ostream &os, const int inden
         myNormalTypeNormalDotGroup->streamContents(os, indentLevel + 1, isOneLineOnly);
     }
     os << std::endl;
-    isOneLineOnly = false;
     return os;
 }
 
@@ -129,27 +129,16 @@ bool TimeModification::fromXElementImpl(std::ostream &message, ::ezxml::XElement
             myHasNormalTypeNormalDotGroup = true;
             isSuccess = myNormalTypeNormalDotGroup->getNormalType()->fromXElement(message, *it);
         }
-
         if (it->getName() == "normal-dot")
         {
             myHasNormalTypeNormalDotGroup = true;
-            auto item = makeNormalDot();
-            isSuccess &= item->fromXElement(message, *it);
-            myNormalTypeNormalDotGroup->addNormalDot(item);
+            auto normalDot = makeNormalDot();
+            isSuccess &= normalDot->fromXElement(message, *it);
+            myNormalTypeNormalDotGroup->addNormalDot(normalDot);
         }
     }
 
-    if (!isActualNotesFound)
-    {
-        message << "TimeModification: '" << myActualNotes->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
-    if (!isNormalNotesFound)
-    {
-        message << "TimeModification: '" << myNormalNotes->getElementName() << "' is required but was not found"
-                << std::endl;
-    }
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

@@ -29,7 +29,6 @@ std::ostream &NoteheadTextChoice::streamAttributes(std::ostream &os) const
 
 std::ostream &NoteheadTextChoice::streamName(std::ostream &os) const
 {
-    os << "notehead-text";
     return os;
 }
 
@@ -40,19 +39,15 @@ bool NoteheadTextChoice::hasContents() const
 
 std::ostream &NoteheadTextChoice::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    MX_UNUSED(indentLevel);
-    MX_UNUSED(isOneLineOnly);
-    switch (myChoice)
+    if (myChoice == Choice::displayText)
     {
-    case Choice::displayText:
         myDisplayText->toStream(os, indentLevel);
-        break;
-    case Choice::accidentalText:
-        myAccidentalText->toStream(os, indentLevel);
-        break;
-    default:
-        break;
     }
+    if (myChoice == Choice::accidentalText)
+    {
+        myAccidentalText->toStream(os, indentLevel);
+    }
+    isOneLineOnly = false;
     return os;
 }
 
@@ -61,7 +56,7 @@ NoteheadTextChoice::Choice NoteheadTextChoice::getChoice() const
     return myChoice;
 }
 
-void NoteheadTextChoice::setChoice(NoteheadTextChoice::Choice value)
+void NoteheadTextChoice::setChoice(const Choice value)
 {
     myChoice = value;
 }
@@ -92,25 +87,7 @@ void NoteheadTextChoice::setAccidentalText(const AccidentalTextPtr &value)
     }
 }
 
-bool NoteheadTextChoice::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
-{
-
-    if (xelement.getName() == "display-text")
-    {
-        myChoice = Choice::displayText;
-        return getDisplayText()->fromXElement(message, xelement);
-    }
-
-    if (xelement.getName() == "accidental-text")
-    {
-        myChoice = Choice::accidentalText;
-        return getAccidentalText()->fromXElement(message, xelement);
-    }
-
-    message << "NoteheadTextChoice: '" << xelement.getName() << "' is not a valid element" << std::endl;
-
-    return false;
-}
+MX_FROM_XELEMENT_UNUSED(NoteheadTextChoice);
 
 } // namespace core
 } // namespace mx

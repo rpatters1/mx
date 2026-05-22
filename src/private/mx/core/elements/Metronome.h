@@ -12,6 +12,11 @@
 #include <memory>
 #include <vector>
 
+namespace ezxml
+{
+class XElementIterator;
+}
+
 namespace mx
 {
 namespace core
@@ -47,6 +52,11 @@ class Metronome : public ElementInterface
   private:
     MetronomeAttributesPtr myAttributes;
     BeatUnitPerOrNoteRelationNoteChoicePtr myBeatUnitPerOrNoteRelationNoteChoice;
+
+    bool importContainerBeatUnitPer(std::ostream &message, ::ezxml::XElementIterator &it,
+                                    ::ezxml::XElementIterator &endIter, bool &isSuccess);
+    bool importContainerNoteRelationNote(std::ostream &message, ::ezxml::XElementIterator &it,
+                                         ::ezxml::XElementIterator &endIter, bool &isSuccess);
 };
 } // namespace core
 } // namespace mx

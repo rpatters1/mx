@@ -43,8 +43,9 @@ class BeatUnitGroup : public ElementInterface
     /* _________ BeatUnitDot minOccurs = 0, maxOccurs = unbounded _________ */
     const BeatUnitDotSet &getBeatUnitDotSet() const;
     void addBeatUnitDot(const BeatUnitDotPtr &value);
-    void removeBeatUnitDot(const BeatUnitDotSetIterConst &setIterator);
+    void removeBeatUnitDot(const BeatUnitDotSetIterConst &value);
     void clearBeatUnitDotSet();
+    BeatUnitDotPtr getBeatUnitDot(const BeatUnitDotSetIterConst &setIterator) const;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

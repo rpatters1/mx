@@ -16,8 +16,9 @@ namespace mx
 namespace core
 {
 Bend::Bend()
-    : myAttributes(std::make_shared<BendAttributes>()), myBendAlter(makeBendAlter()), myBendChoice(makeBendChoice()),
-      myHasBendChoice(false), myWithBar(makeWithBar()), myHasWithBar(false)
+    : myAttributes(std::make_shared<BendAttributes>()), myBendAlter(makeBendAlter()),
+      myBendChoice(std::make_shared<BendChoice>()), myHasBendChoice(false), myWithBar(makeWithBar()),
+      myHasWithBar(false)
 {
 }
 
@@ -46,19 +47,16 @@ std::ostream &Bend::streamContents(std::ostream &os, const int indentLevel, bool
 {
     os << std::endl;
     myBendAlter->toStream(os, indentLevel + 1);
-
     if (myHasBendChoice)
     {
         os << std::endl;
         myBendChoice->streamContents(os, indentLevel + 1, isOneLineOnly);
     }
-
     if (myHasWithBar)
     {
         os << std::endl;
         myWithBar->toStream(os, indentLevel + 1);
     }
-
     os << std::endl;
     isOneLineOnly = false;
     return os;
@@ -149,21 +147,20 @@ bool Bend::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
         {
             continue;
         }
-
-        if (checkSetChoiceMember(message, *it, isSuccess, myBendChoice, "pre-bend", &BendChoice::getPreBend,
-                                 static_cast<int>(BendChoice::Choice::preBend)))
+        if (it->getName() == "pre-bend")
         {
+            myBendChoice->setChoice(BendChoice::Choice::preBend);
+            isSuccess &= myBendChoice->getPreBend()->fromXElement(message, *it);
             myHasBendChoice = true;
             continue;
         }
-
-        if (checkSetChoiceMember(message, *it, isSuccess, myBendChoice, "release", &BendChoice::getRelease,
-                                 static_cast<int>(BendChoice::Choice::release)))
+        if (it->getName() == "release")
         {
+            myBendChoice->setChoice(BendChoice::Choice::release);
+            isSuccess &= myBendChoice->getRelease()->fromXElement(message, *it);
             myHasBendChoice = true;
             continue;
         }
-
         if (importElement(message, *it, isSuccess, *myWithBar, myHasWithBar))
         {
             continue;

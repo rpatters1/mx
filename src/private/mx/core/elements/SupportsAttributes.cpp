@@ -66,15 +66,16 @@ bool SupportsAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEleme
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
+
     if (!isElementFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'element' is a required attribute but was not found" << std::endl;
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

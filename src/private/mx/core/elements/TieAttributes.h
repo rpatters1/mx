@@ -5,7 +5,6 @@
 #pragma once
 
 #include "mx/core/AttributesInterface.h"
-#include "mx/core/CommaSeparatedText.h"
 #include "mx/core/Enums.h"
 #include "mx/core/ForwardDeclare.h"
 #include "mx/core/TimeOnly.h"

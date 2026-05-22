@@ -41,15 +41,23 @@ bool TimeSignatureGroup::hasContents() const
 
 std::ostream &TimeSignatureGroup::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
-    isOneLineOnly = false;
+    bool isFirst = true;
+    if (!isFirst)
+        os << std::endl;
     myBeats->toStream(os, indentLevel);
-    os << std::endl;
+    isFirst = false;
+    if (!isFirst)
+        os << std::endl;
     myBeatType->toStream(os, indentLevel);
+    isFirst = false;
     if (myHasInterchangeable)
     {
-        os << std::endl;
+        if (!isFirst)
+            os << std::endl;
         myInterchangeable->toStream(os, indentLevel);
+        isFirst = false;
     }
+    isOneLineOnly = !hasContents();
     return os;
 }
 
@@ -103,5 +111,6 @@ void TimeSignatureGroup::setHasInterchangeable(const bool value)
 }
 
 MX_FROM_XELEMENT_UNUSED(TimeSignatureGroup);
+
 } // namespace core
 } // namespace mx

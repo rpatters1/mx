@@ -35,10 +35,14 @@ class BeatUnitPer : public ElementInterface
     virtual std::ostream &streamName(std::ostream &os) const;
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
+
+    /* _________ BeatUnitGroup minOccurs = 1, maxOccurs = 1 _________ */
     BeatUnitGroupPtr getBeatUnitGroup() const;
     void setBeatUnitGroup(const BeatUnitGroupPtr &value);
+
+    /* _________ PerMinuteOrBeatUnitChoice minOccurs = 1, maxOccurs = 1 _________ */
     PerMinuteOrBeatUnitChoicePtr getPerMinuteOrBeatUnitChoice() const;
-    void setPerMinuteOtBeatUnitChoice(const PerMinuteOrBeatUnitChoicePtr &value);
+    void setPerMinuteOrBeatUnitChoice(const PerMinuteOrBeatUnitChoicePtr &value);
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

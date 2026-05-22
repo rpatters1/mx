@@ -44,7 +44,7 @@ class Barline : public ElementInterface
     virtual bool hasContents() const;
     virtual std::ostream &streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const;
     BarlineAttributesPtr getAttributes() const;
-    void setAttributes(const BarlineAttributesPtr &value);
+    void setAttributes(const BarlineAttributesPtr &attributes);
 
     /* _________ BarStyle minOccurs = 0, maxOccurs = 1 _________ */
     BarStylePtr getBarStyle() const;
@@ -74,7 +74,7 @@ class Barline : public ElementInterface
     bool getHasCoda() const;
     void setHasCoda(const bool value);
 
-    /* _________ Fermata minOccurs = 0, maxOccurs = 2 _________ */
+    /* _________ Fermata minOccurs = 0, maxOccurs = unbounded _________ */
     const FermataSet &getFermataSet() const;
     void addFermata(const FermataPtr &value);
     void removeFermata(const FermataSetIterConst &value);

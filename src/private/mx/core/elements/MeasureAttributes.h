@@ -18,6 +18,7 @@ namespace mx
 {
 namespace core
 {
+
 MX_FORWARD_DECLARE_ATTRIBUTES(MeasureAttributes)
 
 struct MeasureAttributes : public AttributesInterface

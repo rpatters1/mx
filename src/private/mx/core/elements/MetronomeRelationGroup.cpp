@@ -40,9 +40,15 @@ bool MetronomeRelationGroup::hasContents() const
 std::ostream &MetronomeRelationGroup::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
     isOneLineOnly = false;
+    bool isFirst = true;
+    if (!isFirst)
+        os << std::endl;
     myMetronomeRelation->toStream(os, indentLevel);
-    os << std::endl;
+    isFirst = false;
+    if (!isFirst)
+        os << std::endl;
     myMetronomeNote->toStream(os, indentLevel);
+    isFirst = false;
     return os;
 }
 

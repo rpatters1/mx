@@ -10,7 +10,7 @@ namespace mx
 {
 namespace core
 {
-Toe::Toe() : myAttributes(std::make_shared<ToeAttributes>())
+Toe::Toe() : ElementInterface(), myAttributes(std::make_shared<ToeAttributes>())
 {
 }
 
@@ -21,7 +21,11 @@ bool Toe::hasAttributes() const
 
 std::ostream &Toe::streamAttributes(std::ostream &os) const
 {
-    return myAttributes->toStream(os);
+    if (myAttributes)
+    {
+        myAttributes->toStream(os);
+    }
+    return os;
 }
 
 std::ostream &Toe::streamName(std::ostream &os) const

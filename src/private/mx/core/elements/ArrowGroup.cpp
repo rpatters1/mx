@@ -39,13 +39,19 @@ bool ArrowGroup::hasContents() const
 
 std::ostream &ArrowGroup::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    bool isFirst = true;
+    if (!isFirst)
+        os << std::endl;
     myArrowDirection->toStream(os, indentLevel);
+    isFirst = false;
     if (myHasArrowStyle)
     {
-        os << std::endl;
+        if (!isFirst)
+            os << std::endl;
         myArrowStyle->toStream(os, indentLevel);
+        isFirst = false;
     }
-    isOneLineOnly = false;
+    isOneLineOnly = !hasContents();
     return os;
 }
 
@@ -89,7 +95,6 @@ bool ArrowGroup::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xele
 {
     bool isSuccess = true;
     bool isArrowDirectionFound = false;
-
     for (auto it = xelement.begin(); it != xelement.end(); ++it)
     {
         const std::string elementName = it->getName();
@@ -108,12 +113,12 @@ bool ArrowGroup::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xele
         {
             if (!isArrowDirectionFound)
             {
-                isSuccess = false;
-                message << "ArrowGroup: 'arrow-direction' element is required but was not found" << std::endl;
+                message << "ArrowGroup: a 'arrow-direction' element is required but was not found" << std::endl;
+                return false;
             }
-            break;
         }
     }
+
     MX_RETURN_IS_SUCCESS;
 }
 

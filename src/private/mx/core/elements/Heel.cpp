@@ -10,7 +10,7 @@ namespace mx
 {
 namespace core
 {
-Heel::Heel() : myAttributes(std::make_shared<HeelAttributes>())
+Heel::Heel() : ElementInterface(), myAttributes(std::make_shared<HeelAttributes>())
 {
 }
 
@@ -21,7 +21,11 @@ bool Heel::hasAttributes() const
 
 std::ostream &Heel::streamAttributes(std::ostream &os) const
 {
-    return myAttributes->toStream(os);
+    if (myAttributes)
+    {
+        myAttributes->toStream(os);
+    }
+    return os;
 }
 
 std::ostream &Heel::streamName(std::ostream &os) const

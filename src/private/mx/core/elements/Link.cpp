@@ -3,6 +3,7 @@
 // Distributed under the MIT License
 
 #include "mx/core/elements/Link.h"
+#include "mx/core/FromXElement.h"
 #include <iostream>
 
 namespace mx
@@ -60,7 +61,6 @@ void Link::setAttributes(const LinkAttributesPtr &value)
 
 bool Link::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
-    MX_UNUSED(message);
     return myAttributes->fromXElement(message, xelement);
 }
 

@@ -63,10 +63,10 @@ std::ostream &Figure::streamContents(std::ostream &os, const int indentLevel, bo
         os << std::endl;
         myExtend->toStream(os, indentLevel + 1);
     }
-    if (hasContents())
+    if (myHasPrefix || myHasFigureNumber || myHasSuffix || myHasExtend)
     {
-        os << std::endl;
         isOneLineOnly = false;
+        os << std::endl;
     }
     else
     {

@@ -11,12 +11,13 @@ namespace mx
 namespace core
 {
 KindAttributes::KindAttributes()
-    : useSymbols(), text(), stackDegrees(), parenthesesDegrees(), bracketDegrees(), defaultX(), defaultY(), relativeX(),
-      relativeY(), fontFamily(), fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}),
-      fontWeight(FontWeight::normal), halign(), hasUseSymbols(false), hasText(false), hasStackDegrees(false),
+    : useSymbols(YesNo::no), text(), stackDegrees(YesNo::no), parenthesesDegrees(YesNo::no), bracketDegrees(YesNo::no),
+      defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), halign(LeftCenterRight::left),
+      valign(Valign::bottom), hasUseSymbols(false), hasText(false), hasStackDegrees(false),
       hasParenthesesDegrees(false), hasBracketDegrees(false), hasDefaultX(false), hasDefaultY(false),
       hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false),
-      hasFontWeight(false), hasHalign(false)
+      hasFontWeight(false), hasColor(false), hasHalign(false), hasValign(false)
 {
 }
 
@@ -24,7 +25,7 @@ bool KindAttributes::hasValues() const
 {
     return hasUseSymbols || hasText || hasStackDegrees || hasParenthesesDegrees || hasBracketDegrees || hasDefaultX ||
            hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize ||
-           hasFontWeight || hasHalign;
+           hasFontWeight || hasColor || hasHalign || hasValign;
 }
 
 std::ostream &KindAttributes::toStream(std::ostream &os) const
@@ -44,7 +45,9 @@ std::ostream &KindAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, halign, "halign", hasHalign);
+        streamAttribute(os, valign, "valign", hasValign);
     }
     return os;
 }
@@ -115,7 +118,15 @@ bool KindAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
         if (parseAttribute(message, it, className, isSuccess, halign, hasHalign, "halign", &parseLeftCenterRight))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, valign, hasValign, "valign", &parseValign))
         {
             continue;
         }

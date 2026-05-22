@@ -48,7 +48,7 @@ bool MiscellaneousFieldAttributes::fromXElementImpl(std::ostream &message, ::ezx
     if (!isNameFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'name' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

@@ -44,11 +44,8 @@ std::ostream &Slash::streamContents(std::ostream &os, const int indentLevel, boo
     mySlashType->toStream(os, indentLevel + 1);
     for (auto x : mySlashDotSet)
     {
-        if (x)
-        {
-            os << std::endl;
-            x->toStream(os, indentLevel + 1);
-        }
+        os << std::endl;
+        x->toStream(os, indentLevel + 1);
     }
     os << std::endl;
     return os;
@@ -106,6 +103,15 @@ void Slash::clearSlashDotSet()
     mySlashDotSet.clear();
 }
 
+SlashDotPtr Slash::getSlashDot(const SlashDotSetIterConst &setIterator) const
+{
+    if (setIterator != mySlashDotSet.cend())
+    {
+        return *setIterator;
+    }
+    return SlashDotPtr();
+}
+
 bool Slash::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     bool isSuccess = true;
@@ -122,10 +128,6 @@ bool Slash::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
         importElementSet(message, it, endIter, isSuccess, "slash-dot", mySlashDotSet);
     }
 
-    if (!isSlashTypeFound)
-    {
-        message << "Slash: '" << mySlashType->getElementName() << "' is required but was not found" << std::endl;
-    }
     MX_RETURN_IS_SUCCESS;
 }
 

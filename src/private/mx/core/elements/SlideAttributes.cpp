@@ -11,19 +11,20 @@ namespace mx
 namespace core
 {
 SlideAttributes::SlideAttributes()
-    : type(StartStop::start), number(1), lineType(LineType::solid), dashLength(), spaceLength(), defaultX(), defaultY(),
-      relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}),
-      fontWeight(FontWeight::normal), accelerate(), beats(), firstBeat(), lastBeat(), hasType(true), hasNumber(false),
-      hasLineType(false), hasDashLength(false), hasSpaceLength(false), hasDefaultX(false), hasDefaultY(false),
-      hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false),
-      hasFontWeight(false), hasAccelerate(false), hasBeats(false), hasFirstBeat(false), hasLastBeat(false)
+    : type(StartStop::start), number(), lineType(LineType::solid), dashLength(), spaceLength(), defaultX(), defaultY(),
+      relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal), fontSize(CssFontSize::medium),
+      fontWeight(FontWeight::normal), color(), accelerate(YesNo::no), beats(), firstBeat(), lastBeat(), hasType(true),
+      hasNumber(false), hasLineType(false), hasDashLength(false), hasSpaceLength(false), hasDefaultX(false),
+      hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false), hasFontStyle(false),
+      hasFontSize(false), hasFontWeight(false), hasColor(false), hasAccelerate(false), hasBeats(false),
+      hasFirstBeat(false), hasLastBeat(false)
 {
 }
 
 bool SlideAttributes::hasValues() const
 {
     return hasType || hasNumber || hasLineType || hasDashLength || hasSpaceLength || hasDefaultX || hasDefaultY ||
-           hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight ||
+           hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasColor ||
            hasAccelerate || hasBeats || hasFirstBeat || hasLastBeat;
 }
 
@@ -44,6 +45,7 @@ std::ostream &SlideAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, accelerate, "accelerate", hasAccelerate);
         streamAttribute(os, beats, "beats", hasBeats);
         streamAttribute(os, firstBeat, "first-beat", hasFirstBeat);
@@ -116,6 +118,10 @@ bool SlideAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement 
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
         if (parseAttribute(message, it, className, isSuccess, accelerate, hasAccelerate, "accelerate", &parseYesNo))
         {
             continue;
@@ -137,7 +143,7 @@ bool SlideAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement 
     if (!isTypeFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'type' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

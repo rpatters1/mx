@@ -11,14 +11,14 @@ namespace mx
 namespace core
 {
 CreditWordsAttributes::CreditWordsAttributes()
-    : justify(LeftCenterRight::center), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(),
-      fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}), fontWeight(FontWeight::normal), color(),
-      halign(), valign(), underline(), overline(), lineThrough(), rotation(), letterSpacing(), lineHeight(),
-      lang(XmlLang{"it"}), space(XmlSpace::default_), enclosure(EnclosureShape::rectangle), hasJustify(false),
+    : justify(LeftCenterRight::left), defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(),
+      fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(),
+      halign(LeftCenterRight::left), valign(Valign::bottom), underline(), overline(), lineThrough(), rotation(),
+      letterSpacing(), lineHeight(), lang("it"), space(), dir(), enclosure(EnclosureShape::none), hasJustify(false),
       hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false),
       hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false), hasHalign(false),
       hasValign(false), hasUnderline(false), hasOverline(false), hasLineThrough(false), hasRotation(false),
-      hasLetterSpacing(false), hasLineHeight(false), hasLang(false), hasSpace(false), hasEnclosure(false)
+      hasLetterSpacing(false), hasLineHeight(false), hasLang(false), hasSpace(false), hasDir(false), hasEnclosure(false)
 {
 }
 
@@ -26,7 +26,8 @@ bool CreditWordsAttributes::hasValues() const
 {
     return hasJustify || hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle ||
            hasFontSize || hasFontWeight || hasColor || hasHalign || hasValign || hasUnderline || hasOverline ||
-           hasLineThrough || hasRotation || hasLetterSpacing || hasLineHeight || hasLang || hasSpace || hasEnclosure;
+           hasLineThrough || hasRotation || hasLetterSpacing || hasLineHeight || hasLang || hasSpace || hasDir ||
+           hasEnclosure;
 }
 
 std::ostream &CreditWordsAttributes::toStream(std::ostream &os) const
@@ -53,6 +54,7 @@ std::ostream &CreditWordsAttributes::toStream(std::ostream &os) const
         streamAttribute(os, lineHeight, "line-height", hasLineHeight);
         streamAttribute(os, lang, "xml:lang", hasLang);
         streamAttribute(os, space, "xml:space", hasSpace);
+        streamAttribute(os, dir, "dir", hasDir);
         streamAttribute(os, enclosure, "enclosure", hasEnclosure);
     }
     return os;
@@ -141,19 +143,15 @@ bool CreditWordsAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEl
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, lang, hasLang, "lang"))
-        {
-            continue;
-        }
         if (parseAttribute(message, it, className, isSuccess, lang, hasLang, "xml:lang"))
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, space, hasSpace, "space", &parseXmlSpace))
+        if (parseAttribute(message, it, className, isSuccess, space, hasSpace, "xml:space", &parseXmlSpace))
         {
             continue;
         }
-        if (parseAttribute(message, it, className, isSuccess, space, hasSpace, "xml:space", &parseXmlSpace))
+        if (parseAttribute(message, it, className, isSuccess, dir, hasDir, "dir", &parseTextDirection))
         {
             continue;
         }

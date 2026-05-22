@@ -3,7 +3,6 @@
 // Distributed under the MIT License
 
 #include "mx/core/elements/MeasureAttributes.h"
-#include "mx/core/FromString.h"
 #include "mx/core/FromXElement.h"
 #include <iostream>
 
@@ -70,7 +69,7 @@ bool MeasureAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElemen
         message << className << ": 'number' is a required attribute but was not found" << std::endl;
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

@@ -11,15 +11,14 @@ namespace mx
 namespace core
 {
 TupletTypeAttributes::TupletTypeAttributes()
-    : fontFamily(), fontStyle(FontStyle::normal), fontSize(FontSize{CssFontSize::medium}),
-      fontWeight(FontWeight::normal), hasFontFamily(false), hasFontStyle(false), hasFontSize(false),
-      hasFontWeight(false)
+    : fontFamily(), fontStyle(FontStyle::normal), fontSize(CssFontSize::medium), fontWeight(FontWeight::normal),
+      color(), hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false)
 {
 }
 
 bool TupletTypeAttributes::hasValues() const
 {
-    return hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight;
+    return hasFontFamily || hasFontStyle || hasFontSize || hasFontWeight || hasColor;
 }
 
 std::ostream &TupletTypeAttributes::toStream(std::ostream &os) const
@@ -30,6 +29,7 @@ std::ostream &TupletTypeAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
     }
     return os;
 }
@@ -58,6 +58,10 @@ bool TupletTypeAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEle
         }
         if (parseAttribute(message, it, className, isSuccess, fontWeight, hasFontWeight, "font-weight",
                            &parseFontWeight))
+        {
+            continue;
+        }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
         {
             continue;
         }

@@ -39,15 +39,15 @@ bool Backup::hasContents() const
 
 std::ostream &Backup::streamContents(std::ostream &os, const int indentLevel, bool &isOneLineOnly) const
 {
+    isOneLineOnly = false;
     os << std::endl;
     myDuration->toStream(os, indentLevel + 1);
-    os << std::endl;
-    myEditorialGroup->streamContents(os, indentLevel + 1, isOneLineOnly);
     if (myEditorialGroup->hasContents())
     {
         os << std::endl;
+        myEditorialGroup->streamContents(os, indentLevel + 1, isOneLineOnly);
     }
-    isOneLineOnly = false;
+    os << std::endl;
     return os;
 }
 

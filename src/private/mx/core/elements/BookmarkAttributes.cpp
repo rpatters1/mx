@@ -64,7 +64,7 @@ bool BookmarkAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XEleme
     if (!isIdFound)
     {
         isSuccess = false;
-        message << className << ": 'number' is a required attribute but was not found" << std::endl;
+        message << className << ": 'id' is a required attribute but was not found" << std::endl;
     }
 
     MX_RETURN_IS_SUCCESS;

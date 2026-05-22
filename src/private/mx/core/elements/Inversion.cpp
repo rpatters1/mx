@@ -80,7 +80,7 @@ bool Inversion::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelem
     bool isSuccess = true;
     isSuccess &= myAttributes->fromXElement(message, xelement);
     myValue.parse(xelement.getValue());
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

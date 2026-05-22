@@ -79,7 +79,7 @@ bool Encoder::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelemen
     bool isSuccess = true;
     isSuccess &= myAttributes->fromXElement(message, xelement);
     myValue.setValue(xelement.getValue());
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core

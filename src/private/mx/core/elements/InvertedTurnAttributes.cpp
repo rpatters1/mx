@@ -12,20 +12,20 @@ namespace core
 {
 InvertedTurnAttributes::InvertedTurnAttributes()
     : defaultX(), defaultY(), relativeX(), relativeY(), fontFamily(), fontStyle(FontStyle::normal),
-      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), placement(AboveBelow::below),
-      startNote(StartNote::main), trillStep(), twoNoteTurn(TwoNoteTurn::none), accelerate(YesNo::no), beats(),
-      secondBeat(), lastBeat(), slash(YesNo::no), hasDefaultX(false), hasDefaultY(false), hasRelativeX(false),
-      hasRelativeY(false), hasFontFamily(false), hasFontStyle(false), hasFontSize(false), hasFontWeight(false),
-      hasPlacement(false), hasStartNote(false), hasTrillStep(false), hasTwoNoteTurn(false), hasAccelerate(false),
-      hasBeats(false), hasSecondBeat(false), hasLastBeat(false), hasSlash(false)
+      fontSize(CssFontSize::medium), fontWeight(FontWeight::normal), color(), placement(AboveBelow::below), startNote(),
+      trillStep(), twoNoteTurn(), accelerate(YesNo::no), beats(), secondBeat(), lastBeat(), slash(YesNo::no),
+      hasDefaultX(false), hasDefaultY(false), hasRelativeX(false), hasRelativeY(false), hasFontFamily(false),
+      hasFontStyle(false), hasFontSize(false), hasFontWeight(false), hasColor(false), hasPlacement(false),
+      hasStartNote(false), hasTrillStep(false), hasTwoNoteTurn(false), hasAccelerate(false), hasBeats(false),
+      hasSecondBeat(false), hasLastBeat(false), hasSlash(false)
 {
 }
 
 bool InvertedTurnAttributes::hasValues() const
 {
     return hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || hasFontFamily || hasFontStyle || hasFontSize ||
-           hasFontWeight || hasPlacement || hasStartNote || hasTrillStep || hasTwoNoteTurn || hasAccelerate ||
-           hasBeats || hasSecondBeat || hasLastBeat || hasSlash;
+           hasFontWeight || hasColor || hasPlacement || hasStartNote || hasTrillStep || hasTwoNoteTurn ||
+           hasAccelerate || hasBeats || hasSecondBeat || hasLastBeat || hasSlash;
 }
 
 std::ostream &InvertedTurnAttributes::toStream(std::ostream &os) const
@@ -40,6 +40,7 @@ std::ostream &InvertedTurnAttributes::toStream(std::ostream &os) const
         streamAttribute(os, fontStyle, "font-style", hasFontStyle);
         streamAttribute(os, fontSize, "font-size", hasFontSize);
         streamAttribute(os, fontWeight, "font-weight", hasFontWeight);
+        streamAttribute(os, color, "color", hasColor);
         streamAttribute(os, placement, "placement", hasPlacement);
         streamAttribute(os, startNote, "start-note", hasStartNote);
         streamAttribute(os, trillStep, "trill-step", hasTrillStep);
@@ -96,6 +97,10 @@ bool InvertedTurnAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XE
         {
             continue;
         }
+        if (parseAttribute(message, it, className, isSuccess, color, hasColor, "color"))
+        {
+            continue;
+        }
         if (parseAttribute(message, it, className, isSuccess, placement, hasPlacement, "placement", &parseAboveBelow))
         {
             continue;
@@ -135,7 +140,7 @@ bool InvertedTurnAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XE
         }
     }
 
-    return isSuccess;
+    MX_RETURN_IS_SUCCESS;
 }
 
 } // namespace core
