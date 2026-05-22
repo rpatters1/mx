@@ -123,9 +123,12 @@ endef
 
 # Run the three example programs from the given mode dir ($1). The test
 # targets run these too, so the examples are exercised everywhere tests run.
+# mxwrite is told to write into data/testOutput so we don't leave an untracked
+# example.musicxml at the repo root (issue #150).
 define run_examples
+	@mkdir -p data/testOutput
 	$(call run_bin,$(1),mxread,)
-	$(call run_bin,$(1),mxwrite,)
+	$(call run_bin,$(1),mxwrite,./data/testOutput/example.musicxml)
 	$(call run_bin,$(1),mxhide,)
 endef
 
