@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<score-partwise version="3.0">
+  <part-list>
+    <part-group type="start">
+      <footnote>x</footnote>
+      <level>x</level>
+    </part-group>
+    <score-part id="id1">
+      <part-name>x</part-name>
+    </score-part>
+    <part-group type="start">
+      <footnote>x</footnote>
+      <level>x</level>
+    </part-group>
+  </part-list>
+  <part id="id1">
+    <measure number="x">
+      <harmony>
+        <root>
+          <root-step>A</root-step>
+        </root>
+        <kind>major</kind>
+        <frame>
+          <frame-strings>1</frame-strings>
+          <frame-frets>1</frame-frets>
+          <frame-note>
+            <string>1</string>
+            <fret>1</fret>
+            <barre type="start" color="#FF000000" />
+          </frame-note>
+        </frame>
+        <footnote>x</footnote>
+        <level>x</level>
+        <staff>1</staff>
+      </harmony>
+    </measure>
+  </part>
+</score-partwise>

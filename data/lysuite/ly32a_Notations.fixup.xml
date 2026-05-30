@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fixups>
+  <replace>
+    <type>element</type>
+    <name>fret</name>
+    <value></value>
+    <replacement-value>0</replacement-value>
+  </replace>
+  <replace>
+    <type>element</type>
+    <name>string</name>
+    <value></value>
+    <replacement-value>1</replacement-value>
+  </replace>
+</fixups>

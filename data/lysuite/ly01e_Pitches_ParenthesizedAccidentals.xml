@@ -135,7 +135,8 @@
         <duration>1</duration>
         <voice>1</voice>
         <type>quarter</type>
-        <accidental>double-flat</accidental>
+        <!-- this file originally said 'double-flat' which is invalid, changed to 'flat-flat' -->
+        <accidental>flat-flat</accidental>
       </note>
       <note>
         <pitch>
@@ -146,7 +147,8 @@
         <duration>1</duration>
         <voice>1</voice>
         <type>quarter</type>
-        <accidental editorial="yes">double-flat</accidental>
+        <!-- this file originally said 'double-flat' which is invalid, changed to 'flat-flat' -->
+        <accidental editorial="yes">flat-flat</accidental>
       </note>
       <note>
         <pitch>
@@ -157,7 +159,8 @@
         <duration>1</duration>
         <voice>1</voice>
         <type>quarter</type>
-        <accidental cautionary="yes">double-flat</accidental>
+        <!-- this file originally said 'double-flat' which is invalid, changed to 'flat-flat' -->
+        <accidental cautionary="yes">flat-flat</accidental>
       </note>
       <note>
         <pitch>
@@ -168,7 +171,8 @@
         <duration>1</duration>
         <voice>1</voice>
         <type>quarter</type>
-        <accidental editorial="yes" cautionary="yes">double-flat</accidental>
+        <!-- this file originally said 'double-flat' which is invalid, changed to 'flat-flat' -->
+        <accidental editorial="yes" cautionary="yes">flat-flat</accidental>
       </note>
     </measure>
     <!--=======================================================-->

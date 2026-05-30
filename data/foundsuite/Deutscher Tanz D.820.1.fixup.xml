@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fixups>
+  <replace>
+    <type>element</type>
+    <name>midi-program</name>
+    <value>0</value>
+    <replacement-value>1</replacement-value>
+  </replace>
+  <replace>
+    <type>attribute</type>
+    <name>dynamics</name>
+    <value>-1.11</value>
+    <replacement-value>0</replacement-value>
+  </replace>
+</fixups>
