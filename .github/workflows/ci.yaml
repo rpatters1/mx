@@ -7,7 +7,7 @@ on:
 
 jobs:
   linux-gate:
-    name: Linux (quality gate + tests)
+    name: Linux (check + test)
     runs-on: ubuntu-latest
 
     steps:
@@ -28,7 +28,7 @@ jobs:
         run: make test
 
   linux-core:
-    name: Linux (full test suite, GCC)
+    name: Linux (test-all, GCC)
     runs-on: ubuntu-latest
 
     steps:
@@ -45,8 +45,86 @@ jobs:
       - name: Full test suite
         run: make test-all
 
+  coverage:
+    name: Linux (coverage-core-dev)
+    runs-on: ubuntu-latest
+
+    # pull-requests: write lets the coverage comment post on PRs.
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same container-driver + runtime-token setup as linux-gate so the
+      # coverage stage reuses the warm toolchain layer cache. Coverage runs in
+      # the pinned container via `make coverage-core-dev`; it is advisory (no
+      # gate) and runs in parallel with the other jobs.
+      - uses: docker/setup-buildx-action@v3
+      - uses: crazy-max/ghaction-github-runtime@v3
+
+      - name: Build + run with coverage
+        run: make coverage-core-dev
+
+      # Turn gcovr's 3-line summary (data/testOutput/coverage/summary.txt, e.g.
+      # "lines: 52.1% (17624 out of 33846)") into a Markdown table reused by
+      # both the job summary and the PR comment.
+      - name: Build coverage table
+        if: always()
+        run: |
+          {
+            echo '| Metric | Coverage | Covered / Total |'
+            echo '|---|---:|---:|'
+            awk '/^(lines|functions|branches):/ {
+              m=$1; sub(":","",m);
+              c=$3; sub("[(]","",c);
+              t=$6; sub("[)]","",t);
+              M=toupper(substr(m,1,1)) substr(m,2);
+              printf "| %s | %s | %s / %s |\n", M, $2, c, t
+            }' data/testOutput/coverage/summary.txt
+          } > table.md
+          {
+            echo '### Core-dev coverage `src/private/mx/core/`'
+            echo ''
+            cat table.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Single self-contained page, stored (compression-level 0). GitHub still
+      # delivers artifacts as a .zip -- there is no raw-file download -- so the
+      # zip just holds one index.html to unzip and open.
+      - name: Upload HTML report
+        id: upload
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-core-dev
+          path: data/testOutput/coverage/index.html
+          compression-level: 0
+
+      - name: Compose PR comment
+        if: github.event_name == 'pull_request'
+        run: |
+          {
+            echo '### Core-dev coverage `src/private/mx/core/`'
+            echo ''
+            cat table.md
+            echo ''
+            echo '[Download HTML report](${{ steps.upload.outputs.artifact-url }}) - unzip and open `index.html`.'
+            echo ''
+            echo 'Commit `${{ github.sha }}`.'
+          } > comment.md
+
+      # gh pr comment posts a fresh comment each run, so the PR keeps a
+      # per-push coverage history instead of overwriting one sticky comment.
+      - name: Post PR comment
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment "${{ github.event.pull_request.number }}" --body-file comment.md
+
   macos:
-    name: macOS (build + tests)
+    name: macOS (test)
     runs-on: macos-latest
 
     steps:
@@ -64,7 +142,7 @@ jobs:
         run: make test
 
   windows:
-    name: Windows (build + tests)
+    name: Windows (test)
     runs-on: windows-latest
 
     steps:
