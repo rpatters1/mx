@@ -37,10 +37,7 @@ deferred — the design treats it as optional; no further session is allocated.
 The 35 core roundtrip failures are out of scope here and are the consumer signal
 for the codegen rewrite tracked in `docs/ai/projects/gen/`.
 
-## Milestone 4: Pass Tests and CI
+## Milestone 4: Pass Tests and CI ✓ COMPLETE
 
-## Milestone 5: Code Coverage
-
-## Milestone 6: Increase Coverage
 
 

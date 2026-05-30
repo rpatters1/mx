@@ -80,3 +80,21 @@ don't conform to the XSD. Per-iteration template now lives in `plan.md`.
 
 Final state: `make test-core-dev` 350/350, `make test` 2717/2717, `make test-all`
 3028/3028 (9914 assertions), `make check` passed. PR-merge commit `6c4e18d4`.
+
+## M4a: test fixer (2026-05-22 -- 2026-05-25) ✅
+
+Built a `Fixer` that patches the expected tree before comparison via per-file
+`<file>.fixup.xml` sidecars. This lets corert handle cases where mx's clamping or
+defaulting differs from the raw input without marking the file `.invalid`. Convention
+documented in `data/README.md`, design doc at `src/private/mxtest/corert/Fixer.h`.
+Closed at 387/387 `test-core-dev` pass and 3065/3065 `test-all`.
+
+## M5: test coverage expansion (2026-05-25 -- 2026-05-30) ✅
+
+Added real-world corpus files and generated 235 synthetic MusicXML files
+(`data/synthetic/`) to achieve 100% symbol coverage of MusicXML 3.0/3.1/4.0 spec
+symbols. Final three corert failures fixed: PlaybackSound "other" variant
+(PlaybackSoundType wrapper class), xmlns:xlink preservation (XMLNS_PRESERVING_ATTRS
+config in generator). Filed GitHub issue #161 for namespace-prefix limitation.
+
+Final state: `make test-core-dev` 676/676, `make test-all` all pass.
