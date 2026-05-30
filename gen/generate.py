@@ -335,7 +335,6 @@ class XsdModel:
                                 GENERATE_GROUPS.add(new_name)
                                 SYNTHETIC_OPTIONAL_GROUPS.add(new_name)
                                 SUPPRESS_GROUP_SUFFIX.add(new_name)
-                                WRAPPER_AS_ELEMENT_SYNTH_GROUPS.add(new_name)
                             inherited.append(XsdChildRef(
                                 element_name=new_name,
                                 min_occurs=0,
@@ -710,6 +709,7 @@ BESPOKE_TYPES = {
 
 STRING_LIKE_TYPES = {
     "XsString", "XsToken", "XsID", "XsIDREF", "XsNMToken", "XsAnyUri",
+    "PlaybackSoundType",
 }
 
 
@@ -810,6 +810,7 @@ TYPE_TO_HEADER = {
     "Date": "mx/core/Date.h",
     "TimeOnly": "mx/core/TimeOnly.h",
     "PlaybackSound": "mx/core/PlaybackSound.h",
+    "PlaybackSoundType": "mx/core/PlaybackSoundType.h",
 }
 
 
@@ -942,6 +943,7 @@ def resolve_attrs_name(elem_name: str, type_name: str, model: XsdModel) -> str:
 
 
 def generate_attrs_h(struct_name: str, attrs: list, model: XsdModel) -> str:
+    preserves_xmlns = struct_name in XMLNS_PRESERVING_ATTRS
     includes = set()
     includes.add("mx/core/AttributesInterface.h")
     includes.add("mx/core/ForwardDeclare.h")
@@ -956,6 +958,9 @@ def generate_attrs_h(struct_name: str, attrs: list, model: XsdModel) -> str:
     lines.append("")
     lines.append("#include <iosfwd>")
     lines.append("#include <memory>")
+    if preserves_xmlns:
+        lines.append("#include <string>")
+        lines.append("#include <utility>")
     lines.append("#include <vector>")
     lines.append("")
     lines.append("namespace mx\n{\nnamespace core\n{\n")
@@ -977,6 +982,9 @@ def generate_attrs_h(struct_name: str, attrs: list, model: XsdModel) -> str:
         has_name = has_flag_name(cpp_n)
         const_prefix = "const " if a.use == "required" else ""
         lines.append(f"    {const_prefix}bool {has_name};")
+
+    if preserves_xmlns:
+        lines.append("    std::vector<std::pair<std::string, std::string>> xmlnsDeclarations;")
 
     lines.append("")
     lines.append("  private:")
@@ -1045,6 +1053,16 @@ ATTR_DEFAULT_OVERRIDE = {
     # R4: MetronomeAttributes halign/justify defaults are 'center'.
     ("MetronomeAttributes", "halign"): "LeftCenterRight::center",
     ("MetronomeAttributes", "justify"): "LeftCenterRight::center",
+}
+
+# Attribute structs that preserve xmlns:* namespace declarations through
+# round-trip. These elements may carry xmlns:xlink or other namespace
+# declarations that mx does not model as typed fields, but must not drop.
+XMLNS_PRESERVING_ATTRS = {
+    "ScorePartwiseAttributes",
+    "ScoreTimewiseAttributes",
+    "OpusAttributes",
+    "LinkAttributes",
 }
 
 # Per-(parent-element-xml-name, child-element-xml-name) override for the
@@ -1121,6 +1139,7 @@ def default_value_for_type(cpp_type: str) -> str:
 
 
 def generate_attrs_cpp(struct_name: str, attrs: list, model: XsdModel) -> str:
+    preserves_xmlns = struct_name in XMLNS_PRESERVING_ATTRS
     lines = [LICENSE]
     lines.append(f'#include "mx/core/elements/{struct_name}.h"')
     lines.append('#include "mx/core/FromXElement.h"')
@@ -1157,6 +1176,8 @@ def generate_attrs_cpp(struct_name: str, attrs: list, model: XsdModel) -> str:
         cpp_n = camel(a.name)
         has_name = has_flag_name(cpp_n)
         has_parts.append(has_name)
+    if preserves_xmlns:
+        has_parts.append("!xmlnsDeclarations.empty()")
     lines.append(f"bool {struct_name}::hasValues() const")
     lines.append("{")
     if has_parts:
@@ -1174,6 +1195,11 @@ def generate_attrs_cpp(struct_name: str, attrs: list, model: XsdModel) -> str:
         cpp_n = camel(a.name)
         has_name = has_flag_name(cpp_n)
         lines.append(f'        streamAttribute(os, {cpp_n}, "{a.get_xml_name()}", {has_name});')
+    if preserves_xmlns:
+        lines.append("        for (const auto &ns : xmlnsDeclarations)")
+        lines.append("        {")
+        lines.append('            os << " " << ns.first << "=\\"" << ns.second << "\\"";')
+        lines.append("        }")
     lines.append("    }")
     lines.append("    return os;")
     lines.append("}\n")
@@ -1208,6 +1234,13 @@ def generate_attrs_cpp(struct_name: str, attrs: list, model: XsdModel) -> str:
             lines.append(f"        if (parseAttribute(message, it, className, isSuccess, {cpp_n}, {parse_has}, "
                          f'"{a.get_xml_name()}"))')
         lines.append("        {")
+        lines.append("            continue;")
+        lines.append("        }")
+    if preserves_xmlns:
+        lines.append("        const auto attrName = it->getName();")
+        lines.append('        if (attrName == "xmlns" || (attrName.size() > 6 && attrName.substr(0, 6) == "xmlns:"))')
+        lines.append("        {")
+        lines.append("            xmlnsDeclarations.emplace_back(attrName, it->getValue());")
         lines.append("            continue;")
         lines.append("        }")
     lines.append("    }\n")
@@ -1978,18 +2011,6 @@ def generate_element_cpp(elem_name: str, class_name: str, stream_name: str,
                 lines.append(
                     f"        import{cc}Set(message, it, endIter, isSuccess);")
             elif (child.is_group and child.min_occurs == 0
-                    and child.element_name in WRAPPER_AS_ELEMENT_SYNTH_GROUPS):
-                # Wrapper-style synthetic optional group: parse via
-                # importElement on the wrapper class itself. The wrapper's
-                # empty streamName means this call never matches in practice
-                # (mirroring the original hand-written MetronomeTuplet.cpp),
-                # but it preserves the API shape.
-                lines.append(
-                    f"        if (importElement(message, *it, isSuccess, *my{cc}, myHas{cc}))")
-                lines.append("        {")
-                lines.append("            continue;")
-                lines.append("        }")
-            elif (child.is_group and child.min_occurs == 0
                     and child.element_name in SYNTHETIC_OPTIONAL_GROUPS):
                 # No importGroup() exists for an anonymous synthetic group.
                 # Inline the parsing of its members directly into the parent
@@ -2135,10 +2156,9 @@ ELEMENT_CLASS_NAME_OVERRIDE = {
 # is_enum_value_type, or uses_set_value, just like any other value type.
 ELEMENT_VALUE_TYPE_OVERRIDE = {
     "instrument-sound": {
-        "cpp_type": "PlaybackSound",
-        "header": "mx/core/PlaybackSound.h",
-        "default": "PlaybackSound::keyboardPiano",
-        "extra_includes": ["mx/core/Enums.h"],
+        "cpp_type": "PlaybackSoundType",
+        "header": "mx/core/PlaybackSoundType.h",
+        "default": "PlaybackSoundType{}",
     },
 }
 
@@ -2293,19 +2313,15 @@ NESTED_OPTIONAL_SEQUENCE_AS_GROUP: dict = {
 #   extending_type_name -> { base_synthetic_group_name -> renamed_wrapper_group_name }
 # The renamed group's class name omits the usual "Group" suffix (see
 # SUPPRESS_GROUP_SUFFIX), so a child reference to it renders as a regular
-# wrapper element on the parent. Parsing of the wrapper uses importElement
-# (matching the original hand-written MetronomeTuplet.cpp), not member
-# inlining.
+# wrapper element on the parent. Its members are still parsed inline like any
+# other synthetic optional group (the original hand-written MetronomeTuplet.cpp
+# parsed the wrapper with a no-op importElement and dropped normal-type /
+# normal-dot on round-trip; that was a bug).
 EXTENSION_OPTIONAL_GROUP_RENAME: dict = {
     "metronome-tuplet": {
         "normal-type-normal-dot": "time-modification-normal-type-normal-dot",
     },
 }
-
-# Synthetic optional groups whose generated class name omits the "Group"
-# suffix and whose parent parses them as a single optional sub-element
-# (importElement) rather than by inlining member parsing.
-WRAPPER_AS_ELEMENT_SYNTH_GROUPS: set = set()
 
 # Group names whose generated class name omits the trailing "Group" suffix.
 SUPPRESS_GROUP_SUFFIX: set = set()
@@ -2814,7 +2830,12 @@ CHOICE_ELEMENT_CONFIG = {
         "choice_from_x": "manual_bad",
         "choice_stream_start": None, "choice_stream_end": "is_one_line",
         "choice_indent_offset": 0, "choice_braces": True,
-        "parent_from_x": "delegate", "parent_return": "macro",
+        # The percussion choice (glass | metal | wood | ...) is selected by the
+        # *child* element of <percussion>, so the parent must iterate its
+        # children and hand each to PercussionChoice (which dispatches on the
+        # child name). "delegate" would pass the <percussion> element itself to
+        # the choice, which then rejects 'percussion' as unrecognized.
+        "parent_from_x": "child_loop", "parent_return": "macro",
         "extra_children": ["stick-type", "stick-material"],
         "extra_children_after": "stick",
     },
@@ -3565,6 +3586,9 @@ def generate_choice_parent_cpp(elem_name: str, class_name: str, choice_class: st
         lines.append(f"    isSuccess &= myChoice->fromXElement(message, xelement);")
         lines.append("    MX_RETURN_IS_SUCCESS;")
     else:
+        # "child_loop" (and the implicit default): the choice is selected by the
+        # child element, so iterate the parent's children and dispatch each to
+        # the choice's fromXElement.
         lines.append("    for (auto it = xelement.begin(); it != xelement.end(); ++it)")
         lines.append("    {")
         lines.append("        isSuccess &= myChoice->fromXElement(message, *it);")
@@ -3978,6 +4002,11 @@ def generate_inline_choice_cpp(elem_name: str, class_name: str,
         lines.append("        {")
         lines.append(f"            myChoice = Choice::{eb['enum_name']};")
         lines.append(f"            isSuccess &= my{bc}->fromXElement(message, *it);")
+        # Once a child matches an element branch, the choice is decided; the
+        # group branch below must not also run (it parses the parent as the
+        # group and would overwrite the choice, then fail on the missing
+        # required group member). Move on to the next child.
+        lines.append("            continue;")
         lines.append("        }")
 
     if group_branches:
@@ -5435,6 +5464,29 @@ def generate_tree_parent_h(elem_name: str, class_name: str,
     return "\n".join(lines) + "\n"
 
 
+def _emit_choice_set_add(lines, choice_class, var, seed_choice_set):
+    """Append a parsed choice `var` to my{choice_class}Set.
+
+    When the set is seeded with a default in the constructor (seed_choice_set),
+    the first parsed item replaces that default instead of appending after it;
+    otherwise it is a plain push_back.
+    """
+    set_name = f"my{choice_class}Set"
+    if seed_choice_set:
+        lines.append(f"            if (!isFirstItemAdded && {set_name}.size() == 1)")
+        lines.append("            {")
+        lines.append(f"                *{set_name}.begin() = {var};")
+        lines.append("                isFirstItemAdded = true;")
+        lines.append("            }")
+        lines.append("            else")
+        lines.append("            {")
+        lines.append(f"                {set_name}.push_back({var});")
+        lines.append("                isFirstItemAdded = true;")
+        lines.append("            }")
+    else:
+        lines.append(f"            {set_name}.push_back({var});")
+
+
 def generate_tree_parent_cpp(elem_name: str, class_name: str,
                              choice_class: str, trailing: list,
                              has_attrs: bool, attrs_name: Optional[str],
@@ -6126,6 +6178,13 @@ def generate_tree_parent_cpp(elem_name: str, class_name: str,
         cc = child_class_name(child)
         if child.max_occurs == 1 and child.min_occurs == 1:
             lines.append(f"    bool is{cc}Found = false;")
+    # When the choice set is seeded with a default item in the constructor (so
+    # hasContents() is true), the first parsed item must replace that default
+    # rather than append after it -- otherwise the round-trip emits a spurious
+    # empty leading element.
+    seed_choice_set = choice_is_set and _get_tree_config(elem_name).get("seed_choice_set", False)
+    if seed_choice_set:
+        lines.append("    bool isFirstItemAdded = false;")
     lines.append("")
     lines.append("    auto endIter = xelement.end();")
     lines.append("    for (auto it = xelement.begin(); it != endIter; ++it)")
@@ -6151,14 +6210,18 @@ def generate_tree_parent_cpp(elem_name: str, class_name: str,
 
     for lg_cls, lg_ref in leading_groups:
         if isinstance(lg_ref, GroupRefNode):
-            group_children = model.groups.get(lg_ref.group_name, [])
-            elem_names = [gc.element_name for gc in group_children]
-            cond = " || ".join(f'it->getName() == "{n}"' for n in elem_names)
-            lines.append(f"        if ({cond})")
-            lines.append("        {")
-            lines.append(f"            importGroup(message, it, endIter, isSuccess, my{lg_cls});")
-            lines.append("            continue;")
-            lines.append("        }")
+            # A leading group ref (e.g. the editorial group: footnote, level)
+            # is consumed by importGroup, which leaves the iterator pointing at
+            # the next unconsumed sibling (or, at parent end, the last consumed
+            # member). It must NOT be guarded by a name check followed by
+            # `continue`: the `continue` would advance past the element the
+            # iterator was left on, dropping the first member of whatever
+            # follows the group (e.g. the articulations after a notations
+            # editorial group). Emit a bare importGroup, matching the idiom in
+            # Forward/Barline/Direction, and let the choice/trailing branches
+            # below re-inspect the current element. importGroup is a no-op when
+            # the iterator does not point at a group member.
+            lines.append(f"        importGroup(message, it, endIter, isSuccess, my{lg_cls});")
 
     if multi_choice:
         for ic in inline_choices:
@@ -6209,7 +6272,7 @@ def generate_tree_parent_cpp(elem_name: str, class_name: str,
                     lines.append(f"            choice->setChoice({choice_class}::Choice::{b.enum_name});")
                     lines.append(f"            auto groupPtr = choice->get{b.class_name}();")
                     lines.append(f"            importGroup(message, it, endIter, isSuccess, groupPtr);")
-                    lines.append(f"            my{choice_class}Set.push_back(choice);")
+                    _emit_choice_set_add(lines, choice_class, "choice", seed_choice_set)
                 else:
                     lines.append(f"            my{choice_class}->setChoice({choice_class}::Choice::{b.enum_name});")
                     if b.is_set:
@@ -6229,7 +6292,7 @@ def generate_tree_parent_cpp(elem_name: str, class_name: str,
                     lines.append(f"            auto choice = make{choice_class}();")
                     lines.append(f"            choice->setChoice({choice_class}::Choice::{b.enum_name});")
                     lines.append(f"            isSuccess &= choice->get{b.class_name}()->fromXElement(message, *it);")
-                    lines.append(f"            my{choice_class}Set.push_back(choice);")
+                    _emit_choice_set_add(lines, choice_class, "choice", seed_choice_set)
                     lines.append("            continue;")
                     lines.append("        }")
                 else:
@@ -8240,7 +8303,7 @@ def generate_lyric_h(class_name, attrs_name, choice_class, trailing_elems,
 
 def generate_lyric_cpp(elem_name, class_name, attrs_name, choice_class,
                        seq_group_cls, singleton_branches, trailing_elems,
-                       editorial_group_cls):
+                       editorial_group_cls, seq_branch_starters):
     # Includes: choice class, editorial group, trailing elems, plus the
     # singletons + seq-group because fromXElement uses them.
     inc_classes = sorted({choice_class, editorial_group_cls, seq_group_cls}
@@ -8409,7 +8472,16 @@ def generate_lyric_cpp(elem_name, class_name, attrs_name, choice_class,
         lines.append("            continue;")
         lines.append("        }")
         lines.append("")
-    lines.append("        else")
+    # The sequence-branch (syllabicTextGroup) is only entered when the current
+    # element can *start* that group (e.g. syllabic, text). importGroup consumes
+    # the whole group in one call, so later siblings (end-line, end-paragraph,
+    # footnote, level) must NOT re-enter this branch -- a bare `else` would feed
+    # them to importGroup, which then reports the next required element as
+    # missing. Guarding on the starter names lets those siblings fall through to
+    # their own handlers below.
+    starter_cond = " || ".join(
+        f'it->getName() == "{e.element_name}"' for e in seq_branch_starters)
+    lines.append(f"        else if ({starter_cond})")
     lines.append("        {")
     lines.append(f"            my{choice_class}->setChoice({choice_class}::Choice::{seq_group_enum});")
     lines.append(f"            {seq_group_cls}Ptr ptr = my{choice_class}->get{seq_group_cls}();")
@@ -8499,7 +8571,7 @@ def _emit_lyric_family(elem_name, elem, ct, model, generated_attrs, stats):
                          editorial_group_cls)
     c = generate_lyric_cpp(elem_name, class_name, attrs_name, choice_class,
                            seq_branch_group, s["singleton_branches"], s["trailing_elems"],
-                           editorial_group_cls)
+                           editorial_group_cls, s["seq_branch_pre"])
     write_file(os.path.join(ELEM_DIR, f"{class_name}.h"), h)
     write_file(os.path.join(ELEM_DIR, f"{class_name}.cpp"), c)
 

@@ -97,6 +97,7 @@ NoteheadTextChoicePtr NoteheadText::getNoteheadTextChoice(const NoteheadTextChoi
 bool NoteheadText::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     bool isSuccess = true;
+    bool isFirstItemAdded = false;
 
     auto endIter = xelement.end();
     for (auto it = xelement.begin(); it != endIter; ++it)
@@ -106,7 +107,16 @@ bool NoteheadText::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xe
             auto choice = makeNoteheadTextChoice();
             choice->setChoice(NoteheadTextChoice::Choice::displayText);
             isSuccess &= choice->getDisplayText()->fromXElement(message, *it);
-            myNoteheadTextChoiceSet.push_back(choice);
+            if (!isFirstItemAdded && myNoteheadTextChoiceSet.size() == 1)
+            {
+                *myNoteheadTextChoiceSet.begin() = choice;
+                isFirstItemAdded = true;
+            }
+            else
+            {
+                myNoteheadTextChoiceSet.push_back(choice);
+                isFirstItemAdded = true;
+            }
             continue;
         }
         if (it->getName() == "accidental-text")
@@ -114,7 +124,16 @@ bool NoteheadText::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xe
             auto choice = makeNoteheadTextChoice();
             choice->setChoice(NoteheadTextChoice::Choice::accidentalText);
             isSuccess &= choice->getAccidentalText()->fromXElement(message, *it);
-            myNoteheadTextChoiceSet.push_back(choice);
+            if (!isFirstItemAdded && myNoteheadTextChoiceSet.size() == 1)
+            {
+                *myNoteheadTextChoiceSet.begin() = choice;
+                isFirstItemAdded = true;
+            }
+            else
+            {
+                myNoteheadTextChoiceSet.push_back(choice);
+                isFirstItemAdded = true;
+            }
             continue;
         }
     }

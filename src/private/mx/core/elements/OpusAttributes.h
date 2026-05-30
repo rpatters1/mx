@@ -13,6 +13,8 @@
 
 #include <iosfwd>
 #include <memory>
+#include <string>
+#include <utility>
 #include <vector>
 
 namespace mx
@@ -40,6 +42,7 @@ struct OpusAttributes : public AttributesInterface
     bool hasTitle;
     bool hasShow;
     bool hasActuate;
+    std::vector<std::pair<std::string, std::string>> xmlnsDeclarations;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

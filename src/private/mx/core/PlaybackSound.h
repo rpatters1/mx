@@ -899,7 +899,8 @@ namespace core
     MX_ENUM_VALUE(woodTempleBlock, "wood.temple-block")                                                                \
     MX_ENUM_VALUE(woodTicTocBlock, "wood.tic-toc-block")                                                               \
     MX_ENUM_VALUE(woodTonetang, "wood.tonetang")                                                                       \
-    MX_ENUM_VALUE(woodWoodBlock, "wood.wood-block")
+    MX_ENUM_VALUE(woodWoodBlock, "wood.wood-block")                                                                    \
+    MX_ENUM_VALUE(other, "other")
 
 #include "mx/utility/EnumWithString.h"
 #undef MX_ENUM_CLASS_NAME

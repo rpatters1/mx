@@ -261,8 +261,12 @@ void PartReader::parseScoreInstrument(const core::ScoreInstrument &scoreInstrume
 
     if (scoreInstrument.getHasInstrumentSound())
     {
-        Converter c;
-        myOutPartData.instrumentData.soundID = c.convert(scoreInstrument.getInstrumentSound()->getValue());
+        const auto psValue = scoreInstrument.getInstrumentSound()->getValue().getValue();
+        if (psValue != core::PlaybackSound::other)
+        {
+            Converter c;
+            myOutPartData.instrumentData.soundID = c.convert(psValue);
+        }
     }
 
     if (scoreInstrument.getHasVirtualInstrument())

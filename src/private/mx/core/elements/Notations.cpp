@@ -148,11 +148,7 @@ bool Notations::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelem
     auto endIter = xelement.end();
     for (auto it = xelement.begin(); it != endIter; ++it)
     {
-        if (it->getName() == "footnote" || it->getName() == "level")
-        {
-            importGroup(message, it, endIter, isSuccess, myEditorialGroup);
-            continue;
-        }
+        importGroup(message, it, endIter, isSuccess, myEditorialGroup);
         if (it->getName() == "tied")
         {
             auto choice = makeNotationsChoice();

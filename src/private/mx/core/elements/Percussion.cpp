@@ -75,7 +75,11 @@ bool Percussion::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xele
 {
     bool isSuccess = true;
     isSuccess &= myAttributes->fromXElement(message, xelement);
-    isSuccess &= myChoice->fromXElement(message, xelement);
+    for (auto it = xelement.begin(); it != xelement.end(); ++it)
+    {
+        isSuccess &= myChoice->fromXElement(message, *it);
+    }
+
     MX_RETURN_IS_SUCCESS;
 }
 

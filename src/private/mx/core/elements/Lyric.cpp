@@ -189,7 +189,7 @@ bool Lyric::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
             continue;
         }
 
-        else
+        else if (it->getName() == "syllabic" || it->getName() == "text")
         {
             myLyricTextChoice->setChoice(LyricTextChoice::Choice::syllabicTextGroup);
             SyllabicTextGroupPtr ptr = myLyricTextChoice->getSyllabicTextGroup();

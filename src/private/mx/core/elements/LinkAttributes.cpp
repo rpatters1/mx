@@ -21,7 +21,7 @@ LinkAttributes::LinkAttributes()
 bool LinkAttributes::hasValues() const
 {
     return hasHref || hasType || hasRole || hasTitle || hasShow || hasActuate || hasName || hasElement || hasPosition ||
-           hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY;
+           hasDefaultX || hasDefaultY || hasRelativeX || hasRelativeY || !xmlnsDeclarations.empty();
 }
 
 std::ostream &LinkAttributes::toStream(std::ostream &os) const
@@ -41,6 +41,10 @@ std::ostream &LinkAttributes::toStream(std::ostream &os) const
         streamAttribute(os, defaultY, "default-y", hasDefaultY);
         streamAttribute(os, relativeX, "relative-x", hasRelativeX);
         streamAttribute(os, relativeY, "relative-y", hasRelativeY);
+        for (const auto &ns : xmlnsDeclarations)
+        {
+            os << " " << ns.first << "=\"" << ns.second << "\"";
+        }
     }
     return os;
 }
@@ -106,6 +110,12 @@ bool LinkAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
         }
         if (parseAttribute(message, it, className, isSuccess, relativeY, hasRelativeY, "relative-y"))
         {
+            continue;
+        }
+        const auto attrName = it->getName();
+        if (attrName == "xmlns" || (attrName.size() > 6 && attrName.substr(0, 6) == "xmlns:"))
+        {
+            xmlnsDeclarations.emplace_back(attrName, it->getValue());
             continue;
         }
     }

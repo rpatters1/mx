@@ -10,6 +10,8 @@
 
 #include <iosfwd>
 #include <memory>
+#include <string>
+#include <utility>
 #include <vector>
 
 namespace mx
@@ -27,6 +29,7 @@ struct ScorePartwiseAttributes : public AttributesInterface
     virtual std::ostream &toStream(std::ostream &os) const;
     XsToken version;
     bool hasVersion;
+    std::vector<std::pair<std::string, std::string>> xmlnsDeclarations;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);
