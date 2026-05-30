@@ -16,7 +16,7 @@ ScorePartwiseAttributes::ScorePartwiseAttributes() : version("3.0"), hasVersion(
 
 bool ScorePartwiseAttributes::hasValues() const
 {
-    return hasVersion;
+    return hasVersion || !xmlnsDeclarations.empty();
 }
 
 std::ostream &ScorePartwiseAttributes::toStream(std::ostream &os) const
@@ -24,6 +24,10 @@ std::ostream &ScorePartwiseAttributes::toStream(std::ostream &os) const
     if (hasValues())
     {
         streamAttribute(os, version, "version", hasVersion);
+        for (const auto &ns : xmlnsDeclarations)
+        {
+            os << " " << ns.first << "=\"" << ns.second << "\"";
+        }
     }
     return os;
 }
@@ -40,6 +44,12 @@ bool ScorePartwiseAttributes::fromXElementImpl(std::ostream &message, ::ezxml::X
     {
         if (parseAttribute(message, it, className, isSuccess, version, hasVersion, "version"))
         {
+            continue;
+        }
+        const auto attrName = it->getName();
+        if (attrName == "xmlns" || (attrName.size() > 6 && attrName.substr(0, 6) == "xmlns:"))
+        {
+            xmlnsDeclarations.emplace_back(attrName, it->getValue());
             continue;
         }
     }

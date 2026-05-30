@@ -166,21 +166,25 @@ bool Play::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
         {
             myChoice = Choice::ipa;
             isSuccess &= myIpa->fromXElement(message, *it);
+            continue;
         }
         if (it->getName() == "mute")
         {
             myChoice = Choice::mute;
             isSuccess &= myMute->fromXElement(message, *it);
+            continue;
         }
         if (it->getName() == "semi-pitched")
         {
             myChoice = Choice::semiPitched;
             isSuccess &= mySemiPitched->fromXElement(message, *it);
+            continue;
         }
         if (it->getName() == "other-play")
         {
             myChoice = Choice::otherPlay;
             isSuccess &= myOtherPlay->fromXElement(message, *it);
+            continue;
         }
     }
 

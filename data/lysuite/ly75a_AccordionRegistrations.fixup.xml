@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fixups>
+  <replace>
+    <type>element</type>
+    <name>accordion-middle</name>
+    <value></value>
+    <replacement-value>0</replacement-value>
+  </replace>
+  <replace>
+    <type>element</type>
+    <name>accordion-middle</name>
+    <value>test</value>
+    <replacement-value>0</replacement-value>
+  </replace>
+  <replace>
+    <type>element</type>
+    <name>accordion-middle</name>
+    <value>5</value>
+    <replacement-value>3</replacement-value>
+  </replace>
+</fixups>

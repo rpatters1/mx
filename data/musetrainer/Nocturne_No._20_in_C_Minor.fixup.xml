@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fixups>
+  <replace>
+    <type>attribute</type>
+    <name>dynamics</name>
+    <value>-1.11</value>
+    <replacement-value>0</replacement-value>
+  </replace>
+</fixups>

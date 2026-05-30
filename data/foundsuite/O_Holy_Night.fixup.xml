@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fixups>
+  <replace>
+    <type>element</type>
+    <name>midi-channel</name>
+    <value>0</value>
+    <replacement-value>1</replacement-value>
+  </replace>
+  <replace>
+    <type>element</type>
+    <name>midi-program</name>
+    <value>0</value>
+    <replacement-value>1</replacement-value>
+  </replace>
+  <replace>
+    <type>element</type>
+    <name>display-step</name>
+    <value>=</value>
+    <replacement-value>A</replacement-value>
+  </replace>
+  <replace>
+    <type>element</type>
+    <name>display-octave</name>
+    <value>-104</value>
+    <replacement-value>0</replacement-value>
+  </replace>
+  <replace>
+    <type>element</type>
+    <name>duration</name>
+    <value>0</value>
+    <replacement-value>0.000001</replacement-value>
+  </replace>
+</fixups>

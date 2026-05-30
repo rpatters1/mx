@@ -1,5 +1,7 @@
 ---
 created: 2026-05-21
+status: complete
+prs: https://github.com/webern/mx/pull/153
 ---
 
 # core-dev
@@ -38,7 +40,3 @@ harness.
 
 - Milestones 1–3 COMPLETE as of 2026-05-22. Milestones 4–6 remain (see
   `plan.md`).
-- Deliverable is permanent; do not leave `TEMP:`-style comment-outs in design
-  or implementation.
-- Quality gates: see repo `AGENTS.md`. `make check-core-dev` and
-  `make test-core-dev` are live.

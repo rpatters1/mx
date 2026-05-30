@@ -140,10 +140,17 @@ bool MetronomeTuplet::fromXElementImpl(std::ostream &message, ::ezxml::XElement 
         {
             continue;
         }
-        if (importElement(message, *it, isSuccess, *myTimeModificationNormalTypeNormalDot,
-                          myHasTimeModificationNormalTypeNormalDot))
+        if (it->getName() == "normal-type")
         {
-            continue;
+            myHasTimeModificationNormalTypeNormalDot = true;
+            isSuccess = myTimeModificationNormalTypeNormalDot->getNormalType()->fromXElement(message, *it);
+        }
+        if (it->getName() == "normal-dot")
+        {
+            myHasTimeModificationNormalTypeNormalDot = true;
+            auto normalDot = makeNormalDot();
+            isSuccess &= normalDot->fromXElement(message, *it);
+            myTimeModificationNormalTypeNormalDot->addNormalDot(normalDot);
         }
     }
 

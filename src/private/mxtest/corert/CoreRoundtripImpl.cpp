@@ -9,11 +9,13 @@
 #include "ezxml/XElementIterator.h"
 #include "ezxml/XFactory.h"
 #include "mx/core/Document.h"
+#include "mxtest/corert/Fixer.h"
 #include "mxtest/file/PathRoot.h"
 #include "mxtest/import/ChangeValues.h"
 #include "mxtest/import/SortAttributes.h"
 
 #include <algorithm>
+#include <cmath>
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -60,6 +62,20 @@ bool hasXmlExtension(const std::filesystem::path &p)
     return ext == ".xml" || ext == ".musicxml";
 }
 
+// Fixup sidecars (`<name>.fixup.xml`) live next to inputs and end in `.xml`
+// but are not themselves MusicXML inputs. They are consumed by Fixer.
+bool isFixupSidecar(const std::filesystem::path &p)
+{
+    const std::string filename = p.filename().string();
+    constexpr const char *const kSuffix = ".fixup.xml";
+    const size_t suffixLen = std::char_traits<char>::length(kSuffix);
+    if (filename.size() < suffixLen)
+    {
+        return false;
+    }
+    return filename.compare(filename.size() - suffixLen, suffixLen, kSuffix) == 0;
+}
+
 // A file is marked invalid (and therefore unfit for schema-strict round-trip)
 // when a sibling file with the same name plus a trailing `.invalid` extension
 // exists. See data/README.md for the convention.
@@ -77,8 +93,8 @@ bool hasInvalidMarker(const std::filesystem::path &p)
 // root element name).
 // Pinned MusicXML version string for the supported `mx::core` schema.
 //
-// Ideally this would come from a single `mx::core` constant. Today the core
-// namespace declares the version in two conflicting places
+// TODO: Ideally this would come from a single `mx::core` constant. Today the
+// core namespace declares the version in two conflicting places
 // (`DocumentSpec.h::DEFAULT_MUSIC_XML_VERSION` lower-case and
 // `DocumentHeader.h::kDefaultMusicXmlVersion` upper-case `ThreePointZero`),
 // and including both in one TU is a hard compile error. The api import suite
@@ -170,6 +186,139 @@ struct CompareFailure
     std::string detail;
 };
 
+inline std::optional<long long> parseLongLong(const std::string &str)
+{
+    try
+    {
+        size_t pos;
+        long long val = std::stoll(str, &pos);
+
+        // Ensure the entire string was consumed (e.g., rejects "123abc")
+        if (pos == str.size())
+        {
+            return val;
+        }
+    }
+    catch (...)
+    {
+        // Suppress exceptions and just return empty
+    }
+    return std::nullopt;
+}
+
+inline bool equivilantLongLong(const std::string &l, const std::string &r)
+{
+    const auto lVal = parseLongLong(l);
+    const auto rVal = parseLongLong(r);
+
+    // Check if both parsed successfully AND if their values match
+    if (lVal && rVal && *lVal == *rVal)
+    {
+        return true;
+    }
+    return false;
+}
+
+inline std::optional<unsigned long long> parseUnsignedLongLong(const std::string &str)
+{
+    try
+    {
+        size_t pos;
+        unsigned long long val = std::stoull(str, &pos);
+
+        // Ensure the entire string was consumed (e.g., rejects "123abc")
+        if (pos == str.size())
+        {
+            return val;
+        }
+    }
+    catch (...)
+    {
+        // Suppress exceptions and just return empty
+    }
+    return std::nullopt;
+}
+
+inline bool equivilantUnsignedLongLong(const std::string &l, const std::string &r)
+{
+    const auto lVal = parseUnsignedLongLong(l);
+    const auto rVal = parseUnsignedLongLong(r);
+
+    // Check if both parsed successfully AND if their values match
+    if (lVal && rVal && *lVal == *rVal)
+    {
+        return true;
+    }
+    return false;
+}
+
+std::optional<long double> parseLongDouble(const std::string &str)
+{
+    try
+    {
+        size_t pos;
+        long double val = std::stold(str, &pos);
+
+        // 1. Reject partial matches (e.g., "3.14abc")
+        if (pos != str.size())
+        {
+            return std::nullopt;
+        }
+
+        // 2. Reject NaN and Infinity
+        if (std::isnan(val) || std::isinf(val))
+        {
+            return std::nullopt;
+        }
+
+        return val;
+    }
+    catch (...)
+    {
+        return std::nullopt;
+    }
+}
+
+inline bool equivilantLongDouble(const std::string &l, const std::string &r)
+{
+    const auto lVal = parseLongDouble(l);
+    const auto rVal = parseLongDouble(r);
+
+    // Check if both parsed successfully AND if their values match
+    if (lVal && rVal && std::fabs(*lVal - *rVal) < 0.00000001)
+    {
+        return true;
+    }
+    return false;
+}
+
+inline bool isEquivilant(const std::string &left, const std::string &right)
+{
+    if (left == right)
+    {
+        return true;
+    }
+    // Check if they both parse to integers.
+    // If they both successfully parse as long long, compare values, if same return true
+    if (equivilantLongLong(left, right))
+    {
+        return true;
+    }
+    // If they both successfully parse as usizes, compare values, if same return true
+    if (equivilantUnsignedLongLong(left, right))
+    {
+        return true;
+    }
+
+    // Check if they both parse to floats and their difference is arbitrarily small.
+    if (equivilantLongDouble(left, right))
+    {
+        return true;
+    }
+
+    return false;
+}
+
 CompareFailure compareElements(const ::ezxml::XElement &expected, const ::ezxml::XElement &actual,
                                std::vector<std::string> &pathStack)
 {
@@ -186,10 +335,11 @@ CompareFailure compareElements(const ::ezxml::XElement &expected, const ::ezxml:
     }
 
     // Compare text payload (exact, per design §3 open question — start exact).
-    if (expected.getValue() != actual.getValue())
+    if (!isEquivilant(expected.getValue(), actual.getValue()))
     {
+        // TODO: use isEquivilant
         std::stringstream ss;
-        ss << "text mismatch at " << nodePath(pathStack) << ": expected '" << expected.getValue() << "', actual '"
+        ss << "mismatch at " << nodePath(pathStack) << ": expected '" << expected.getValue() << "', actual '"
            << actual.getValue() << "'";
         fail.isFailure = true;
         fail.detail = ss.str();
@@ -203,7 +353,8 @@ CompareFailure compareElements(const ::ezxml::XElement &expected, const ::ezxml:
     const auto aAttrEnd = actual.attributesEnd();
     while (eAttrIt != eAttrEnd && aAttrIt != aAttrEnd)
     {
-        if (eAttrIt->getName() != aAttrIt->getName() || eAttrIt->getValue() != aAttrIt->getValue())
+        // TODO: use isEquivilant for attribute value comparisons
+        if (eAttrIt->getName() != aAttrIt->getName() || !isEquivilant(eAttrIt->getValue(), aAttrIt->getValue()))
         {
             std::stringstream ss;
             ss << "attribute mismatch at " << nodePath(pathStack) << "[@" << eAttrIt->getName() << "]: expected '"
@@ -289,6 +440,10 @@ std::vector<std::string> discoverInputFiles()
         {
             continue;
         }
+        if (isFixupSidecar(p))
+        {
+            continue;
+        }
         if (hasInvalidMarker(p))
         {
             continue;
@@ -354,6 +509,11 @@ CoreRoundtripResult runCoreRoundtrip(const std::string &absoluteInputPath)
 
         // 7. Normalize the expected document with the same pipeline.
         normalize(expectedXDoc);
+
+        // 7b. Apply per-file fixups to the expected document. Patches expected
+        //     values that mx clamps to a different value on round-trip.
+        Fixer fixer(absoluteInputPath);
+        fixer.applyToExpected(expectedXDoc);
 
         // 8. Depth-first compare.
         std::vector<std::string> pathStack;

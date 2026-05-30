@@ -116,11 +116,12 @@ refactored to also accept `MX_CORE_DEV` as a parameter; `core-dev` invokes it wi
 Docker toolchain so the gate is deterministic. Configures with `MX_CORE_DEV=ON` (and the
 three `MX_BUILD_*` flags OFF) instead of the `MX_BUILD_TESTS=on` set `check` uses.
 
-Docker delegation: `make check` outside the container runs `docker buildx build --target
-run`; the `run` stage in `Dockerfile` hardcodes `RUN make check` against the pinned
-toolchain. `check-core-dev` follows the same pattern: a new `FROM base AS run-core-dev`
-stage parallel to `run`, with `RUN make check-core-dev`. Outside the container,
-`make check-core-dev` runs `docker buildx build --target run-core-dev`.
+Docker delegation: outside the container, `make check` and `make check-core-dev` both
+build the toolchain image once (`docker buildx build -t mx-sdk`) and then `docker run` it
+with the workspace and `build/docker/` bind-mounted, invoking the in-container target
+(`make check` or `make check-core-dev`). Inside the container `MX_RUNNING_IN_DOCKER=1` is
+set by the image, which flips the Makefile to run the pinned tools directly. There are no
+per-target Dockerfile stages.
 
 ---
 

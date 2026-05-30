@@ -1,0 +1,17 @@
+Not valid against the MusicXML XSD.
+
+Violation: five `<note>` elements in measure 34 are cue notes
+(`<cue/>` first child) that also contain a `<tie>` child. The MusicXML
+3.0 schema disallows tie inside cue notes - the `cue` branch of the
+note content model is:
+
+    cue, full-note, duration   (no tie element)
+
+The note-type documentation in musicxml.xsd confirms this: "Cue notes
+have a duration element, as do forward elements, but no tie elements."
+
+mx::core's fromXDoc rejects the document with "Note: unexpected
+element 'tie'" (5 times) - the parser is correctly enforcing the
+schema.
+
+See data/README.md for the .invalid marker convention.

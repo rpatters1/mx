@@ -18,7 +18,7 @@ OpusAttributes::OpusAttributes()
 
 bool OpusAttributes::hasValues() const
 {
-    return hasHref || hasType || hasRole || hasTitle || hasShow || hasActuate;
+    return hasHref || hasType || hasRole || hasTitle || hasShow || hasActuate || !xmlnsDeclarations.empty();
 }
 
 std::ostream &OpusAttributes::toStream(std::ostream &os) const
@@ -31,6 +31,10 @@ std::ostream &OpusAttributes::toStream(std::ostream &os) const
         streamAttribute(os, title, "xlink:title", hasTitle);
         streamAttribute(os, show, "xlink:show", hasShow);
         streamAttribute(os, actuate, "xlink:actuate", hasActuate);
+        for (const auto &ns : xmlnsDeclarations)
+        {
+            os << " " << ns.first << "=\"" << ns.second << "\"";
+        }
     }
     return os;
 }
@@ -68,6 +72,12 @@ bool OpusAttributes::fromXElementImpl(std::ostream &message, ::ezxml::XElement &
         }
         if (parseAttribute(message, it, className, isSuccess, actuate, hasActuate, "xlink:actuate", &parseXlinkActuate))
         {
+            continue;
+        }
+        const auto attrName = it->getName();
+        if (attrName == "xmlns" || (attrName.size() > 6 && attrName.substr(0, 6) == "xmlns:"))
+        {
+            xmlnsDeclarations.emplace_back(attrName, it->getValue());
             continue;
         }
     }

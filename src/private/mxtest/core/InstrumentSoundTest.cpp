@@ -14,8 +14,8 @@ using namespace mx::core;
 TEST(Test01, InstrumentSound)
 {
     std::string indentString(INDENT);
-    PlaybackSound value1{PlaybackSound::keyboardHarpsichord};
-    PlaybackSound value2{PlaybackSound::stringsViolin};
+    PlaybackSoundType value1{PlaybackSound::keyboardHarpsichord};
+    PlaybackSoundType value2{PlaybackSound::stringsViolin};
     InstrumentSound object1;
     InstrumentSound object2(value2);
     std::stringstream default_constructed;

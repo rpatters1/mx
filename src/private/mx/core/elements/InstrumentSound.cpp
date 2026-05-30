@@ -10,11 +10,11 @@ namespace mx
 {
 namespace core
 {
-InstrumentSound::InstrumentSound() : myValue(PlaybackSound::keyboardPiano)
+InstrumentSound::InstrumentSound() : myValue()
 {
 }
 
-InstrumentSound::InstrumentSound(const PlaybackSound &value) : myValue(value)
+InstrumentSound::InstrumentSound(const PlaybackSoundType &value) : myValue(value)
 {
 }
 
@@ -43,16 +43,16 @@ std::ostream &InstrumentSound::streamContents(std::ostream &os, const int indent
 {
     MX_UNUSED(indentLevel);
     isOneLineOnly = true;
-    os << PlaybackSoundToString(myValue);
+    os << myValue;
     return os;
 }
 
-PlaybackSound InstrumentSound::getValue() const
+PlaybackSoundType InstrumentSound::getValue() const
 {
     return myValue;
 }
 
-void InstrumentSound::setValue(const PlaybackSound &value)
+void InstrumentSound::setValue(const PlaybackSoundType &value)
 {
     myValue = value;
 }
@@ -60,7 +60,8 @@ void InstrumentSound::setValue(const PlaybackSound &value)
 bool InstrumentSound::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
 {
     MX_UNUSED(message);
-    myValue = PlaybackSoundFromString(xelement.getValue());
+    MX_UNUSED(xelement);
+    myValue.setValue(xelement.getValue());
     return true;
 }
 

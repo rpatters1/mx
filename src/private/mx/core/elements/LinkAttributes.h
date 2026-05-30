@@ -17,6 +17,8 @@
 
 #include <iosfwd>
 #include <memory>
+#include <string>
+#include <utility>
 #include <vector>
 
 namespace mx
@@ -58,6 +60,7 @@ struct LinkAttributes : public AttributesInterface
     bool hasDefaultY;
     bool hasRelativeX;
     bool hasRelativeY;
+    std::vector<std::pair<std::string, std::string>> xmlnsDeclarations;
 
   private:
     virtual bool fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement);

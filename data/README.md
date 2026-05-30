@@ -4,19 +4,31 @@ MusicXML test inputs and expected-output fixtures.
 
 ## `.invalid` marker convention
 
-A file `foo.xml` (or `foo.musicxml`) that is **not** valid MusicXML must be
-accompanied by a sibling marker file `foo.xml.invalid` whose contents
-describe, in prose, why the file is invalid.
+A file `foo.xml` (or `foo.musicxml`) that is **not** valid MusicXML must be accompanied by a sibling
+marker file `foo.xml.invalid` whose contents describe, in prose, why the file is invalid. The
+purpose is to use the file is to mark for test suites which files are not expected to be parseable
+by `mx`.
 
-The marker tells schema-strict consumers (notably the **core roundtrip**
-suite at `src/private/mxtest/corert/`) to skip the file. `mx::core` is a
-strongly-typed DOM generated from the MusicXML XSD and cannot round-trip
-elements or attributes that are not in the schema; running such a file
-through `fromXDoc` → `toXDoc` is guaranteed to lose content.
+## `.fixup.xml` sidecar convention
 
-The marker is descriptive only — its body is for humans. Presence of the
-file is the signal.
+A file `foo.xml` that is schema-invalid parseable due to `mx` leniency will have a sidecar file,
+`foo.fixup.xml`, which describes how the file will be parsed. The core roundtrip suite (`corert`)
+loads it via `Fixer` (`src/private/mxtest/corert/Fixer.h`) and uses it to prepare the "expected"
+test by altering values it finds after loading the test file.
 
-Other suites (e.g. **api import** under `src/private/mxtest/import/`) may
-still include invalid files when they exercise reader leniency on
-malformed input. Those suites ignore the marker.
+```xml
+<fixups>
+  <replace>
+    <type>element</type>
+    <name>midi-channel</name>
+    <value>0</value>
+    <replacement-value>1</replacement-value>
+  </replace>
+  <replace>
+    <type>attribute</type>
+    <name>dynamics</name>
+    <value>-1.11</value>
+    <replacement-value>0</replacement-value>
+  </replace>
+</fixups>
+```

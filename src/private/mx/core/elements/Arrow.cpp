@@ -124,6 +124,7 @@ bool Arrow::fromXElementImpl(std::ostream &message, ::ezxml::XElement &xelement)
         {
             myChoice = Choice::circularArrow;
             isSuccess &= myCircularArrow->fromXElement(message, *it);
+            continue;
         }
         myChoice = Choice::arrowGroup;
         isSuccess = myArrowGroup->fromXElement(message, xelement);

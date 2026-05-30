@@ -144,7 +144,8 @@ core::ScorePartPtr PartWriter::getScorePart() const
     {
         scoreIntstrument->setHasInstrumentSound(true);
         Converter c;
-        scoreIntstrument->getInstrumentSound()->setValue(c.convert(myPartData.instrumentData.soundID));
+        scoreIntstrument->getInstrumentSound()->setValue(
+            core::PlaybackSoundType{c.convert(myPartData.instrumentData.soundID)});
     }
 
     if (addScoreInstrument)
