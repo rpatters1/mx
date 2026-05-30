@@ -2,7 +2,6 @@
 
 - Author: Matthew James Briggs
 - License: MIT
-- Version: 1.0
 - Supported MusicXML Version: 3.0
 - Language: C++17
 
@@ -60,17 +59,30 @@ A `core-dev` mode exists for codegen iteration on `mx/core`; see `AGENTS.md` for
 * `mx` third-party code should be kept to a minimum.
 * `mx` third-party code should be checked into the `mx` repo and compiled as part of the `mx`
   library.
-* `mx` should not depened on any package manager, though it may be published into any package
+* `mx` should not depend on any package manager, though it may be published into any package
   manager.
+
+### Invalid File Tenets
+
+`mx` is designed such that invalid scalar values are typically supported by clamping the invalid
+value to a valid one. For example, in test files I have discovered many cases where MuseScore wrote
+-1.11 as a dynamics value. This is invalid to the spec which says
+
+```xml
+<xs:attribute name="dynamics" type="non-negative-decimal"/>
+```
+
+So in this case, `mx` will load the file and replace -1.11 with 0. Unfortunately this is silent for
+now, but we may surface a message system to let the caller know that this has happened.
 
 ### Using `mx` in a Cmake Project
 
-The following script demonstrates how you can start a new cmake project that uses `mx` by commiting
+The following script demonstrates how you can start a new cmake project that uses `mx` by committing
 its sourcecode into your project:
 
 ```sh
 #!/bin/bash
-se -eou pipefail
+set -eou pipefail
 
 # this script demonstrates how to depend on mx by including it in your
 # sourcecode tree.
@@ -87,7 +99,7 @@ git init
 # bring the mx sourcecode into your project into a temporary location
 git clone https://github.com/webern/mx.git mxtemp
 
-# copy only what we need.  all we need is the Sourcode directory, the
+# copy only what we need.  all we need is the source code directory, the
 # cmake file, the license, and the .gitignore file (helpful since there
 # is one generated file.)
 mkdir mx
@@ -436,7 +448,7 @@ using namespace ezxml;      // generic serialization and deserialization of xml
 
 The `mx::api` namespace is a set of 'plain old data' structs that represent a simplified model of
 MusicXML. For example, here is the `ScoreData.h`, which represents the top level of the object
-heirarchy:
+hierarchy:
 
 ```C++
 class ScoreData
@@ -465,7 +477,7 @@ public:
 
 `mx::api` and `mx::core` are kept completely separate.\
 That is, `mx::api` data is serialized into `mx::core` data, which is then serialized into MusicXML.
-The `mx::api` struct allow us to simplify things like specifying a note's tick time position, and
+The `mx::api` structs allow us to simplify things like specifying a note's tick time position, and
 allowing the serialization process to take care of details such as `<forward>` `<backup>` elements.
 
 ##### `mx::core`
@@ -502,7 +514,7 @@ if it were part of the `mx` project. This is in keeping with the build tenets [a
 There are two types of MusicXML documents, `partwise` and `timewise`. A partwise document consists
 of a set of parts which contain measures. A timewise document consists of a set of measures which
 contain parts. Partwise is used more often by MusicXML applications while Timewise documents seem to
-be rare or even nonresistant. Nonetheless *MusicXML Class Library* implements both Timewise and
+be rare or even nonexistent. Nonetheless *MusicXML Class Library* implements both Timewise and
 Partwise. The class `mx::core::Document` can hold *either* a Partwise *or* a Timewise score. Note
 that it actually holds both, but only one or the other is 'active' (this is similar to how `xsd`
 `choice` constructs are handled). You can check the inner document type with the getChoice function.
@@ -527,7 +539,7 @@ For example
 std::shared_ptr<Foo> foo; /* nullptr! */
 bar->setFoo( foo );       /* no-op because you passed a nullptr */
 auto x = bar->getFoo();   /* guaranteed not to be null */
-x->somefuntion();         /* OK to dereference without checking for nullptr */
+x->somefunction();        /* OK to dereference without checking for nullptr */
 ```
 
 ##### Optional Member Data
@@ -535,7 +547,7 @@ x->somefuntion();         /* OK to dereference without checking for nullptr */
 Many of the elements in MusicXML are optional. In these cases there is a bool which indicates
 whether or not the element is present. The bool serves as a flag indicating whether or not the
 optional element will be output when you stream out your MusicXML document. The bool has no
-side-effect on the element who's presence/absence it represents. So for example we may set some
+side-effect on the element whose presence/absence it represents. So for example we may set some
 data:
 
 ```C++
@@ -763,7 +775,7 @@ private:
 ```
 
 When `getChoice() == BendChoice::Choice::preBend` then we will see `<pre-bend/>` in the XML, but
-when `getChoice() == BendChoice::Choice::postBend` then we will see `<post-bend/>` in the XML.
+when `getChoice() == BendChoice::Choice::release` then we will see `<release/>` in the XML.
 
 ### XML DOM (::ezxml::)
 

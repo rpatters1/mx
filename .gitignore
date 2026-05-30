@@ -9,3 +9,6 @@ compile_commands.json
 
 # files for my notes and or ai instructions
 .prompt
+node_modules/
+package.json
+package-lock.json
