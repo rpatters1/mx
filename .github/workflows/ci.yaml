@@ -5,6 +5,14 @@ on:
   push:
     branches: [master]
 
+# Cancel an in-flight run when a newer push supersedes it. The group is keyed
+# on the ref, so a new push to a PR cancels that PR's prior run without
+# touching other PRs or master. Limited to pull_request events: each master
+# push still runs to completion rather than aborting mid-build.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   linux-gate:
     name: Linux (check + test)
@@ -20,6 +28,26 @@ jobs:
       # runs locally with no cache (token absent -> plain build).
       - uses: docker/setup-buildx-action@v3
       - uses: crazy-max/ghaction-github-runtime@v3
+
+      # Back the mx-build volume with a workspace path so actions/cache can
+      # persist the ccache dir it holds. `make check` mounts mx-build at
+      # /workspace/build and ccache writes to build/docker/.ccache.
+      # Not circular: Docker resolves this backing dir host-side, and the
+      # volume shadows /workspace/build inside the container.
+      - name: Create bind-backed build volume
+        run: |
+          mkdir -p build/docker
+          docker volume create --driver local \
+            --opt type=none --opt o=bind \
+            --opt device="$GITHUB_WORKSPACE/build/docker" mx-build
+
+      # Content-addressed, so it survives checkout resetting source mtimes.
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: build/docker/.ccache
+          key: ccache-${{ runner.os }}-gate-${{ github.sha }}
+          restore-keys: ccache-${{ runner.os }}-gate-
 
       - name: Quality gate
         run: make check
@@ -63,6 +91,22 @@ jobs:
       # gate) and runs in parallel with the other jobs.
       - uses: docker/setup-buildx-action@v3
       - uses: crazy-max/ghaction-github-runtime@v3
+
+      # Bind-back mx-build so its ccache dir is cacheable, as in linux-gate. A
+      # distinct key prefix keeps this job's save from racing linux-gate's.
+      - name: Create bind-backed build volume
+        run: |
+          mkdir -p build/docker
+          docker volume create --driver local \
+            --opt type=none --opt o=bind \
+            --opt device="$GITHUB_WORKSPACE/build/docker" mx-build
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: build/docker/.ccache
+          key: ccache-${{ runner.os }}-coverage-${{ github.sha }}
+          restore-keys: ccache-${{ runner.os }}-coverage-
 
       - name: Build + run with coverage
         run: make coverage-core-dev
