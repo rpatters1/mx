@@ -27,6 +27,10 @@ improve the generator, then point it at MusicXML 4.1 to generate updated types.
 
 Standard project layout (see the `/project` skill).
 
+Design docs (`design/`): static snapshots of current design.
+- `design/m6b-data-model.md`: target architecture for the M6B generator refactor (parse -> configure
+  -> render, ID scheme, strangler migration).
+
 Found Files: Music XML files under consideration for adding to the test suite(s). We need to be
 cognizent of the declared MusicXML version in the file. Before we implement 4.0, then we should only
 add files at 3.0 and lower to the test suite. After we implement 4.0 we want to add the rest.
@@ -44,8 +48,8 @@ TBD subdirectory.
 
 To exercise spec symbols absent from the corpus, we synthesized small, schema-valid MusicXML files,
 one per gap. The MusicXML 3.0 batch lives in `data/synthetic/` (read by `corert`); batches for
-versions newer than 3.0 are staged under `synthetic-files/` (e.g. `3.1/`, `4.0/`) since `mx` does not
-yet target them. The methodology and file-naming convention are documented in
+versions newer than 3.0 are staged under `synthetic-files/` (e.g. `3.1/`, `4.0/`) since `mx` does
+not yet target them. The methodology and file-naming convention are documented in
 `data/synthetic/README.md`; the plan and results are in `synthetic-plan.md`. Generation and analysis
 tooling is throw-away and lives in `coverage/` (delete before PR).
 
@@ -79,15 +83,14 @@ Workflow: `python3 gen/generate.py && make fmt && make test-all`. To reset:
 
 ## Generator quality gates (M6A, the better-gen regression detector)
 
-Two Docker gates score the generator's own Python so the M6 refactor can proceed without
-regressing. Both run in the `mx-sdk` image (pinned analyzers in `/opt/quality-venv`) and in CI
-(`linux-gate`).
+Two Docker gates score the generator's own Python so the M6 refactor can proceed without regressing.
+Both run in the `mx-sdk` image (pinned analyzers in `/opt/quality-venv`) and in CI (`linux-gate`).
 
-- `make gen-quality` — composite design score 0-100 (higher = better) from `gen/quality.py`.
-  Rubric: structure 50% (LOC-weighted function + file size), cyclomatic 25%, cognitive 25%; one
-  smooth transform `target/max(target,value)` per axis. Writes `data/testOutput/gen-quality/`
-  (`score.json` for agents/CI, `report.md` for humans) with the worst 30 offenders per axis as
-  `path:line` refs. Fails below `GEN_QUALITY_FLOOR` (Makefile).
+- `make gen-quality` — composite design score 0-100 (higher = better) from `gen/quality.py`. Rubric:
+  structure 50% (LOC-weighted function + file size), cyclomatic 25%, cognitive 25%; one smooth
+  transform `target/max(target,value)` per axis. Writes `data/testOutput/gen-quality/` (`score.json`
+  for agents/CI, `report.md` for humans) with the worst 30 offenders per axis as `path:line` refs.
+  Fails below `GEN_QUALITY_FLOOR` (Makefile).
 - `make gen-lint` — pylint as a binary gate (`gen/.pylintrc` disables the complexity checks that
   `gen-quality` already scores). Fails below `GEN_LINT_FLOOR` (Makefile).
 
@@ -126,7 +129,10 @@ the fix belongs in the shared path with a config-driven flag.
 
 ## Key external files
 
-- `gen/generate.py` — the generator (~14k lines of Python)
+- `gen/generate.py` — the generator orchestrator + C++ emission (~13.4k lines of Python)
+- `gen/parse.py` — XSD parsing: dataclasses + `XsdModel` + `pascal`; injected `ParseConfig` (M6B;
+  pure XSD model, target-neutral)
+- `gen/ids.py` — `NodeId` typed value (M6B; assigned to every node, currently unconsumed)
 - `gen/quality.py` — design-quality scorer for `make gen-quality` (excluded from its own score)
 - `gen/.pylintrc` — pylint config for `make gen-lint`
 - `docs/musicxml.xsd` — input schema (currently MusicXML 3.0; swap to 4.1 in M6)
@@ -138,3 +144,44 @@ the fix belongs in the shared path with a config-driven flag.
 Do not write malformed markdown. An unclosed `~` (meaning "approximately") is malformed markdown. An
 unclosed `_` or `*` is also malformed. If you use these symbols for something other than formatting,
 surround them with backticks so they do not create markdown parsing errors.
+
+## Pull Requests
+
+All pull requests should have a section at the bottom like this:
+
+```markdown
+## References
+
+- Progress on {{best-issue-number}}
+- Tracked by #58
+```
+
+All of our work in this project is tracked by #58, but you should determine the best-issue-number.
+
+Do not use project-specific language in the PR title or description. No `M5` or `Milestone 6`. The
+project is a transient organizational principle not to be encoded long-term in the project's
+historical records on GitHub. You may refer to the project in general as `gen` or `code gen`.
+
+The title should be all lowercase and start with a keyword such as:
+- gen
+- build
+- test
+- core (for `mx/core`)
+- api (for `mx/api`)
+- impl (for `mx/impl`)
+- docs (for agent docs project docs )
+
+Do your best and pick one or make up a similar one if you don't see the right thing. Then your PR
+title should be no more than 72 characters long. Example:
+
+`gen: refactor parsing and annotation logic`
+
+Use the `/dewordify` skill for your pull request description. Do not over explain minutia, that is
+what the diff is for. Do not over format. Ovoid overuse of bold, italics and headers.
+
+Include the following sections:
+- `## Summary`: brief explanation of why we are submitting this pull request
+- `## Details`: a more detailed account of what we did
+- `## Verification`: how we verified our changes. Sometimes this may be CI, other times you may be
+  working with specific gates such as test suites or quality gates. State them here.
+- `## References`: GitHub issues that we are working on
