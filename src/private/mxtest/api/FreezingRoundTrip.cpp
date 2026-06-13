@@ -7,19 +7,20 @@
 
 #include "cpul/cpulTestHarness.h"
 #include "mx/api/DocumentManager.h"
-#include "mx/core/Document.h"
-#include "mx/core/DocumentHeader.h"
-#include "mx/core/elements/MusicDataChoice.h"
+#include "mx/core/generated/DirectionTypeChoice.h"
+#include "mx/core/generated/Document.h"
+#include "mx/core/generated/DynamicsChoice.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/NoteTypeValue.h"
 #include "mxtest/api/RoundTrip.h"
 #include "mxtest/file/MxFileRepository.h"
 #include "mxtest/file/StupidFileFunctions.h"
 
-// TODO - replace with specific includes
-#include "mx/core/Elements.h"
+#include <algorithm>
+#include <sstream>
 
 using namespace std;
 using namespace mx::api;
-using namespace mx::core;
 using namespace mxtest;
 
 namespace
@@ -42,46 +43,61 @@ inline bool writeRoundTrip(std::string inFilename)
     const auto scoreData = mxtest::MxFileRepository::loadFile(inFilename);
     const auto filePath = mxtest::MxFileRepository::getFullPath(inFilename);
     auto &docMgr = DocumentManager::getInstance();
-    const auto docId = docMgr.createFromFile(filePath);
+    const auto rBefore = docMgr.createFromFile(filePath);
+    if (!rBefore.ok())
+    {
+        return false;
+    }
+    const int docId = rBefore.value();
     docMgr.writeToFile(docId, outBeforeFilepath);
     docMgr.destroyDocument(docId);
-    const auto apiDocId = docMgr.createFromScore(scoreData);
+    const auto rAfter = docMgr.createFromScore(scoreData);
+    if (!rAfter.ok())
+    {
+        return false;
+    }
+    const int apiDocId = rAfter.value();
     docMgr.writeToFile(apiDocId, outAfterFilepath);
     docMgr.destroyDocument(apiDocId);
     return docId != apiDocId;
 }
 
+/// Holds references into Documents that must be kept alive.
 struct TestData
 {
-    const mx::core::ScorePartwisePtr originalScore;
-    const mx::core::ScorePartwisePtr savedScore;
-    const mx::api::ScoreData originalScoreData;
-    const mx::api::ScoreData savedScoreData;
+    mx::core::DocumentPtr originalDoc;
+    mx::core::DocumentPtr savedDoc;
+    mx::api::ScoreData originalScoreData;
+    mx::api::ScoreData savedScoreData;
 
-    TestData(mx::core::ScorePartwisePtr inOriginalScore, mx::core::ScorePartwisePtr inSavedScore,
+    TestData(mx::core::DocumentPtr inOriginalDoc, mx::core::DocumentPtr inSavedDoc,
              mx::api::ScoreData inOriginalScoreData, mx::api::ScoreData inSavedScoreData)
-        : originalScore{inOriginalScore}, savedScore{inSavedScore}, originalScoreData{inOriginalScoreData},
-          savedScoreData{inSavedScoreData}
+        : originalDoc{std::move(inOriginalDoc)}, savedDoc{std::move(inSavedDoc)},
+          originalScoreData{std::move(inOriginalScoreData)}, savedScoreData{std::move(inSavedScoreData)}
     {
     }
 
-    //////////////////////////// original score ///////////////////// saved score ///////////////////
-    inline const std::pair<const mx::core::MusicDataChoiceSet, const mx::core::MusicDataChoiceSet> getMusicData(
-        int inPartIndex, int inMeasureIndex) const
+    const mx::core::ScorePartwise &originalScore() const
     {
-        const auto &oPset = this->originalScore->getPartwisePartSet();
-        const auto &sPset = this->savedScore->getPartwisePartSet();
-        const auto &oPart = oPset.at(static_cast<size_t>(inPartIndex));
-        const auto &sPart = sPset.at(static_cast<size_t>(inPartIndex));
-        const auto &oMdc = oPart->getPartwiseMeasureSet()
-                               .at(static_cast<int>(inMeasureIndex))
-                               ->getMusicDataGroup()
-                               ->getMusicDataChoiceSet();
-        const auto &sMdc = sPart->getPartwiseMeasureSet()
-                               .at(static_cast<int>(inMeasureIndex))
-                               ->getMusicDataGroup()
-                               ->getMusicDataChoiceSet();
-        return std::make_pair<const mx::core::MusicDataChoiceSet &, const mx::core::MusicDataChoiceSet &>(oMdc, sMdc);
+        return originalDoc->asScorePartwise();
+    }
+
+    const mx::core::ScorePartwise &savedScore() const
+    {
+        return savedDoc->asScorePartwise();
+    }
+
+    //////////////////////////// original score ///////////////////// saved score ///////////////////
+    inline std::pair<std::span<const mx::core::MusicDataChoice>, std::span<const mx::core::MusicDataChoice>>
+    getMusicData(int inPartIndex, int inMeasureIndex) const
+    {
+        const auto oParts = originalScore().part();
+        const auto sParts = savedScore().part();
+        const auto &oPart = oParts[static_cast<size_t>(inPartIndex)];
+        const auto &sPart = sParts[static_cast<size_t>(inPartIndex)];
+        const auto oMdc = oPart.measure()[static_cast<size_t>(inMeasureIndex)].musicData();
+        const auto sMdc = sPart.measure()[static_cast<size_t>(inMeasureIndex)].musicData();
+        return {oMdc, sMdc};
     }
 };
 
@@ -89,15 +105,19 @@ inline TestData getTestData(std::string filename)
 {
     auto &mgr = DocumentManager::getInstance();
     const auto filePath = mxtest::MxFileRepository::getFullPath(filename);
-    const auto originalId = mgr.createFromFile(filePath);
-    const auto originalScoreData = mgr.getData(originalId);
-    const auto originalScore = mgr.getDocument(originalId)->getScorePartwise();
-    const auto savedId = mgr.createFromScore(mgr.getData(originalId));
-    const auto savedScoreData = mgr.getData(savedId);
-    const auto savedScore = mgr.getDocument(savedId)->getScorePartwise();
+    const auto rOrig = mgr.createFromFile(filePath);
+    const int originalId = rOrig.ok() ? rOrig.value() : -1;
+    const auto rOrigData = mgr.getData(originalId);
+    const auto originalScoreData = rOrigData.ok() ? rOrigData.value() : mx::api::ScoreData{};
+    const auto rSaved = mgr.createFromScore(originalScoreData);
+    const int savedId = rSaved.ok() ? rSaved.value() : -1;
+    const auto rSavedData = mgr.getData(savedId);
+    const auto savedScoreData = rSavedData.ok() ? rSavedData.value() : mx::api::ScoreData{};
+    auto originalDoc = mgr.getDocument(originalId);
+    auto savedDoc = mgr.getDocument(savedId);
     mgr.destroyDocument(originalId);
     mgr.destroyDocument(savedId);
-    return TestData{originalScore, savedScore, originalScoreData, savedScoreData};
+    return TestData{originalDoc, savedDoc, originalScoreData, savedScoreData};
 }
 } // namespace
 
@@ -120,16 +140,16 @@ TEST(chordDirectionPlacement, Freezing)
 
     for (size_t i = 0; i < oNumEntries; ++i)
     {
-        const auto &o = musicData.first.at(i);
-        const auto &s = musicData.second.at(i);
-        const auto oChoice = o->getChoice();
-        const auto sChoice = s->getChoice();
+        const auto &o = musicData.first[i];
+        const auto &s = musicData.second[i];
+        const auto oKind = o.kind();
+        const auto sKind = s.kind();
         std::stringstream ss;
         ss << "After round trip the MusicDataChoice elements are not the same. Currently index (i) == " << i << ".";
-        ss << " ( oChoice == sChoice ) was supposed to return true, but returned false.";
-        ss << " with ( " << static_cast<int>(oChoice) << " == " << static_cast<int>(sChoice) << " )";
+        ss << " ( oKind == sKind ) was supposed to return true, but returned false.";
+        ss << " with ( " << static_cast<int>(oKind) << " == " << static_cast<int>(sKind) << " )";
         const std::string message = ss.str();
-        CHECK_WITH_MESSAGE(oChoice == sChoice, message);
+        CHECK_WITH_MESSAGE(oKind == sKind, message);
     }
 
     CHECK(true);
@@ -151,55 +171,69 @@ TEST(roundTripViolaDynamicWrongTime, Freezing)
     // or search for font-family="roundTripViolaDynamicWrongTime"
     auto &mgr = DocumentManager::getInstance();
     const auto filePath = mxtest::MxFileRepository::getFullPath(freezingFile);
-    const auto originalId = mgr.createFromFile(filePath);
-    const auto originalScoreData = mgr.getData(originalId);
-    const auto originalScore = mgr.getDocument(originalId)->getScorePartwise();
-    const auto savedId = mgr.createFromScore(mgr.getData(originalId));
-    const auto savedScoreData = mgr.getData(savedId);
-    const auto savedScore = mgr.getDocument(savedId)->getScorePartwise();
+    const auto rOrigId = mgr.createFromFile(filePath);
+    REQUIRE(rOrigId.ok());
+    const int originalId = rOrigId.value();
+    const auto rOrigData = mgr.getData(originalId);
+    REQUIRE(rOrigData.ok());
+    const auto originalScoreData = rOrigData.value();
+    auto originalDoc = mgr.getDocument(originalId);
+    const auto rSavedId = mgr.createFromScore(originalScoreData);
+    REQUIRE(rSavedId.ok());
+    const int savedId = rSavedId.value();
+    const auto rSavedData = mgr.getData(savedId);
+    REQUIRE(rSavedData.ok());
+    const auto savedScoreData = rSavedData.value();
+    auto savedDoc = mgr.getDocument(savedId);
     mgr.destroyDocument(originalId);
     mgr.destroyDocument(savedId);
 
-    const int partIndex = 0;
-    const int measureIndex = 7;
+    const size_t partIndex = 0;
+    const size_t measureIndex = 7;
 
-    const auto &originalPart = originalScore->getPartwisePartSet().at(partIndex);
-    const auto &originalMeasure = originalPart->getPartwiseMeasureSet().at(measureIndex);
-    const auto &originalMdcSet = originalMeasure->getMusicDataGroup()->getMusicDataChoiceSet();
-    auto originalMdcIter = originalMdcSet.cbegin();
-    const auto originalMdcEnd = originalMdcSet.cend();
+    const auto &originalScore = originalDoc->asScorePartwise();
+    const auto &savedScore = savedDoc->asScorePartwise();
 
-    while ((originalMdcIter != originalMdcEnd) && ((*originalMdcIter)->getChoice() != MusicDataChoice::Choice::note))
+    const auto originalMdcSpan = originalScore.part()[partIndex].measure()[measureIndex].musicData();
+    auto originalMdcIter = originalMdcSpan.begin();
+    const auto originalMdcEnd = originalMdcSpan.end();
+
+    while ((originalMdcIter != originalMdcEnd) && (!originalMdcIter->isNote()))
     {
         ++originalMdcIter;
     }
 
     // this is the first note in the measure
     CHECK(originalMdcIter != originalMdcEnd);
-    CHECK(MusicDataChoice::Choice::note == (*originalMdcIter)->getChoice());
-    auto originalCurrentNote = (*originalMdcIter)->getNote();
-    CHECK_DOUBLES_EQUAL(
-        30.0, originalCurrentNote->getNoteChoice()->getNormalNoteGroup()->getDuration()->getValue().getValue(), 0.0001);
-    CHECK(!originalCurrentNote->getNoteChoice()->getNormalNoteGroup()->getFullNoteGroup()->getHasChord());
+    CHECK(originalMdcIter->isNote());
+    const auto *originalCurrentNote = &originalMdcIter->asNote();
+    REQUIRE(originalCurrentNote->choice().isNormalNoteGroup());
+    CHECK_DOUBLES_EQUAL(30.0, originalCurrentNote->choice().asNormalNoteGroup().duration().value().value(), 0.0001);
+    CHECK(!originalCurrentNote->choice().asNormalNoteGroup().fullNote().chord());
 
     // this is the second note in the measure
     ++originalMdcIter;
     CHECK(originalMdcIter != originalMdcEnd);
-    CHECK(MusicDataChoice::Choice::note == (*originalMdcIter)->getChoice());
-    originalCurrentNote = (*originalMdcIter)->getNote();
-    CHECK_DOUBLES_EQUAL(
-        30.0, originalCurrentNote->getNoteChoice()->getNormalNoteGroup()->getDuration()->getValue().getValue(), 0.0001);
-    CHECK(originalCurrentNote->getNoteChoice()->getNormalNoteGroup()->getFullNoteGroup()->getHasChord());
+    CHECK(originalMdcIter->isNote());
+    originalCurrentNote = &originalMdcIter->asNote();
+    REQUIRE(originalCurrentNote->choice().isNormalNoteGroup());
+    CHECK_DOUBLES_EQUAL(30.0, originalCurrentNote->choice().asNormalNoteGroup().duration().value().value(), 0.0001);
+    CHECK(originalCurrentNote->choice().asNormalNoteGroup().fullNote().chord());
 
     // this is where we find the first pp dynamic in the measure
     ++originalMdcIter;
     CHECK(originalMdcIter != originalMdcEnd);
-    CHECK(MusicDataChoice::Choice::direction == (*originalMdcIter)->getChoice());
-    auto originalDirection = (*originalMdcIter)->getDirection();
-    CHECK(DirectionType::Choice::dynamics == originalDirection->getDirectionTypeSet().front()->getChoice());
-    auto originalDynamics = originalDirection->getDirectionTypeSet().front()->getDynamicsSet().front();
-    auto originalDynamicsValue = originalDynamics->getValue();
-    CHECK(DynamicsEnum::pp == originalDynamicsValue.getValue());
+    CHECK(originalMdcIter->isDirection());
+    const auto &originalDirection = originalMdcIter->asDirection();
+    const auto &origDtSpan = originalDirection.directionType();
+    CHECK(!origDtSpan.empty());
+    CHECK(origDtSpan[0].choice().isDynamics());
+    const auto &origDynItems = origDtSpan[0].choice().asDynamics().items();
+    CHECK(!origDynItems.empty());
+    const auto &origDynChoiceSpan = origDynItems[0].choice();
+    CHECK(!origDynChoiceSpan.empty());
+    CHECK(mx::core::DynamicsChoice::Kind::pp == origDynChoiceSpan[0].kind());
+
     const auto &originalDirections =
         originalScoreData.parts.at(partIndex).measures.at(measureIndex).staves.at(0).directions;
     const auto originalDirectionsBegin = std::cbegin(originalDirections);
@@ -222,41 +256,43 @@ TEST(roundTripViolaDynamicWrongTime, Freezing)
     const double tickTimeScaleFactor = 2.0;
     CHECK_DOUBLES_EQUAL(30.0 * tickTimeScaleFactor, directionIter->tickTimePosition, 0.001);
 
-    const auto &savedPart = savedScore->getPartwisePartSet().at(partIndex);
-    const auto &savedMeasure = savedPart->getPartwiseMeasureSet().at(measureIndex);
-    const auto &savedMdcSet = savedMeasure->getMusicDataGroup()->getMusicDataChoiceSet();
-    auto savedMdcIter = savedMdcSet.cbegin();
-    const auto savedMdcEnd = savedMdcSet.cend();
+    const auto savedMdcSpan = savedScore.part()[partIndex].measure()[measureIndex].musicData();
+    auto savedMdcIter = savedMdcSpan.begin();
+    const auto savedMdcEnd = savedMdcSpan.end();
 
     CHECK(savedMdcIter != savedMdcEnd);
-    CHECK(MusicDataChoice::Choice::print == (*savedMdcIter)->getChoice());
+    CHECK(savedMdcIter->isPrint());
 
     ++savedMdcIter;
     CHECK(savedMdcIter != savedMdcEnd);
-    CHECK(MusicDataChoice::Choice::note == (*savedMdcIter)->getChoice());
-    auto savedCurrentNote = (*savedMdcIter)->getNote();
+    CHECK(savedMdcIter->isNote());
+    const auto *savedCurrentNote = &savedMdcIter->asNote();
+    REQUIRE(savedCurrentNote->choice().isNormalNoteGroup());
     CHECK_DOUBLES_EQUAL(30.0 * tickTimeScaleFactor,
-                        savedCurrentNote->getNoteChoice()->getNormalNoteGroup()->getDuration()->getValue().getValue(),
-                        0.0001);
-    CHECK(!savedCurrentNote->getNoteChoice()->getNormalNoteGroup()->getFullNoteGroup()->getHasChord());
+                        savedCurrentNote->choice().asNormalNoteGroup().duration().value().value(), 0.0001);
+    CHECK(!savedCurrentNote->choice().asNormalNoteGroup().fullNote().chord());
 
     ++savedMdcIter;
     CHECK(savedMdcIter != savedMdcEnd);
-    CHECK(MusicDataChoice::Choice::note == (*savedMdcIter)->getChoice());
-    savedCurrentNote = (*savedMdcIter)->getNote();
+    CHECK(savedMdcIter->isNote());
+    savedCurrentNote = &savedMdcIter->asNote();
+    REQUIRE(savedCurrentNote->choice().isNormalNoteGroup());
     CHECK_DOUBLES_EQUAL(30.0 * tickTimeScaleFactor,
-                        savedCurrentNote->getNoteChoice()->getNormalNoteGroup()->getDuration()->getValue().getValue(),
-                        0.0001);
-    CHECK(savedCurrentNote->getNoteChoice()->getNormalNoteGroup()->getFullNoteGroup()->getHasChord());
+                        savedCurrentNote->choice().asNormalNoteGroup().duration().value().value(), 0.0001);
+    CHECK(savedCurrentNote->choice().asNormalNoteGroup().fullNote().chord());
 
     ++savedMdcIter;
     CHECK(savedMdcIter != savedMdcEnd);
-    CHECK(MusicDataChoice::Choice::direction == (*savedMdcIter)->getChoice());
-    auto savedDirection = (*savedMdcIter)->getDirection();
-    CHECK(DirectionType::Choice::dynamics == savedDirection->getDirectionTypeSet().front()->getChoice());
-    auto savedDynamics = savedDirection->getDirectionTypeSet().front()->getDynamicsSet().front();
-    auto savedDynamicsValue = savedDynamics->getValue();
-    CHECK(DynamicsEnum::pp == savedDynamicsValue.getValue());
+    CHECK(savedMdcIter->isDirection());
+    const auto &savedDirection = savedMdcIter->asDirection();
+    const auto &savedDtSpan = savedDirection.directionType();
+    CHECK(!savedDtSpan.empty());
+    CHECK(savedDtSpan[0].choice().isDynamics());
+    const auto &savedDynItems = savedDtSpan[0].choice().asDynamics().items();
+    CHECK(!savedDynItems.empty());
+    const auto &savedDynChoiceSpan = savedDynItems[0].choice();
+    CHECK(!savedDynChoiceSpan.empty());
+    CHECK(mx::core::DynamicsChoice::Kind::pp == savedDynChoiceSpan[0].kind());
 }
 
 T_END
@@ -264,10 +300,9 @@ T_END
 TEST(hasVersion, Freezing)
 {
     const auto testData = getTestData(hasVerFile);
-    const bool hasVersion = testData.savedScore->getAttributes()->hasVersion;
-    CHECK(hasVersion);
-    const auto version = testData.savedScore->getAttributes()->version.getValue();
-    CHECK_EQUAL("3.0", version);
+    const auto &savedVersion = testData.savedScore().version();
+    CHECK(savedVersion.has_value());
+    CHECK_EQUAL("3.0", savedVersion.value());
 }
 
 T_END
@@ -275,8 +310,8 @@ T_END
 TEST(hasNoVersion, Freezing)
 {
     const auto testData = getTestData(noVerFile);
-    const bool hasVersion = testData.savedScore->getAttributes()->hasVersion;
-    CHECK(!hasVersion);
+    const auto &savedVersion = testData.savedScore().version();
+    CHECK(!savedVersion.has_value());
 }
 
 T_END
@@ -285,17 +320,21 @@ TEST(missingMusicXMLVersion, Freezing)
 {
     auto &mgr = DocumentManager::getInstance();
     const auto filePath = mxtest::MxFileRepository::getFullPath(freezingFile);
-    const auto originalId = mgr.createFromFile(filePath);
-    const auto originalScoreData = mgr.getData(originalId);
-    const auto originalScore = mgr.getDocument(originalId)->getScorePartwise();
-    const auto savedId = mgr.createFromScore(mgr.getData(originalId));
-    const auto savedScoreData = mgr.getData(savedId);
-    const auto savedScore = mgr.getDocument(savedId)->getScorePartwise();
+    const auto rOrigId = mgr.createFromFile(filePath);
+    REQUIRE(rOrigId.ok());
+    const int originalId = rOrigId.value();
+    auto originalDoc = mgr.getDocument(originalId);
+    const auto rOrigData = mgr.getData(originalId);
+    REQUIRE(rOrigData.ok());
+    const auto rSavedId = mgr.createFromScore(rOrigData.value());
+    REQUIRE(rSavedId.ok());
+    const int savedId = rSavedId.value();
+    auto savedDoc = mgr.getDocument(savedId);
     mgr.destroyDocument(originalId);
     mgr.destroyDocument(savedId);
 
-    const bool originalScoreHasVersion = originalScore->getAttributes()->hasVersion;
-    const bool savedScoreHasVersion = savedScore->getAttributes()->hasVersion;
+    const bool originalScoreHasVersion = originalDoc->asScorePartwise().version().has_value();
+    const bool savedScoreHasVersion = savedDoc->asScorePartwise().version().has_value();
     CHECK(originalScoreHasVersion);
     CHECK(savedScoreHasVersion);
 }
@@ -304,48 +343,65 @@ TEST(HasDefaultsHasAppearance, Freezing)
 {
     auto &mgr = DocumentManager::getInstance();
     const auto filePath = mxtest::MxFileRepository::getFullPath(freezingFile);
-    const auto originalId = mgr.createFromFile(filePath);
-    const auto originalScoreData = mgr.getData(originalId);
-    const auto originalScore = mgr.getDocument(originalId)->getScorePartwise();
-    const auto savedId = mgr.createFromScore(mgr.getData(originalId));
-    const auto savedScoreData = mgr.getData(savedId);
-    const auto savedScore = mgr.getDocument(savedId)->getScorePartwise();
+    const auto rOrigId = mgr.createFromFile(filePath);
+    REQUIRE(rOrigId.ok());
+    const int originalId = rOrigId.value();
+    auto originalDoc = mgr.getDocument(originalId);
+    const auto rOrigData = mgr.getData(originalId);
+    REQUIRE(rOrigData.ok());
+    const auto rSavedId = mgr.createFromScore(rOrigData.value());
+    REQUIRE(rSavedId.ok());
+    const int savedId = rSavedId.value();
+    auto savedDoc = mgr.getDocument(savedId);
     mgr.destroyDocument(originalId);
     mgr.destroyDocument(savedId);
 
-    const auto originalHasDefaults = originalScore->getScoreHeaderGroup()->getHasDefaults();
-    const auto savedHasDefaults = savedScore->getScoreHeaderGroup()->getHasDefaults();
+    const auto &origHeader = originalDoc->asScorePartwise().scoreHeader();
+    const auto &savedHeader = savedDoc->asScorePartwise().scoreHeader();
+
+    const bool originalHasDefaults = origHeader.defaults().has_value();
+    const bool savedHasDefaults = savedHeader.defaults().has_value();
     CHECK(originalHasDefaults == savedHasDefaults);
 
-    const auto originalHasAppearance = originalScore->getScoreHeaderGroup()->getDefaults()->getHasAppearance();
-    const auto savedHasAppearance = savedScore->getScoreHeaderGroup()->getDefaults()->getHasAppearance();
+    if (!originalHasDefaults || !savedHasDefaults)
+    {
+        return;
+    }
+
+    const auto &origDefaults = origHeader.defaults().value();
+    const auto &savedDefaults = savedHeader.defaults().value();
+
+    const bool originalHasAppearance = origDefaults.appearance().has_value();
+    const bool savedHasAppearance = savedDefaults.appearance().has_value();
     CHECK(originalHasAppearance == savedHasAppearance);
 
-    const auto originalAppearance = originalScore->getScoreHeaderGroup()->getDefaults()->getAppearance();
-    const auto savedAppearance = savedScore->getScoreHeaderGroup()->getDefaults()->getAppearance();
-
-    for (size_t i = 0; i < originalAppearance->getLineWidthSet().size(); ++i)
+    if (!originalHasAppearance || !savedHasAppearance)
     {
-        CHECK_DOUBLES_EQUAL(originalAppearance->getLineWidthSet().at(i)->getValue().getValue(),
-                            savedAppearance->getLineWidthSet().at(i)->getValue().getValue(), 0.0001);
-        CHECK(originalAppearance->getLineWidthSet().at(i)->getAttributes()->type.getValueString() ==
-              savedAppearance->getLineWidthSet().at(i)->getAttributes()->type.getValueString());
+        return;
     }
 
-    for (size_t i = 0; i < originalAppearance->getNoteSizeSet().size(); ++i)
+    const auto &originalAppearance = origDefaults.appearance().value();
+    const auto &savedAppearance = savedDefaults.appearance().value();
+
+    for (size_t i = 0; i < originalAppearance.lineWidth().size(); ++i)
     {
-        CHECK_DOUBLES_EQUAL(originalAppearance->getNoteSizeSet().at(i)->getValue().getValue(),
-                            savedAppearance->getNoteSizeSet().at(i)->getValue().getValue(), 0.0001);
-        CHECK(originalAppearance->getNoteSizeSet().at(i)->getAttributes()->type ==
-              savedAppearance->getNoteSizeSet().at(i)->getAttributes()->type);
+        CHECK_DOUBLES_EQUAL(originalAppearance.lineWidth()[i].value().value().value(),
+                            savedAppearance.lineWidth()[i].value().value().value(), 0.0001);
+        CHECK(originalAppearance.lineWidth()[i].type().value() == savedAppearance.lineWidth()[i].type().value());
     }
 
-    for (size_t i = 0; i < originalAppearance->getDistanceSet().size(); ++i)
+    for (size_t i = 0; i < originalAppearance.noteSize().size(); ++i)
     {
-        CHECK_DOUBLES_EQUAL(originalAppearance->getDistanceSet().at(i)->getValue().getValue(),
-                            savedAppearance->getDistanceSet().at(i)->getValue().getValue(), 0.0001);
-        CHECK(originalAppearance->getDistanceSet().at(i)->getAttributes()->type.getValueString() ==
-              savedAppearance->getDistanceSet().at(i)->getAttributes()->type.getValueString());
+        CHECK_DOUBLES_EQUAL(originalAppearance.noteSize()[i].value().value().value(),
+                            savedAppearance.noteSize()[i].value().value().value(), 0.0001);
+        CHECK(originalAppearance.noteSize()[i].type() == savedAppearance.noteSize()[i].type());
+    }
+
+    for (size_t i = 0; i < originalAppearance.distance().size(); ++i)
+    {
+        CHECK_DOUBLES_EQUAL(originalAppearance.distance()[i].value().value().value(),
+                            savedAppearance.distance()[i].value().value().value(), 0.0001);
+        CHECK(originalAppearance.distance()[i].type().value() == savedAppearance.distance()[i].type().value());
     }
 }
 
@@ -353,33 +409,40 @@ TEST(appearanceLineWidths, Freezing)
 {
     auto &mgr = DocumentManager::getInstance();
     const auto filePath = mxtest::MxFileRepository::getFullPath(freezingFile);
-    const auto originalId = mgr.createFromFile(filePath);
-    const auto originalScoreData = mgr.getData(originalId);
-    const auto originalScore = mgr.getDocument(originalId)->getScorePartwise();
-    const auto savedId = mgr.createFromScore(mgr.getData(originalId));
-    const auto savedScoreData = mgr.getData(savedId);
-    const auto savedScore = mgr.getDocument(savedId)->getScorePartwise();
+    const auto rOrigId = mgr.createFromFile(filePath);
+    REQUIRE(rOrigId.ok());
+    const int originalId = rOrigId.value();
+    auto originalDoc = mgr.getDocument(originalId);
+    const auto rOrigData = mgr.getData(originalId);
+    REQUIRE(rOrigData.ok());
+    const auto rSavedId = mgr.createFromScore(rOrigData.value());
+    REQUIRE(rSavedId.ok());
+    const int savedId = rSavedId.value();
+    auto savedDoc = mgr.getDocument(savedId);
     mgr.destroyDocument(originalId);
     mgr.destroyDocument(savedId);
 
-    const auto originalAppearance = originalScore->getScoreHeaderGroup()->getDefaults()->getAppearance();
-    const auto savedAppearance = savedScore->getScoreHeaderGroup()->getDefaults()->getAppearance();
+    REQUIRE(originalDoc->asScorePartwise().scoreHeader().defaults().has_value());
+    REQUIRE(savedDoc->asScorePartwise().scoreHeader().defaults().has_value());
+    REQUIRE(originalDoc->asScorePartwise().scoreHeader().defaults()->appearance().has_value());
+    REQUIRE(savedDoc->asScorePartwise().scoreHeader().defaults()->appearance().has_value());
 
-    const auto lineWidthSetSize = savedAppearance->getLineWidthSet().size();
+    const auto &originalAppearance = originalDoc->asScorePartwise().scoreHeader().defaults()->appearance().value();
+    const auto &savedAppearance = savedDoc->asScorePartwise().scoreHeader().defaults()->appearance().value();
+
+    const auto lineWidthSetSize = savedAppearance.lineWidth().size();
     CHECK(lineWidthSetSize > 0);
-    CHECK_EQUAL(originalAppearance->getLineWidthSet().size(), savedAppearance->getLineWidthSet().size());
+    CHECK_EQUAL(originalAppearance.lineWidth().size(), savedAppearance.lineWidth().size());
 
-    for (int i = 0; i < lineWidthSetSize; ++i)
+    for (size_t i = 0; i < lineWidthSetSize; ++i)
     {
-        const auto savedElement = savedAppearance->getLineWidthSet().at(i);
-        const auto originalElement = originalAppearance->getLineWidthSet().at(i);
-        const auto savedLineWidth = savedElement->getValue().getValue();
-        const auto originalLineWidth = originalElement->getValue().getValue();
+        const auto &savedElement = savedAppearance.lineWidth()[i];
+        const auto &originalElement = originalAppearance.lineWidth()[i];
+        const auto savedLineWidth = savedElement.value().value().value();
+        const auto originalLineWidth = originalElement.value().value().value();
         CHECK_DOUBLES_EQUAL(originalLineWidth, savedLineWidth, 0.00001);
 
-        CHECK(originalElement->getAttributes()->hasType == savedElement->getAttributes()->hasType);
-        CHECK_EQUAL(originalElement->getAttributes()->type.getValueString(),
-                    savedElement->getAttributes()->type.getValueString());
+        CHECK_EQUAL(originalElement.type().value(), savedElement.type().value());
     }
 }
 
@@ -387,32 +450,40 @@ TEST(appearanceNoteSize, Freezing)
 {
     auto &mgr = DocumentManager::getInstance();
     const auto filePath = mxtest::MxFileRepository::getFullPath(freezingFile);
-    const auto originalId = mgr.createFromFile(filePath);
-    const auto originalScoreData = mgr.getData(originalId);
-    const auto originalScore = mgr.getDocument(originalId)->getScorePartwise();
-    const auto savedId = mgr.createFromScore(mgr.getData(originalId));
-    const auto savedScoreData = mgr.getData(savedId);
-    const auto savedScore = mgr.getDocument(savedId)->getScorePartwise();
+    const auto rOrigId = mgr.createFromFile(filePath);
+    REQUIRE(rOrigId.ok());
+    const int originalId = rOrigId.value();
+    auto originalDoc = mgr.getDocument(originalId);
+    const auto rOrigData = mgr.getData(originalId);
+    REQUIRE(rOrigData.ok());
+    const auto rSavedId = mgr.createFromScore(rOrigData.value());
+    REQUIRE(rSavedId.ok());
+    const int savedId = rSavedId.value();
+    auto savedDoc = mgr.getDocument(savedId);
     mgr.destroyDocument(originalId);
     mgr.destroyDocument(savedId);
 
-    const auto originalAppearance = originalScore->getScoreHeaderGroup()->getDefaults()->getAppearance();
-    const auto savedAppearance = savedScore->getScoreHeaderGroup()->getDefaults()->getAppearance();
+    REQUIRE(originalDoc->asScorePartwise().scoreHeader().defaults().has_value());
+    REQUIRE(savedDoc->asScorePartwise().scoreHeader().defaults().has_value());
+    REQUIRE(originalDoc->asScorePartwise().scoreHeader().defaults()->appearance().has_value());
+    REQUIRE(savedDoc->asScorePartwise().scoreHeader().defaults()->appearance().has_value());
 
-    const auto noteSizeSetSize = savedAppearance->getNoteSizeSet().size();
+    const auto &originalAppearance = originalDoc->asScorePartwise().scoreHeader().defaults()->appearance().value();
+    const auto &savedAppearance = savedDoc->asScorePartwise().scoreHeader().defaults()->appearance().value();
+
+    const auto noteSizeSetSize = savedAppearance.noteSize().size();
     CHECK(noteSizeSetSize > 0);
-    CHECK_EQUAL(originalAppearance->getNoteSizeSet().size(), savedAppearance->getNoteSizeSet().size());
+    CHECK_EQUAL(originalAppearance.noteSize().size(), savedAppearance.noteSize().size());
 
-    for (int i = 0; i < noteSizeSetSize; ++i)
+    for (size_t i = 0; i < noteSizeSetSize; ++i)
     {
-        const auto savedElement = savedAppearance->getNoteSizeSet().at(i);
-        const auto originalElement = originalAppearance->getNoteSizeSet().at(i);
-        const auto savedNoteSize = savedElement->getValue().getValue();
-        const auto originalNoteSize = originalElement->getValue().getValue();
+        const auto &savedElement = savedAppearance.noteSize()[i];
+        const auto &originalElement = originalAppearance.noteSize()[i];
+        const auto savedNoteSize = savedElement.value().value().value();
+        const auto originalNoteSize = originalElement.value().value().value();
         CHECK_DOUBLES_EQUAL(originalNoteSize, savedNoteSize, 0.00001);
 
-        CHECK(originalElement->getAttributes()->hasType == savedElement->getAttributes()->hasType);
-        CHECK(originalElement->getAttributes()->type == savedElement->getAttributes()->type);
+        CHECK(originalElement.type() == savedElement.type());
     }
 }
 
@@ -420,33 +491,40 @@ TEST(appearancDistance, Freezing)
 {
     auto &mgr = DocumentManager::getInstance();
     const auto filePath = mxtest::MxFileRepository::getFullPath(freezingFile);
-    const auto originalId = mgr.createFromFile(filePath);
-    const auto originalScoreData = mgr.getData(originalId);
-    const auto originalScore = mgr.getDocument(originalId)->getScorePartwise();
-    const auto savedId = mgr.createFromScore(mgr.getData(originalId));
-    const auto savedScoreData = mgr.getData(savedId);
-    const auto savedScore = mgr.getDocument(savedId)->getScorePartwise();
+    const auto rOrigId = mgr.createFromFile(filePath);
+    REQUIRE(rOrigId.ok());
+    const int originalId = rOrigId.value();
+    auto originalDoc = mgr.getDocument(originalId);
+    const auto rOrigData = mgr.getData(originalId);
+    REQUIRE(rOrigData.ok());
+    const auto rSavedId = mgr.createFromScore(rOrigData.value());
+    REQUIRE(rSavedId.ok());
+    const int savedId = rSavedId.value();
+    auto savedDoc = mgr.getDocument(savedId);
     mgr.destroyDocument(originalId);
     mgr.destroyDocument(savedId);
 
-    const auto originalAppearance = originalScore->getScoreHeaderGroup()->getDefaults()->getAppearance();
-    const auto savedAppearance = savedScore->getScoreHeaderGroup()->getDefaults()->getAppearance();
+    REQUIRE(originalDoc->asScorePartwise().scoreHeader().defaults().has_value());
+    REQUIRE(savedDoc->asScorePartwise().scoreHeader().defaults().has_value());
+    REQUIRE(originalDoc->asScorePartwise().scoreHeader().defaults()->appearance().has_value());
+    REQUIRE(savedDoc->asScorePartwise().scoreHeader().defaults()->appearance().has_value());
 
-    const auto distanceSetSize = savedAppearance->getDistanceSet().size();
+    const auto &originalAppearance = originalDoc->asScorePartwise().scoreHeader().defaults()->appearance().value();
+    const auto &savedAppearance = savedDoc->asScorePartwise().scoreHeader().defaults()->appearance().value();
+
+    const auto distanceSetSize = savedAppearance.distance().size();
     CHECK(distanceSetSize > 0);
-    CHECK_EQUAL(originalAppearance->getDistanceSet().size(), savedAppearance->getDistanceSet().size());
+    CHECK_EQUAL(originalAppearance.distance().size(), savedAppearance.distance().size());
 
-    for (int i = 0; i < distanceSetSize; ++i)
+    for (size_t i = 0; i < distanceSetSize; ++i)
     {
-        const auto savedElement = savedAppearance->getDistanceSet().at(i);
-        const auto originalElement = originalAppearance->getDistanceSet().at(i);
-        const auto savedDistance = savedElement->getValue().getValue();
-        const auto originalDistance = originalElement->getValue().getValue();
+        const auto &savedElement = savedAppearance.distance()[i];
+        const auto &originalElement = originalAppearance.distance()[i];
+        const auto savedDistance = savedElement.value().value().value();
+        const auto originalDistance = originalElement.value().value().value();
         CHECK_DOUBLES_EQUAL(originalDistance, savedDistance, 0.00001);
 
-        CHECK(originalElement->getAttributes()->hasType == savedElement->getAttributes()->hasType);
-        CHECK(originalElement->getAttributes()->type.getValueString() ==
-              savedElement->getAttributes()->type.getValueString());
+        CHECK_EQUAL(originalElement.type().value(), savedElement.type().value());
     }
 }
 
@@ -454,51 +532,47 @@ TEST(checkMissingNormalTypeSimple, Freezing)
 {
     const auto testData = getTestData(tupletType);
     const auto musicData = testData.getMusicData(0, 0);
-    CHECK(musicData.second.at(1)->getNote()->getTimeModification()->getHasNormalTypeNormalDotGroup());
-    CHECK(mx::core::NoteTypeValue::eighth == musicData.second.at(1)
-                                                 ->getNote()
-                                                 ->getTimeModification()
-                                                 ->getNormalTypeNormalDotGroup()
-                                                 ->getNormalType()
-                                                 ->getValue());
+    const auto &mdc1 = musicData.second[1];
+    REQUIRE(mdc1.isNote());
+    const auto &note1 = mdc1.asNote();
+    REQUIRE(note1.timeModification().has_value());
+    REQUIRE(note1.timeModification()->group().has_value());
+    CHECK(mx::core::NoteTypeValue::Tag::eighth == note1.timeModification()->group()->normalType().tag());
 }
 
 TEST(checkMissingNormalType, Freezing)
 {
     const auto testData = getTestData(freezingFile);
-    const auto partCount = testData.originalScore->getPartwisePartSet().size();
+    const auto partCount = testData.originalScore().part().size();
 
     for (size_t partIndex = 0; partIndex < partCount; ++partIndex)
     {
-        const auto measureCount =
-            testData.originalScore->getPartwisePartSet().at(partIndex)->getPartwiseMeasureSet().size();
+        const auto measureCount = testData.originalScore().part()[partIndex].measure().size();
 
         for (size_t measureIndex = 0; measureIndex < measureCount; ++measureIndex)
         {
             const auto music = testData.getMusicData(static_cast<int>(partIndex), static_cast<int>(measureIndex));
 
-            const auto filterLambda = [&](const mx::core::MusicDataChoicePtr &inMdc) {
-                if (inMdc->getChoice() != mx::core::MusicDataChoice::Choice::note)
+            // Filter notes with time modification from both original and saved
+            std::vector<const mx::core::MusicDataChoice *> originalNotes;
+            std::vector<const mx::core::MusicDataChoice *> savedNotes;
+
+            for (const auto &mdc : music.first)
+            {
+                if (mdc.isNote() && mdc.asNote().timeModification().has_value())
                 {
-                    return false;
+                    originalNotes.push_back(&mdc);
                 }
+            }
 
-                const auto &note = inMdc->getNote();
-
-                if (!note->getHasTimeModification())
+            for (const auto &mdc : music.second)
+            {
+                if (mdc.isNote() && mdc.asNote().timeModification().has_value())
                 {
-                    return false;
+                    savedNotes.push_back(&mdc);
                 }
+            }
 
-                return true;
-            };
-
-            MusicDataChoiceSet originalNotes;
-            MusicDataChoiceSet savedNotes;
-            std::copy_if(std::cbegin(music.first), std::cend(music.first), std::back_inserter(originalNotes),
-                         filterLambda);
-            std::copy_if(std::cbegin(music.second), std::cend(music.second), std::back_inserter(savedNotes),
-                         filterLambda);
             {
                 std::stringstream message1;
                 message1 << "( originalNotes.size() == savedNotes.size() ), ";
@@ -506,32 +580,25 @@ TEST(checkMissingNormalType, Freezing)
                 message1 << " partIndex = " << partIndex << ", measureIndex = " << measureIndex;
                 CHECK_WITH_MESSAGE(originalNotes.size() == savedNotes.size(), message1.str());
             }
-            const size_t numNotes = originalNotes.size();
-            for (int i = 0; i < numNotes; ++i)
-            {
-                CHECK(savedNotes.at(i)->getNote()->getTimeModification()->getHasNormalTypeNormalDotGroup());
 
-                if (originalNotes.at(i)->getNote()->getTimeModification()->getHasNormalTypeNormalDotGroup())
+            const size_t numNotes = originalNotes.size();
+            for (size_t i = 0; i < numNotes; ++i)
+            {
+                const auto &savedNote = savedNotes[i]->asNote();
+                REQUIRE(savedNote.timeModification().has_value());
+                CHECK(savedNote.timeModification()->group().has_value());
+
+                const auto &origNote = originalNotes[i]->asNote();
+                if (origNote.timeModification()->group().has_value())
                 {
-                    const auto originalType = originalNotes.at(i)
-                                                  ->getNote()
-                                                  ->getTimeModification()
-                                                  ->getNormalTypeNormalDotGroup()
-                                                  ->getNormalType()
-                                                  ->getValue();
-                    const auto savedType = savedNotes.at(i)
-                                               ->getNote()
-                                               ->getTimeModification()
-                                               ->getNormalTypeNormalDotGroup()
-                                               ->getNormalType()
-                                               ->getValue();
+                    const auto originalType = origNote.timeModification()->group()->normalType();
+                    const auto savedType = savedNote.timeModification()->group()->normalType();
 
                     if (originalType != savedType)
                     {
                         std::stringstream message2;
                         message2 << "( originalType == savedType ), ";
-                        message2 << "( " << mx::core::toString(originalType) << " == " << mx::core::toString(savedType)
-                                 << " ), ";
+                        message2 << "( " << originalType.toString() << " == " << savedType.toString() << " ), ";
                         message2 << " partIndex = " << partIndex << ", measureIndex = " << measureIndex;
                         CHECK_WITH_MESSAGE(originalType == savedType, message2.str());
                     }

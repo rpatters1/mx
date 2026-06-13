@@ -60,10 +60,21 @@ int main(int argc, const char *argv[])
     std::istringstream istr{xml};
 
     // ask the document manager to parse the xml into memory for us, returns a document ID.
-    const auto documentID = mgr.createFromStream(istr);
+    const auto idResult = mgr.createFromStream(istr);
+    if (!idResult.ok())
+    {
+        return MX_IS_A_FAILURE;
+    }
+    const auto documentID = idResult.value();
 
     // get the structural representation of the score from the document manager
-    const auto score = mgr.getData(documentID);
+    const auto scoreResult = mgr.getData(documentID);
+    if (!scoreResult.ok())
+    {
+        mgr.destroyDocument(documentID);
+        return MX_IS_A_FAILURE;
+    }
+    const auto score = scoreResult.value();
 
     // we need to explicitly destroy the document from memory
     mgr.destroyDocument(documentID);

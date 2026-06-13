@@ -7,16 +7,15 @@
 
 #include "cpul/cpulTestHarness.h"
 #include "mx/api/DocumentManager.h"
-#include "mx/core/Document.h"
-#include "mx/core/elements/FullNoteGroup.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/MusicDataGroup.h"
-#include "mx/core/elements/NormalNoteGroup.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/NoteChoice.h"
-#include "mx/core/elements/PartwiseMeasure.h"
-#include "mx/core/elements/PartwisePart.h"
-#include "mx/core/elements/ScorePartwise.h"
+#include "mx/core/generated/Document.h"
+#include "mx/core/generated/FullNoteGroup.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/NormalNoteGroup.h"
+#include "mx/core/generated/Note.h"
+#include "mx/core/generated/NoteChoice.h"
+#include "mx/core/generated/PartwiseMeasure.h"
+#include "mx/core/generated/PartwisePart.h"
+#include "mx/core/generated/ScorePartwise.h"
 #include "mxtest/api/TestHelpers.h"
 #include "mxtest/file/MxFileRepository.h"
 
@@ -108,9 +107,13 @@ TEST(chordSaveNotes, ChordApi)
 {
     const auto originalData = mxtest::MxFileRepository::loadFile(fileName);
     auto &docMgr = DocumentManager::getInstance();
-    const int savedDocId = docMgr.createFromScore(originalData);
-    const auto scoreData = docMgr.getData(savedDocId);
+    const auto savedDocIdResult = docMgr.createFromScore(originalData);
+    REQUIRE(savedDocIdResult.ok());
+    const int savedDocId = savedDocIdResult.value();
+    const auto scoreDataResult = docMgr.getData(savedDocId);
     docMgr.destroyDocument(savedDocId);
+    REQUIRE(scoreDataResult.ok());
+    const auto &scoreData = scoreDataResult.value();
 
     CHECK_EQUAL(1, scoreData.parts.size());
     const auto &part = scoreData.parts.front();
@@ -243,10 +246,14 @@ TEST(KompChordBug_PIVOTAL_147058063, ChordApi)
     originalStaffPtr->voices[0].notes.push_back(note);
 
     auto &docMgr = DocumentManager::getInstance();
-    const auto docID = docMgr.createFromScore(originalScore);
+    const auto docIdResult = docMgr.createFromScore(originalScore);
+    REQUIRE(docIdResult.ok());
+    const int docID = docIdResult.value();
     const auto documentPtr = docMgr.getDocument(docID);
     docMgr.destroyDocument(docID);
-    const auto scorePartwisePtr = documentPtr->getScorePartwise();
+    REQUIRE(documentPtr != nullptr);
+    REQUIRE(documentPtr->isScorePartwise());
+    const auto &scorePartwise = documentPtr->asScorePartwise();
     const auto xml = mxtest::toXml(originalScore);
     const auto savedScore = mxtest::fromXml(xml);
     const auto &savedPart = savedScore.parts.at(0);
@@ -276,25 +283,26 @@ TEST(KompChordBug_PIVOTAL_147058063, ChordApi)
     CHECK(savedNotePtr->isChord);
     CHECK_EQUAL(0, savedNotePtr->tickTimePosition);
 
-    const auto &partwisePartSet = scorePartwisePtr->getPartwisePartSet();
-    const auto &partwisePart = partwisePartSet.at(0);
-    const auto &partwiseMeasureSet = partwisePart->getPartwiseMeasureSet();
-    const auto &partwiseMeasure = partwiseMeasureSet.at(0);
-    const auto &mdg = partwiseMeasure->getMusicDataGroup();
-    const auto &musicDataChoiceSet = mdg->getMusicDataChoiceSet();
+    const auto partwiseParts = scorePartwise.part();
+    REQUIRE(!partwiseParts.empty());
+    const auto &partwisePart = partwiseParts[0];
+    const auto partwiseMeasures = partwisePart.measure();
+    REQUIRE(!partwiseMeasures.empty());
+    const auto &partwiseMeasure = partwiseMeasures[0];
+    const auto musicDataChoices = partwiseMeasure.musicData();
 
     int noteIndex = 0;
-    for (const auto &musicDataChoice : musicDataChoiceSet)
+    for (const auto &musicDataChoice : musicDataChoices)
     {
-        if (musicDataChoice->getChoice() != mx::core::MusicDataChoice::Choice::note)
+        if (!musicDataChoice.isNote())
         {
             continue;
         }
 
-        const auto mxNote = musicDataChoice->getNote();
-        const auto mxNormal = mxNote->getNoteChoice()->getNormalNoteGroup();
-        const auto mxFullNoteGroup = mxNormal->getFullNoteGroup();
-        const bool hasChordTag = mxFullNoteGroup->getHasChord();
+        const auto &mxNote = musicDataChoice.asNote();
+        REQUIRE(mxNote.choice().isNormalNoteGroup());
+        const auto &mxNormal = mxNote.choice().asNormalNoteGroup();
+        const bool hasChordTag = mxNormal.fullNote().chord();
 
         if (noteIndex == 0 || noteIndex == 3)
         {

@@ -7,9 +7,10 @@
 
 #include "cpul/cpulTestHarness.h"
 #include "mx/api/OttavaData.h"
-#include "mx/core/elements/Direction.h"
-#include "mx/core/elements/DirectionType.h"
-#include "mx/core/elements/OctaveShift.h"
+#include "mx/core/generated/Direction.h"
+#include "mx/core/generated/DirectionType.h"
+#include "mx/core/generated/DirectionTypeChoice.h"
+#include "mx/core/generated/OctaveShift.h"
 #include "mx/impl/DirectionReader.h"
 
 #include <memory>
@@ -20,15 +21,13 @@ using namespace mx::impl;
 TEST(ottavaStart15mb, DirectionReader)
 {
     const int tickTimePosition = 150;
-    auto dir = core::makeDirection();
-    CHECK_EQUAL(1, dir->getDirectionTypeSet().size());
-    auto dirType = dir->getDirectionTypeSet().front();
-    dirType->setChoice(core::DirectionType::Choice::octaveShift);
-    auto oct = dirType->getOctaveShift();
-    auto attr = oct->getAttributes();
-    attr->type = core::UpDownStopContinue::down;
-    attr->hasSize = true;
-    attr->size = core::PositiveInteger{15};
+    core::Direction dir{};
+    core::OctaveShift oct{};
+    oct.setType(core::UpDownStopContinue::down());
+    oct.setSize(15);
+    core::DirectionType dirType{};
+    dirType.setChoice(core::DirectionTypeChoice::octaveShift(oct));
+    dir.setDirectionType(core::OneOrMore<core::DirectionType>{dirType});
     Cursor cursor{1, 100};
     cursor.tickTimePosition = tickTimePosition;
     DirectionReader reader{dir, cursor};
@@ -46,33 +45,29 @@ TEST(ottavaStart8vaAnd8vb, DirectionReader)
     const int tickTimePosition = 199;
 
     // add an 8va start
-    auto dir = core::makeDirection();
-    CHECK_EQUAL(1, dir->getDirectionTypeSet().size());
-    auto dirType = dir->getDirectionTypeSet().front();
-    dirType->setChoice(core::DirectionType::Choice::octaveShift);
-    auto oct = dirType->getOctaveShift();
-    auto attr = oct->getAttributes();
-    attr->type = core::UpDownStopContinue::up;
-    attr->hasSize = true;
-    attr->size = core::PositiveInteger{8};
+    core::OctaveShift oct1{};
+    oct1.setType(core::UpDownStopContinue::up());
+    oct1.setSize(8);
+    core::DirectionType dirType1{};
+    dirType1.setChoice(core::DirectionTypeChoice::octaveShift(oct1));
 
     // add a phantom "continue" which should be ignored by our code
-    dirType = core::makeDirectionType();
-    dirType->setChoice(core::DirectionType::Choice::octaveShift);
-    dir->addDirectionType(dirType);
-    oct = dirType->getOctaveShift();
-    attr = oct->getAttributes();
-    attr->type = core::UpDownStopContinue::continue_;
+    core::OctaveShift oct2{};
+    oct2.setType(core::UpDownStopContinue::continue_());
+    core::DirectionType dirType2{};
+    dirType2.setChoice(core::DirectionTypeChoice::octaveShift(oct2));
 
     // add an 8vb but rely on the default 'size'
-    dirType = core::makeDirectionType();
-    dirType->setChoice(core::DirectionType::Choice::octaveShift);
-    dir->addDirectionType(dirType);
-    oct = dirType->getOctaveShift();
-    attr = oct->getAttributes();
-    attr->type = core::UpDownStopContinue::down;
-    attr->hasNumber = true;
-    attr->number = core::NumberLevel{3};
+    core::OctaveShift oct3{};
+    oct3.setType(core::UpDownStopContinue::down());
+    oct3.setNumber(core::NumberLevel{3});
+    core::DirectionType dirType3{};
+    dirType3.setChoice(core::DirectionTypeChoice::octaveShift(oct3));
+
+    core::Direction dir{};
+    dir.setDirectionType(core::OneOrMore<core::DirectionType>{dirType1});
+    dir.addDirectionType(dirType2);
+    dir.addDirectionType(dirType3);
 
     Cursor cursor{1, 111};
     cursor.tickTimePosition = tickTimePosition;
@@ -97,15 +92,13 @@ T_END
 TEST(ottavaStop, DirectionReader)
 {
     const int tickTimePosition = 150;
-    auto dir = core::makeDirection();
-    CHECK_EQUAL(1, dir->getDirectionTypeSet().size());
-    auto dirType = dir->getDirectionTypeSet().front();
-    dirType->setChoice(core::DirectionType::Choice::octaveShift);
-    auto oct = dirType->getOctaveShift();
-    auto attr = oct->getAttributes();
-    attr->type = core::UpDownStopContinue::stop;
-    attr->hasSize = true;
-    attr->size = core::PositiveInteger{15};
+    core::OctaveShift oct{};
+    oct.setType(core::UpDownStopContinue::stop());
+    oct.setSize(15);
+    core::DirectionType dirType{};
+    dirType.setChoice(core::DirectionTypeChoice::octaveShift(oct));
+    core::Direction dir{};
+    dir.setDirectionType(core::OneOrMore<core::DirectionType>{dirType});
     Cursor cursor{1, 100};
     cursor.tickTimePosition = tickTimePosition;
     DirectionReader reader{dir, cursor};

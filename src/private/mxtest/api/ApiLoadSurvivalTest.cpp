@@ -29,12 +29,25 @@ class ApiLoadSurvivalTest : public mxtest::MxFileTest
             return;
         }
         auto &docMgr = mx::api::DocumentManager::getInstance();
-        const auto docId = docMgr.createFromFile(testFilePath());
-        const auto scoreData = docMgr.getData(docId);
+        const auto docIdResult = docMgr.createFromFile(testFilePath());
+        if (!docIdResult.ok())
+        {
+            setIsSuccess(false);
+            setFailureMessage("docMgr.createFromFile failed: " + docIdResult.error().message);
+            return;
+        }
+        const int docId = docIdResult.value();
+        const auto scoreDataResult = docMgr.getData(docId);
         docMgr.destroyDocument(docId);
-        bool isSuccess = scoreData.parts.size() > 0;
+        if (!scoreDataResult.ok())
+        {
+            setIsSuccess(false);
+            setFailureMessage("docMgr.getData failed: " + scoreDataResult.error().message);
+            return;
+        }
+        bool isSuccess = scoreDataResult.value().parts.size() > 0;
         setIsSuccess(isSuccess);
-        setFailureMessage("either docMgr.createFromFile or docMgr.getData failed");
+        setFailureMessage("scoreData has no parts");
     }
 };
 

@@ -14,7 +14,10 @@ inline std::string toXml(const mx::api::ScoreData &inScoreData)
 {
     using namespace mx::api;
     auto &docMgr = DocumentManager::getInstance();
-    const auto docId = docMgr.createFromScore(inScoreData);
+    const auto docIdResult = docMgr.createFromScore(inScoreData);
+    if (!docIdResult.ok())
+        return {};
+    const int docId = docIdResult.value();
     std::stringstream ss;
     docMgr.writeToStream(docId, ss);
     docMgr.destroyDocument(docId);
@@ -27,9 +30,14 @@ inline mx::api::ScoreData fromXml(const std::string &inXml)
     using namespace mx::api;
     auto &docMgr = DocumentManager::getInstance();
     std::istringstream iss{inXml};
-    const auto docId = docMgr.createFromStream(iss);
-    const auto score = docMgr.getData(docId);
+    const auto docIdResult = docMgr.createFromStream(iss);
+    if (!docIdResult.ok())
+        return {};
+    const int docId = docIdResult.value();
+    const auto scoreResult = docMgr.getData(docId);
     docMgr.destroyDocument(docId);
-    return score;
+    if (!scoreResult.ok())
+        return {};
+    return scoreResult.value();
 }
 } // namespace mxtest

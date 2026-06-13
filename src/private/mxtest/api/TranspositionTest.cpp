@@ -6,12 +6,13 @@
 #ifdef MX_COMPILE_API_TESTS
 #include "cpul/cpulTestHarness.h"
 #include "mx/api/DocumentManager.h"
-#include "mx/core/Document.h"
-#include "mx/core/elements/Chromatic.h"
-#include "mx/core/elements/Diatonic.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/Properties.h"
-#include "mx/core/elements/Transpose.h"
+#include "mx/core/generated/Attributes.h"
+#include "mx/core/generated/AttributesChoice.h"
+#include "mx/core/generated/Document.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/Semitones.h"
+#include "mx/core/generated/Transpose.h"
+#include "mx/core/generated/TransposeGroup.h"
 #include "mx/impl/Converter.h"
 #include "mxtest/file/MxFileRepository.h"
 
@@ -25,14 +26,24 @@ namespace mxtest
 inline mx::api::ScoreData roundtrip(const mx::api::ScoreData &inOriginal)
 {
     auto &docMgr = mx::api::DocumentManager::getInstance();
-    const auto id = docMgr.createFromScore(inOriginal);
+    const auto r = docMgr.createFromScore(inOriginal);
+    REQUIRE(r.ok());
+    const int id = r.value();
     std::ostringstream oss;
     docMgr.writeToStream(id, oss);
     std::istringstream iss{oss.str()};
-    const auto id2 = docMgr.createFromStream(iss);
-    auto result = docMgr.getData(id2);
+    const auto r2 = docMgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    const int id2 = r2.value();
+    const auto rd = docMgr.getData(id2);
+    REQUIRE(rd.ok());
+    auto result = rd.value();
     docMgr.destroyDocument(id);
     docMgr.destroyDocument(id2);
+    // The write side always emits version="4.0"; normalize the version fields so they
+    // do not prevent a meaningful music-content equality comparison.
+    result.musicXmlVersion = inOriginal.musicXmlVersion;
+    result.declaredMusicXmlVersion = inOriginal.declaredMusicXmlVersion;
     return result;
 }
 
@@ -53,61 +64,72 @@ inline void checkCoreTransposeElement(const mx::api::ScoreData &inScore, int inE
                                       std::optional<int> inExpectedDiatonic, std::optional<int> inExpectedOctave)
 {
     auto &docMgr = mx::api::DocumentManager::getInstance();
-    const auto id = docMgr.createFromScore(inScore);
+    const auto r = docMgr.createFromScore(inScore);
+    REQUIRE(r.ok());
+    const int id = r.value();
     const auto core = docMgr.getDocument(id);
     docMgr.destroyDocument(id);
-    CHECK(core->getChoice() == mx::core::DocumentChoice::partwise);
-    const auto &score = core->getScorePartwise();
-    REQUIRE(!score->getPartwisePartSet().empty());
-    const auto &part = score->getPartwisePartSet().front();
-    REQUIRE(!part->getPartwiseMeasureSet().empty());
-    const auto &measure = part->getPartwiseMeasureSet().front();
-    const auto &choices = measure->getMusicDataGroup()->getMusicDataChoiceSet();
+    REQUIRE(core != nullptr);
+    REQUIRE(core->isScorePartwise());
+    const auto &score = core->asScorePartwise();
+    const auto parts = score.part();
+    REQUIRE(!parts.empty());
+    const auto &part = parts[0];
+    const auto measures = part.measure();
+    REQUIRE(!measures.empty());
+    const auto &measure = measures[0];
+    const auto choices = measure.musicData();
     REQUIRE(!choices.empty());
-    mx::core::PropertiesPtr properties;
-    for (const auto &choice : choices)
+    const mx::core::Attributes *attributesPtr = nullptr;
+    for (const auto &mdc : choices)
     {
-        if (choice->getChoice() == mx::core::MusicDataChoice::Choice::properties)
+        if (mdc.isAttributes())
         {
-            // there should be only 1 properties element
-            CHECK(properties == nullptr);
-            properties = choice->getProperties();
-            // continue looping to make sure we don't hit another properties element
+            // there should be only 1 attributes element
+            CHECK(attributesPtr == nullptr);
+            attributesPtr = &mdc.asAttributes();
+            // continue looping to make sure we don't hit another attributes element
         }
     }
-    // we should have found exactly one properties element
-    CHECK(properties != nullptr);
+    // we should have found exactly one attributes element
+    CHECK(attributesPtr != nullptr);
+    if (attributesPtr == nullptr)
+    {
+        return;
+    }
     // assert that the transpose element matches
-    REQUIRE(properties->getTransposeSet().size() == 1);
-    const auto &transpose = properties->getTransposeSet().front();
-    CHECK_EQUAL(inExpectedChromatic, static_cast<int>(transpose->getChromatic()->getValue().getValue()));
+    REQUIRE(attributesPtr->choice().isTranspose());
+    const auto &transposeVec = attributesPtr->choice().asTranspose();
+    REQUIRE(transposeVec.size() == 1);
+    const auto &tg = transposeVec[0].transpose();
+    CHECK_EQUAL(inExpectedChromatic, static_cast<int>(tg.chromatic().value().value()));
     if (inExpectedDiatonic.has_value())
     {
-        CHECK(transpose->getHasDiatonic());
-        CHECK_EQUAL(inExpectedDiatonic.value(), static_cast<int>(transpose->getDiatonic()->getValue().getValue()));
+        REQUIRE(tg.diatonic().has_value());
+        CHECK_EQUAL(inExpectedDiatonic.value(), tg.diatonic().value());
     }
     if (inExpectedOctave.has_value())
     {
-        CHECK(transpose->getHasOctaveChange());
-        CHECK_EQUAL(inExpectedOctave.value(), static_cast<int>(transpose->getOctaveChange()->getValue().getValue()));
+        REQUIRE(tg.octaveChange().has_value());
+        CHECK_EQUAL(inExpectedOctave.value(), tg.octaveChange().value());
     }
 }
 
-inline mx::core::TransposePtr makeTranspose(int inChromatic, std::optional<int> inDiatonic, std::optional<int> inOctave)
+inline mx::core::Transpose makeTranspose(int inChromatic, std::optional<int> inDiatonic, std::optional<int> inOctave)
 {
-    auto transpose = mx::core::makeTranspose();
-    transpose->getChromatic()->setValue(mx::core::Semitones{static_cast<mx::core::DecimalType>(inChromatic)});
+    mx::core::Transpose t;
+    mx::core::TransposeGroup tg;
+    tg.setChromatic(mx::core::Semitones{mx::core::Decimal{static_cast<double>(inChromatic)}});
     if (inDiatonic.has_value())
     {
-        transpose->setHasDiatonic(true);
-        transpose->getDiatonic()->setValue(mx::core::Integer{inDiatonic.value()});
+        tg.setDiatonic(inDiatonic);
     }
     if (inOctave.has_value())
     {
-        transpose->setHasOctaveChange(true);
-        transpose->getOctaveChange()->setValue(mx::core::Integer{inOctave.value()});
+        tg.setOctaveChange(inOctave);
     }
-    return transpose;
+    t.setTranspose(tg);
+    return t;
 }
 } // namespace mxtest
 
@@ -117,7 +139,7 @@ TEST(convertToTransposeData01, Transposition)
     const int expectedChromatic = 1;
     const int expectedDiatonic = 1;
     const auto transpose = mxtest::makeTranspose(1, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -128,7 +150,7 @@ TEST(convertToTransposeData02, Transposition)
     const int expectedChromatic = -1;
     const int expectedDiatonic = -1;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -139,7 +161,7 @@ TEST(convertToTransposeData03, Transposition)
     const int expectedChromatic = 2;
     const int expectedDiatonic = 1;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -150,7 +172,7 @@ TEST(convertToTransposeData04, Transposition)
     const int expectedChromatic = -2;
     const int expectedDiatonic = -1;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -161,7 +183,7 @@ TEST(convertToTransposeData05, Transposition)
     const int expectedChromatic = 3;
     const int expectedDiatonic = 2;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -172,7 +194,7 @@ TEST(convertToTransposeData06, Transposition)
     const int expectedChromatic = -3;
     const int expectedDiatonic = -2;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -183,7 +205,7 @@ TEST(convertToTransposeData07, Transposition)
     const int expectedChromatic = 4;
     const int expectedDiatonic = 2;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -194,7 +216,7 @@ TEST(convertToTransposeData08, Transposition)
     const int expectedChromatic = -4;
     const int expectedDiatonic = -2;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -205,7 +227,7 @@ TEST(convertToTransposeData09, Transposition)
     const int expectedChromatic = 5;
     const int expectedDiatonic = 3;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -216,7 +238,7 @@ TEST(convertToTransposeData10, Transposition)
     const int expectedChromatic = -5;
     const int expectedDiatonic = -3;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -227,7 +249,7 @@ TEST(convertToTransposeData11, Transposition)
     const int expectedChromatic = 6;
     const int expectedDiatonic = 3;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -238,7 +260,7 @@ TEST(convertToTransposeData12, Transposition)
     const int expectedChromatic = -6;
     const int expectedDiatonic = -3;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -249,7 +271,7 @@ TEST(convertToTransposeData13, Transposition)
     const int expectedChromatic = 7;
     const int expectedDiatonic = 4;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -260,7 +282,7 @@ TEST(convertToTransposeData14, Transposition)
     const int expectedChromatic = -7;
     const int expectedDiatonic = -4;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -271,7 +293,7 @@ TEST(convertToTransposeData15, Transposition)
     const int expectedChromatic = 8;
     const int expectedDiatonic = 5;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -282,7 +304,7 @@ TEST(convertToTransposeData16, Transposition)
     const int expectedChromatic = -8;
     const int expectedDiatonic = -5;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -293,7 +315,7 @@ TEST(convertToTransposeData17, Transposition)
     const int expectedChromatic = 9;
     const int expectedDiatonic = 5;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -304,7 +326,7 @@ TEST(convertToTransposeData18, Transposition)
     const int expectedChromatic = -9;
     const int expectedDiatonic = -5;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -315,7 +337,7 @@ TEST(convertToTransposeData19, Transposition)
     const int expectedChromatic = 10;
     const int expectedDiatonic = 6;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -326,7 +348,7 @@ TEST(convertToTransposeData20, Transposition)
     const int expectedChromatic = -10;
     const int expectedDiatonic = -6;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -337,7 +359,7 @@ TEST(convertToTransposeData21, Transposition)
     const int expectedChromatic = 11;
     const int expectedDiatonic = 6;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -348,7 +370,7 @@ TEST(convertToTransposeData22, Transposition)
     const int expectedChromatic = -11;
     const int expectedDiatonic = -6;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -359,7 +381,7 @@ TEST(convertToTransposeData23, Transposition)
     const int expectedChromatic = 12;
     const int expectedDiatonic = 7;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -370,7 +392,7 @@ TEST(convertToTransposeData24, Transposition)
     const int expectedChromatic = -12;
     const int expectedDiatonic = -7;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -381,7 +403,7 @@ TEST(convertToTransposeData25, Transposition)
     const int expectedChromatic = 13;
     const int expectedDiatonic = 8;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -392,7 +414,7 @@ TEST(convertToTransposeData26, Transposition)
     const int expectedChromatic = -13;
     const int expectedDiatonic = -8;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, std::nullopt, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -403,7 +425,7 @@ TEST(convertToTransposeData27, Transposition)
     const int expectedChromatic = -130;
     const int expectedDiatonic = 147;
     const auto transpose = mxtest::makeTranspose(expectedChromatic, expectedDiatonic, std::nullopt);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -415,7 +437,7 @@ TEST(convertToTransposeData28, Transposition)
     const int expectedDiatonic = 147;
     const int octave = 2;
     const auto transpose = mxtest::makeTranspose(-162, 133, octave);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -427,7 +449,7 @@ TEST(convertToTransposeData29, Transposition)
     const int expectedDiatonic = -8;
     const int octave = -1;
     const auto transpose = mxtest::makeTranspose(-2, -1, octave);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -439,7 +461,7 @@ TEST(convertToTransposeData30, Transposition)
     const int expectedDiatonic = 6;
     const int octave = 1;
     const auto transpose = mxtest::makeTranspose(-2, -1, octave);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -452,7 +474,7 @@ TEST(convertToTransposeData31, Transposition)
     const int expectedDiatonic = -762;
     const int octave = -6;
     const auto transpose = mxtest::makeTranspose(-1234, std::nullopt, octave);
-    const auto actual = mx::impl::Converter::convertToTransposeData(*transpose);
+    const auto actual = mx::impl::Converter::convertToTransposeData(transpose);
     CHECK_EQUAL(expectedChromatic, actual.chromatic);
     CHECK_EQUAL(expectedDiatonic, actual.diatonic);
 }
@@ -466,13 +488,12 @@ TEST(Conversion01, Transposition)
     const auto transposeDataDiatonic = 1;
     const auto original = mx::api::TransposeData{transposeDataChromatic, transposeDataDiatonic};
     const auto converted = mx::impl::Converter::convertToTranspose(original);
-    REQUIRE(converted != nullptr);
-    CHECK_EQUAL(expectedChromatic, static_cast<int>(converted->getChromatic()->getValue().getValue()));
-    CHECK(converted->getHasDiatonic() == (expectedDiatonic != 0));
-    CHECK_EQUAL(expectedDiatonic, static_cast<int>(converted->getDiatonic()->getValue().getValue()));
-    CHECK(converted->getHasOctaveChange() == (expectedOctave != 0));
-    CHECK_EQUAL(expectedOctave, static_cast<int>(converted->getOctaveChange()->getValue().getValue()));
-    const auto final = mx::impl::Converter::convertToTransposeData(*converted);
+    CHECK_EQUAL(expectedChromatic, static_cast<int>(converted.transpose().chromatic().value().value()));
+    CHECK(converted.transpose().diatonic().has_value() == (expectedDiatonic != 0));
+    CHECK_EQUAL(expectedDiatonic, converted.transpose().diatonic().value_or(0));
+    CHECK(converted.transpose().octaveChange().has_value() == (expectedOctave != 0));
+    CHECK_EQUAL(expectedOctave, converted.transpose().octaveChange().value_or(0));
+    const auto final = mx::impl::Converter::convertToTransposeData(converted);
     CHECK_EQUAL(transposeDataChromatic, final.chromatic);
     CHECK_EQUAL(transposeDataDiatonic, final.diatonic);
     CHECK_EQUAL(original, final);
@@ -487,13 +508,12 @@ TEST(Conversion02, Transposition)
     const auto transposeDataDiatonic = 7;
     const auto original = mx::api::TransposeData{transposeDataChromatic, transposeDataDiatonic};
     const auto converted = mx::impl::Converter::convertToTranspose(original);
-    REQUIRE(converted != nullptr);
-    CHECK_EQUAL(expectedChromatic, static_cast<int>(converted->getChromatic()->getValue().getValue()));
-    CHECK(converted->getHasDiatonic() == (expectedDiatonic != 0));
-    CHECK_EQUAL(expectedDiatonic, static_cast<int>(converted->getDiatonic()->getValue().getValue()));
-    CHECK(converted->getHasOctaveChange() == (expectedOctave != 0));
-    CHECK_EQUAL(expectedOctave, static_cast<int>(converted->getOctaveChange()->getValue().getValue()));
-    const auto final = mx::impl::Converter::convertToTransposeData(*converted);
+    CHECK_EQUAL(expectedChromatic, static_cast<int>(converted.transpose().chromatic().value().value()));
+    CHECK(converted.transpose().diatonic().has_value() == (expectedDiatonic != 0));
+    CHECK_EQUAL(expectedDiatonic, converted.transpose().diatonic().value_or(0));
+    CHECK(converted.transpose().octaveChange().has_value() == (expectedOctave != 0));
+    CHECK_EQUAL(expectedOctave, converted.transpose().octaveChange().value_or(0));
+    const auto final = mx::impl::Converter::convertToTransposeData(converted);
     CHECK_EQUAL(transposeDataChromatic, final.chromatic);
     CHECK_EQUAL(transposeDataDiatonic, final.diatonic);
     CHECK_EQUAL(original, final);
@@ -508,13 +528,12 @@ TEST(Conversion03, Transposition)
     const auto transposeDataDiatonic = 9;
     const auto original = mx::api::TransposeData{transposeDataChromatic, transposeDataDiatonic};
     const auto converted = mx::impl::Converter::convertToTranspose(original);
-    REQUIRE(converted != nullptr);
-    CHECK_EQUAL(expectedChromatic, static_cast<int>(converted->getChromatic()->getValue().getValue()));
-    CHECK(converted->getHasDiatonic() == (expectedDiatonic != 0));
-    CHECK_EQUAL(expectedDiatonic, static_cast<int>(converted->getDiatonic()->getValue().getValue()));
-    CHECK(converted->getHasOctaveChange() == (expectedOctave != 0));
-    CHECK_EQUAL(expectedOctave, static_cast<int>(converted->getOctaveChange()->getValue().getValue()));
-    const auto final = mx::impl::Converter::convertToTransposeData(*converted);
+    CHECK_EQUAL(expectedChromatic, static_cast<int>(converted.transpose().chromatic().value().value()));
+    CHECK(converted.transpose().diatonic().has_value() == (expectedDiatonic != 0));
+    CHECK_EQUAL(expectedDiatonic, converted.transpose().diatonic().value_or(0));
+    CHECK(converted.transpose().octaveChange().has_value() == (expectedOctave != 0));
+    CHECK_EQUAL(expectedOctave, converted.transpose().octaveChange().value_or(0));
+    const auto final = mx::impl::Converter::convertToTransposeData(converted);
     CHECK_EQUAL(transposeDataChromatic, final.chromatic);
     CHECK_EQUAL(transposeDataDiatonic, final.diatonic);
     CHECK_EQUAL(original, final);
@@ -529,13 +548,12 @@ TEST(Conversion04, Transposition)
     const auto transposeDataDiatonic = -9;
     const auto original = mx::api::TransposeData{transposeDataChromatic, transposeDataDiatonic};
     const auto converted = mx::impl::Converter::convertToTranspose(original);
-    REQUIRE(converted != nullptr);
-    CHECK_EQUAL(expectedChromatic, static_cast<int>(converted->getChromatic()->getValue().getValue()));
-    CHECK(converted->getHasDiatonic() == (expectedDiatonic != 0));
-    CHECK_EQUAL(expectedDiatonic, static_cast<int>(converted->getDiatonic()->getValue().getValue()));
-    CHECK(converted->getHasOctaveChange() == (expectedOctave != 0));
-    CHECK_EQUAL(expectedOctave, static_cast<int>(converted->getOctaveChange()->getValue().getValue()));
-    const auto final = mx::impl::Converter::convertToTransposeData(*converted);
+    CHECK_EQUAL(expectedChromatic, static_cast<int>(converted.transpose().chromatic().value().value()));
+    CHECK(converted.transpose().diatonic().has_value() == (expectedDiatonic != 0));
+    CHECK_EQUAL(expectedDiatonic, converted.transpose().diatonic().value_or(0));
+    CHECK(converted.transpose().octaveChange().has_value() == (expectedOctave != 0));
+    CHECK_EQUAL(expectedOctave, converted.transpose().octaveChange().value_or(0));
+    const auto final = mx::impl::Converter::convertToTransposeData(converted);
     CHECK_EQUAL(transposeDataChromatic, final.chromatic);
     CHECK_EQUAL(transposeDataDiatonic, final.diatonic);
     CHECK_EQUAL(original, final);

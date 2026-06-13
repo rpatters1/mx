@@ -7,10 +7,10 @@
 
 #include "cpul/cpulTestHarness.h"
 #include "mx/api/OttavaData.h"
-#include "mx/core/elements/Direction.h"
-#include "mx/core/elements/DirectionType.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/OctaveShift.h"
+#include "mx/core/generated/Direction.h"
+#include "mx/core/generated/DirectionType.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/OctaveShift.h"
 #include "mx/impl/DirectionWriter.h"
 
 #include <memory>
@@ -36,9 +36,9 @@ TEST(ottavaStartStop, DirectionWriter)
 
     DirectionWriter writer{directionData, cursor};
     const auto mdcSet = writer.getDirectionLikeThings();
-    CHECK(mdcSet.front()->getChoice() == core::MusicDataChoice::Choice::direction);
-    const auto direction = mdcSet.front()->getDirection();
-    const auto &directionTypes = direction->getDirectionTypeSet();
+    CHECK(mdcSet.front().isDirection());
+    const auto &direction = mdcSet.front().asDirection();
+    const auto &directionTypes = direction.directionType();
 
     CHECK_EQUAL(2, directionTypes.size());
 }

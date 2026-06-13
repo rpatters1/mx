@@ -7,25 +7,6 @@
 
 #include "cpul/cpulTestHarness.h"
 #include "mx/api/DocumentManager.h"
-#include "mx/core/Document.h"
-#include "mx/core/elements/Direction.h"
-#include "mx/core/elements/DirectionType.h"
-#include "mx/core/elements/FullNoteGroup.h"
-#include "mx/core/elements/FullNoteTypeChoice.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/MusicDataGroup.h"
-#include "mx/core/elements/NormalNoteGroup.h"
-#include "mx/core/elements/Notations.h"
-#include "mx/core/elements/NotationsChoice.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/NoteChoice.h"
-#include "mx/core/elements/Offset.h"
-#include "mx/core/elements/PartwiseMeasure.h"
-#include "mx/core/elements/PartwisePart.h"
-#include "mx/core/elements/Pedal.h"
-#include "mx/core/elements/Pitch.h"
-#include "mx/core/elements/ScorePartwise.h"
-#include "mx/core/elements/Tied.h"
 #include "mxtest/api/RoundTrip.h"
 #include "mxtest/api/TestHelpers.h"
 
@@ -54,14 +35,20 @@ TEST(forwardRepeat, MeasureData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto rDocId = mgr.createFromScore(score);
+    REQUIRE(rDocId.ok());
+    int docId = rDocId.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto rDocId2 = mgr.createFromStream(iss);
+    REQUIRE(rDocId2.ok());
+    docId = rDocId2.value();
+    const auto rOscore = mgr.getData(docId);
+    REQUIRE(rOscore.ok());
+    const auto oscore = rOscore.value();
 
     // get the data after the round trip
     const auto &opart = oscore.parts.back();
@@ -100,14 +87,20 @@ TEST(backwardRepeat, MeasureData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto rDocId = mgr.createFromScore(score);
+    REQUIRE(rDocId.ok());
+    int docId = rDocId.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto rDocId2 = mgr.createFromStream(iss);
+    REQUIRE(rDocId2.ok());
+    docId = rDocId2.value();
+    const auto rOscore = mgr.getData(docId);
+    REQUIRE(rOscore.ok());
+    const auto oscore = rOscore.value();
 
     // get the data after the round trip
     const auto &opart = oscore.parts.back();

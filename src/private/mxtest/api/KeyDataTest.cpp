@@ -9,10 +9,20 @@
 
 #include "cpul/cpulTestHarness.h"
 #include "mx/api/DocumentManager.h"
-#include "mx/core/Document.h"
+#include "mx/core/generated/Attributes.h"
+#include "mx/core/generated/Document.h"
+#include "mx/core/generated/Key.h"
+#include "mx/core/generated/KeyChoice.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/NonTraditionalKeyGroup.h"
+#include "mx/core/generated/PartwiseMeasure.h"
+#include "mx/core/generated/PartwisePart.h"
+#include "mx/core/generated/ScorePartwise.h"
+#include "mx/core/generated/TraditionalKeyGroup.h"
 
 using namespace std;
 using namespace mx::api;
+namespace core = mx::core;
 
 // using namespace mxtest;
 
@@ -28,6 +38,27 @@ ScoreData putKeyInScore(KeyData key)
     measure.keys.push_back(key);
     return score;
 }
+
+/// Helper: get the first Key element from the first Attributes element of the first measure of the first part.
+const mx::core::Key &getFirstCoreKey(const mx::core::DocumentPtr &corePtr)
+{
+    REQUIRE(corePtr != nullptr);
+    REQUIRE(corePtr->isScorePartwise());
+    const auto &scorePartwise = corePtr->asScorePartwise();
+    const auto parts = scorePartwise.part();
+    REQUIRE(!parts.empty());
+    const auto &part = parts[0];
+    const auto measures = part.measure();
+    REQUIRE(!measures.empty());
+    const auto &measure = measures[0];
+    const auto &mdcSet = measure.musicData();
+    REQUIRE(!mdcSet.empty());
+    const auto &mdc = mdcSet.front();
+    REQUIRE(mdc.isAttributes());
+    const auto &keys = mdc.asAttributes().key();
+    REQUIRE(!keys.empty());
+    return keys.front();
+}
 } // namespace
 
 TEST(EMajor, KeyData)
@@ -40,45 +71,52 @@ TEST(EMajor, KeyData)
 
     const auto original = putKeyInScore(key);
     auto &docMgr = DocumentManager::getInstance();
-    const int originalId = docMgr.createFromScore(original);
+    const auto originalIdResult = docMgr.createFromScore(original);
+    REQUIRE(originalIdResult.ok());
+    const int originalId = originalIdResult.value();
     const mx::core::DocumentPtr corePtr = docMgr.getDocument(originalId);
-    const auto coreScorePtr = corePtr->getScorePartwise();
-    const auto coreParts = coreScorePtr->getPartwisePartSet();
-    REQUIRE(1 == coreParts.size());
-    const auto corePart = coreParts.at(0);
-    const auto coreMeasures = corePart->getPartwiseMeasureSet();
-    REQUIRE(1 == coreMeasures.size());
-    const auto coreMeasure = coreMeasures.at(0);
-    const auto coreKeySet =
-        coreMeasure->getMusicDataGroup()->getMusicDataChoiceSet().at(0)->getProperties()->getKeySet();
-    REQUIRE(1 == coreKeySet.size());
-    const auto coreKeyChoice = coreKeySet.at(0);
-    CHECK_EQUAL(mx::core::KeyChoice::Choice::traditionalKey, coreKeyChoice->getKeyChoice()->getChoice());
-    const auto coreKey = coreKeyChoice->getKeyChoice()->getTraditionalKey();
+
+    const auto &coreKey = getFirstCoreKey(corePtr);
+    const auto &coreKeyChoice = coreKey.choice();
+    CHECK(coreKeyChoice.isTraditionalKey());
+    const auto &coreTraditionalKey = coreKeyChoice.asTraditionalKey();
 
     // check if the staff number was written
-    CHECK(coreKeyChoice->getAttributes()->hasNumber)
-    CHECK_EQUAL(key.staffIndex, coreKeyChoice->getAttributes()->number.getValue() - 1);
+    CHECK(coreKey.number().has_value())
+    if (coreKey.number().has_value())
+    {
+        CHECK_EQUAL(key.staffIndex, coreKey.number()->value() - 1);
+    }
 
     // check the mode
-    CHECK(coreKey->getHasMode())
-    CHECK_EQUAL(mx::core::ModeEnum::major, coreKey->getMode()->getValue().getValue());
+    CHECK(coreTraditionalKey.mode().has_value())
+    if (coreTraditionalKey.mode().has_value())
+    {
+        CHECK_EQUAL(std::string{"major"}, coreTraditionalKey.mode()->value());
+    }
 
     // check the cancel
-    CHECK(coreKey->getHasCancel())
-    CHECK_EQUAL(-1, coreKey->getCancel()->getValue().getValue());
+    CHECK(coreTraditionalKey.cancel().has_value())
+    if (coreTraditionalKey.cancel().has_value())
+    {
+        CHECK_EQUAL(-1, coreTraditionalKey.cancel()->value().value());
+    }
 
     // check the fifths
-    CHECK_EQUAL(4, coreKey->getFifths()->getValue().getValue());
+    CHECK_EQUAL(4, coreTraditionalKey.fifths().value());
 
     // serialize and deserialize
     std::stringstream xml;
     docMgr.writeToStream(originalId, xml);
     docMgr.destroyDocument(originalId);
     std::istringstream iss{xml.str()};
-    const auto deserializedId = docMgr.createFromStream(iss);
-    const auto deserializedScore = docMgr.getData(deserializedId);
+    const auto deserializedIdResult = docMgr.createFromStream(iss);
+    REQUIRE(deserializedIdResult.ok());
+    const int deserializedId = deserializedIdResult.value();
+    const auto deserializedScoreResult = docMgr.getData(deserializedId);
     docMgr.destroyDocument(deserializedId);
+    REQUIRE(deserializedScoreResult.ok());
+    const auto &deserializedScore = deserializedScoreResult.value();
     const auto &deserializedKeys = deserializedScore.parts.at(0).measures.at(0).keys;
     CHECK_EQUAL(1, deserializedKeys.size())
     const auto deserializedKey = deserializedKeys.at(0);
@@ -101,44 +139,44 @@ TEST(AbMinor, KeyData)
 
     const auto original = putKeyInScore(key);
     auto &docMgr = DocumentManager::getInstance();
-    const int originalId = docMgr.createFromScore(original);
+    const auto originalIdResult = docMgr.createFromScore(original);
+    REQUIRE(originalIdResult.ok());
+    const int originalId = originalIdResult.value();
     const mx::core::DocumentPtr corePtr = docMgr.getDocument(originalId);
-    const auto coreScorePtr = corePtr->getScorePartwise();
-    const auto coreParts = coreScorePtr->getPartwisePartSet();
-    REQUIRE(1 == coreParts.size());
-    const auto corePart = coreParts.at(0);
-    const auto coreMeasures = corePart->getPartwiseMeasureSet();
-    REQUIRE(1 == coreMeasures.size());
-    const auto coreMeasure = coreMeasures.at(0);
-    const auto coreKeySet =
-        coreMeasure->getMusicDataGroup()->getMusicDataChoiceSet().at(0)->getProperties()->getKeySet();
-    REQUIRE(1 == coreKeySet.size());
-    const auto coreKeyChoice = coreKeySet.at(0);
-    CHECK_EQUAL(mx::core::KeyChoice::Choice::traditionalKey, coreKeyChoice->getKeyChoice()->getChoice());
-    const auto coreKey = coreKeyChoice->getKeyChoice()->getTraditionalKey();
 
-    // check if the staff number was written
-    CHECK(!coreKeyChoice->getAttributes()->hasNumber)
+    const auto &coreKey = getFirstCoreKey(corePtr);
+    const auto &coreKeyChoice = coreKey.choice();
+    CHECK(coreKeyChoice.isTraditionalKey());
+    const auto &coreTraditionalKey = coreKeyChoice.asTraditionalKey();
+
+    // check if the staff number was written (staffIndex -10 means no staff number)
+    CHECK(!coreKey.number().has_value())
 
     // check the mode
-    CHECK(coreKey->getHasMode())
-    CHECK_EQUAL(mx::core::ModeEnum::minor, coreKey->getMode()->getValue().getValue());
+    CHECK(coreTraditionalKey.mode().has_value())
+    if (coreTraditionalKey.mode().has_value())
+    {
+        CHECK_EQUAL(std::string{"minor"}, coreTraditionalKey.mode()->value());
+    }
 
-    // check the cancel
-    CHECK(!coreKey->getHasCancel())
-    CHECK_EQUAL(0, coreKey->getCancel()->getValue().getValue());
+    // check the cancel (cancel==0 means no cancel element)
+    CHECK(!coreTraditionalKey.cancel().has_value())
 
     // check the fifths
-    CHECK_EQUAL(key.fifths, coreKey->getFifths()->getValue().getValue());
+    CHECK_EQUAL(key.fifths, coreTraditionalKey.fifths().value());
 
     // serialize and deserialize
     std::stringstream xml;
     docMgr.writeToStream(originalId, xml);
     docMgr.destroyDocument(originalId);
     std::istringstream iss{xml.str()};
-    const auto deserializedId = docMgr.createFromStream(iss);
-    const auto deserializedScore = docMgr.getData(deserializedId);
+    const auto deserializedIdResult = docMgr.createFromStream(iss);
+    REQUIRE(deserializedIdResult.ok());
+    const int deserializedId = deserializedIdResult.value();
+    const auto deserializedScoreResult = docMgr.getData(deserializedId);
     docMgr.destroyDocument(deserializedId);
+    REQUIRE(deserializedScoreResult.ok());
+    const auto &deserializedScore = deserializedScoreResult.value();
     const auto &deserializedKeys = deserializedScore.parts.at(0).measures.at(0).keys;
     CHECK_EQUAL(1, deserializedKeys.size())
     const auto deserializedKey = deserializedKeys.at(0);
@@ -165,50 +203,52 @@ TEST(NonTraditional1, KeyData)
 
     const auto original = putKeyInScore(key);
     auto &docMgr = DocumentManager::getInstance();
-    const int originalId = docMgr.createFromScore(original);
+    const auto originalIdResult = docMgr.createFromScore(original);
+    REQUIRE(originalIdResult.ok());
+    const int originalId = originalIdResult.value();
     const mx::core::DocumentPtr corePtr = docMgr.getDocument(originalId);
-    const auto coreScorePtr = corePtr->getScorePartwise();
-    const auto coreParts = coreScorePtr->getPartwisePartSet();
-    REQUIRE(1 == coreParts.size());
-    const auto corePart = coreParts.at(0);
-    const auto coreMeasures = corePart->getPartwiseMeasureSet();
-    REQUIRE(1 == coreMeasures.size());
-    const auto coreMeasure = coreMeasures.at(0);
-    const auto coreKeySet =
-        coreMeasure->getMusicDataGroup()->getMusicDataChoiceSet().at(0)->getProperties()->getKeySet();
-    REQUIRE(1 == coreKeySet.size());
-    const auto coreKeyChoice = coreKeySet.at(0);
-    CHECK_EQUAL(mx::core::KeyChoice::Choice::nonTraditionalKey, coreKeyChoice->getKeyChoice()->getChoice());
-    const auto coreKeyComponents = coreKeyChoice->getKeyChoice()->getNonTraditionalKeySet();
+
+    const auto &coreKey = getFirstCoreKey(corePtr);
+    const auto &coreKeyChoice = coreKey.choice();
+    CHECK(coreKeyChoice.isNonTraditionalKey());
+    const auto &coreKeyComponents = coreKeyChoice.asNonTraditionalKey();
     REQUIRE(2 == coreKeyComponents.size());
 
-    // check if the staff number was written
-    CHECK(!coreKeyChoice->getAttributes()->hasNumber)
+    // check if the staff number was written (staffIndex -1 means no staff number)
+    CHECK(!coreKey.number().has_value())
 
-    // check a key component
-    size_t keyComponentIndex = 0;
-    auto keyComponent = coreKeyComponents.at(keyComponentIndex);
-    CHECK_EQUAL(mx::core::StepEnum::c, keyComponent->getKeyStep()->getValue());
-    CHECK_DOUBLES_EQUAL(1.0, keyComponent->getKeyAlter()->getValue().getValue(), 0.0001)
-    CHECK(keyComponent->getHasKeyAccidental());
-    CHECK_EQUAL(mx::core::AccidentalValue::sharp, keyComponent->getKeyAccidental()->getValue());
+    // check first key component (C#)
+    const auto &comp0 = coreKeyComponents.at(0);
+    CHECK(core::Step::Tag::c == comp0.keyStep().tag());
+    CHECK_DOUBLES_EQUAL(1.0, comp0.keyAlter().value().value(), 0.0001)
+    CHECK(comp0.keyAccidental().has_value());
+    if (comp0.keyAccidental().has_value())
+    {
+        CHECK(core::AccidentalValue::Tag::sharp == comp0.keyAccidental()->value().tag());
+    }
 
-    // check a key component
-    keyComponentIndex = 1;
-    keyComponent = coreKeyComponents.at(keyComponentIndex);
-    CHECK_EQUAL(mx::core::StepEnum::d, keyComponent->getKeyStep()->getValue());
-    CHECK_DOUBLES_EQUAL(-0.50, keyComponent->getKeyAlter()->getValue().getValue(), 0.0001)
-    CHECK(keyComponent->getHasKeyAccidental());
-    CHECK_EQUAL(mx::core::AccidentalValue::quarterFlat, keyComponent->getKeyAccidental()->getValue());
+    // check second key component (D quarter-flat)
+    const auto &comp1 = coreKeyComponents.at(1);
+    CHECK(core::Step::Tag::d == comp1.keyStep().tag());
+    CHECK_DOUBLES_EQUAL(-0.50, comp1.keyAlter().value().value(), 0.0001)
+    CHECK(comp1.keyAccidental().has_value());
+    if (comp1.keyAccidental().has_value())
+    {
+        CHECK(core::AccidentalValue::Tag::quarterFlat == comp1.keyAccidental()->value().tag());
+    }
 
     // serialize and deserialize
     std::stringstream xml;
     docMgr.writeToStream(originalId, xml);
     docMgr.destroyDocument(originalId);
     std::istringstream iss{xml.str()};
-    const auto deserializedId = docMgr.createFromStream(iss);
-    const auto deserializedScore = docMgr.getData(deserializedId);
+    const auto deserializedIdResult = docMgr.createFromStream(iss);
+    REQUIRE(deserializedIdResult.ok());
+    const int deserializedId = deserializedIdResult.value();
+    const auto deserializedScoreResult = docMgr.getData(deserializedId);
     docMgr.destroyDocument(deserializedId);
+    REQUIRE(deserializedScoreResult.ok());
+    const auto &deserializedScore = deserializedScoreResult.value();
     const auto &deserializedKeys = deserializedScore.parts.at(0).measures.at(0).keys;
     CHECK_EQUAL(1, deserializedKeys.size())
     const auto deserializedKey = deserializedKeys.at(0);

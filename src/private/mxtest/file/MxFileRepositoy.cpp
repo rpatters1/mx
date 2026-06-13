@@ -121,10 +121,15 @@ mx::api::ScoreData MxFileRepository::loadFile(const std::string &fileName)
 {
     const std::string fullPath = getFullPath(fileName);
     auto &docMgr = mx::api::DocumentManager::getInstance();
-    const int docId = docMgr.createFromFile(fullPath);
-    auto scoreData = docMgr.getData(docId);
+    const auto docIdResult = docMgr.createFromFile(fullPath);
+    if (!docIdResult.ok())
+        return {};
+    const int docId = docIdResult.value();
+    const auto scoreDataResult = docMgr.getData(docId);
     docMgr.destroyDocument(docId);
-    return scoreData;
+    if (!scoreDataResult.ok())
+        return {};
+    return scoreDataResult.value();
 }
 
 void MxFileRepository::initializeNameSubdirectoryMap()

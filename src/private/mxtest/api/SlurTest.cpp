@@ -6,12 +6,11 @@
 #ifdef MX_COMPILE_API_TESTS
 
 #include "cpul/cpulTestHarness.h"
-#include "ezxml/XAttributeIterator.h"
-#include "ezxml/XElement.h"
-#include "ezxml/XElementIterator.h"
-#include "ezxml/XFactory.h"
 #include "mxtest/api/TestHelpers.h"
 #include "mxtest/file/MxFileRepository.h"
+#include "pugixml/pugixml.hpp"
+
+#include <sstream>
 
 using namespace std;
 using namespace mx::api;
@@ -40,47 +39,61 @@ TEST(startStop, Slurs)
 
     // Write to XML and assert that stop happens before start
     const auto xml = toXml(scoreData);
-    auto xdoc = ::ezxml::XFactory::makeXDoc();
-    istringstream is(xml);
-    xdoc->loadStream(is);
-    auto root = xdoc->getRoot();
-    auto iter = root->begin();
-    std::advance(iter, 5);
-    CHECK_EQUAL("part", iter->getName());
-    auto measureItemsIter = iter->begin()->begin();
-    CHECK_EQUAL("print", measureItemsIter->getName());
+
+    pugi::xml_document xdoc;
+    xdoc.load_string(xml.c_str());
+    auto root = xdoc.document_element();
+
+    // Walk to the 6th child element (0-indexed: 5) which is "part"
+    auto iter = root.begin();
+    int idx = 0;
+    while (iter != root.end() && idx < 5)
+    {
+        ++iter;
+        ++idx;
+    }
+    REQUIRE(iter != root.end());
+    CHECK_EQUAL(std::string{"part"}, std::string{iter->name()});
+
+    // iter->begin() is the first measure; iter->begin()->begin() is first child of measure
+    auto measureNode = iter->begin();
+    REQUIRE(measureNode != iter->end());
+    auto measureItemsIter = measureNode->begin();
+
+    CHECK_EQUAL(std::string{"print"}, std::string{measureItemsIter->name()});
     ++measureItemsIter;
-    CHECK_EQUAL("attributes", measureItemsIter->getName());
+    CHECK_EQUAL(std::string{"attributes"}, std::string{measureItemsIter->name()});
     ++measureItemsIter;
-    CHECK_EQUAL("note", measureItemsIter->getName());
+    CHECK_EQUAL(std::string{"note"}, std::string{measureItemsIter->name()});
     ++measureItemsIter;
-    CHECK_EQUAL("note", measureItemsIter->getName());
+    CHECK_EQUAL(std::string{"note"}, std::string{measureItemsIter->name()});
     ++measureItemsIter;
-    CHECK_EQUAL("note", measureItemsIter->getName());
+    CHECK_EQUAL(std::string{"note"}, std::string{measureItemsIter->name()});
     ++measureItemsIter;
-    CHECK_EQUAL("note", measureItemsIter->getName());
+    CHECK_EQUAL(std::string{"note"}, std::string{measureItemsIter->name()});
+
     auto noteItemsIter = measureItemsIter->begin();
-    CHECK_EQUAL("pitch", noteItemsIter->getName());
+    CHECK_EQUAL(std::string{"pitch"}, std::string{noteItemsIter->name()});
     ++noteItemsIter;
-    CHECK_EQUAL("duration", noteItemsIter->getName());
+    CHECK_EQUAL(std::string{"duration"}, std::string{noteItemsIter->name()});
     ++noteItemsIter;
-    CHECK_EQUAL("voice", noteItemsIter->getName());
+    CHECK_EQUAL(std::string{"voice"}, std::string{noteItemsIter->name()});
     ++noteItemsIter;
-    CHECK_EQUAL("type", noteItemsIter->getName());
+    CHECK_EQUAL(std::string{"type"}, std::string{noteItemsIter->name()});
     ++noteItemsIter;
-    CHECK_EQUAL("stem", noteItemsIter->getName());
+    CHECK_EQUAL(std::string{"stem"}, std::string{noteItemsIter->name()});
     ++noteItemsIter;
-    CHECK_EQUAL("notations", noteItemsIter->getName());
+    CHECK_EQUAL(std::string{"notations"}, std::string{noteItemsIter->name()});
 
     auto notationIter = noteItemsIter->begin();
-    CHECK_EQUAL("slur", notationIter->getName());
-    auto stopValue = notationIter->attributesBegin()->getValue();
-    CHECK_EQUAL("stop", stopValue);
+    CHECK_EQUAL(std::string{"slur"}, std::string{notationIter->name()});
+    auto stopValue = std::string{notationIter->attribute("type").value()};
+    CHECK_EQUAL(std::string{"stop"}, stopValue);
 
     ++notationIter;
-    CHECK_EQUAL("slur", notationIter->getName());
-    auto startValue = notationIter->attributesBegin()->getValue();
-    CHECK_EQUAL("start", startValue);
+    CHECK_EQUAL(std::string{"slur"}, std::string{notationIter->name()});
+    auto startValue = std::string{notationIter->attribute("type").value()};
+    CHECK_EQUAL(std::string{"start"}, startValue);
 }
 
 T_END

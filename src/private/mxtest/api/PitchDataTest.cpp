@@ -2,33 +2,15 @@
 // Copyright (c) by Matthew James Briggs
 // Distributed under the MIT License
 
-#include "ezxml/XFactory.h"
 #include "mxtest/control/CompileControl.h"
 #ifdef MX_COMPILE_API_TESTS
 
 #include "cpul/cpulTestHarness.h"
-#include "ezxml/ezxml.h"
 #include "mx/api/DocumentManager.h"
-#include "mx/core/Document.h"
-#include "mx/core/elements/Direction.h"
-#include "mx/core/elements/DirectionType.h"
-#include "mx/core/elements/FullNoteGroup.h"
-#include "mx/core/elements/FullNoteTypeChoice.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/MusicDataGroup.h"
-#include "mx/core/elements/NormalNoteGroup.h"
-#include "mx/core/elements/Notations.h"
-#include "mx/core/elements/NotationsChoice.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/NoteChoice.h"
-#include "mx/core/elements/Offset.h"
-#include "mx/core/elements/PartwiseMeasure.h"
-#include "mx/core/elements/PartwisePart.h"
-#include "mx/core/elements/Pedal.h"
-#include "mx/core/elements/Pitch.h"
-#include "mx/core/elements/ScorePartwise.h"
-#include "mx/core/elements/Tied.h"
+#include "pugixml/pugixml.hpp"
 
+#include <sstream>
+#include <string>
 #include <unordered_map>
 
 using namespace std;
@@ -36,31 +18,25 @@ using namespace mx::api;
 
 namespace
 {
-ezxml::XElementPtr bruteForceFindFirstElement(const ezxml::XElementPtr root, const std::string &inElementName)
-{
-    if (!root)
-    {
-        throw std::runtime_error{"bug in bruteForceFindFirstElement"};
-    }
 
-    if (root->getName() == inElementName)
+/// Walk the pugixml tree depth-first to find the first element with the given name.
+pugi::xml_node bruteForceFindFirstElement(pugi::xml_node root, const std::string &inElementName)
+{
+    if (std::string{root.name()} == inElementName)
     {
         return root;
     }
 
-    auto iter = root->begin();
-    const auto end = root->end();
-
-    for (; iter != end; ++iter)
+    for (auto child : root.children())
     {
-        const auto possible = bruteForceFindFirstElement(iter->clone(), inElementName);
-        if (possible && possible->getName() == inElementName)
+        auto found = bruteForceFindFirstElement(child, inElementName);
+        if (!found.empty() && std::string{found.name()} == inElementName)
         {
-            return possible;
+            return found;
         }
     }
 
-    return nullptr;
+    return pugi::xml_node{};
 }
 
 struct Input
@@ -100,26 +76,34 @@ Output pitchDataTest(const Input &input)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto docIdResult = mgr.createFromScore(score);
+    if (!docIdResult.ok())
+        return {};
+    const int docId = docIdResult.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
 
     // check the alter value that was written to xml
-    const auto xdoc = ezxml::XFactory::makeXDoc();
-    xdoc->loadStream(ss);
-    auto elem = xdoc->getRoot();
-    elem = bruteForceFindFirstElement(elem, "alter");
-    const auto alterString = elem->getValue();
+    pugi::xml_document xdoc;
+    const std::string xml = ss.str();
+    xdoc.load_string(xml.c_str());
+    auto elem = bruteForceFindFirstElement(xdoc.document_element(), "alter");
+    const auto alterString = std::string{elem.text().get()};
     Output output;
     output.alterString = alterString;
 
     // deserialize back to ScoreData
-    const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
-    mgr.destroyDocument(docId);
+    const auto docId2Result = mgr.createFromStream(iss);
+    if (!docId2Result.ok())
+        return {};
+    const int docId2 = docId2Result.value();
+    const auto oscoreResult = mgr.getData(docId2);
+    mgr.destroyDocument(docId2);
+    if (!oscoreResult.ok())
+        return {};
+    const auto &oscore = oscoreResult.value();
     const auto &opart = oscore.parts.back();
     const auto &omeasure = opart.measures.back();
     const auto &ostaff = omeasure.staves.back();
@@ -131,17 +115,20 @@ Output pitchDataTest(const Input &input)
     output.accidental = onote.pitchData.accidental;
 
     // serialize a second time and check the alter string again
-    docId = mgr.createFromScore(score);
-    ss.str("");
-    mgr.writeToStream(docId, ss);
-    mgr.destroyDocument(docId);
+    const auto docId3Result = mgr.createFromScore(score);
+    if (!docId3Result.ok())
+        return {};
+    const int docId3 = docId3Result.value();
+    std::stringstream ss2;
+    mgr.writeToStream(docId3, ss2);
+    mgr.destroyDocument(docId3);
 
     // check the alter value that was written to xml
-    const auto xdoc2 = ezxml::XFactory::makeXDoc();
-    xdoc2->loadStream(ss);
-    auto elem2 = xdoc->getRoot();
-    elem2 = bruteForceFindFirstElement(elem2, "alter");
-    const auto alterString2 = elem->getValue();
+    pugi::xml_document xdoc2;
+    const std::string xml2 = ss2.str();
+    xdoc2.load_string(xml2.c_str());
+    auto elem2 = bruteForceFindFirstElement(xdoc2.document_element(), "alter");
+    const auto alterString2 = std::string{elem2.text().get()};
     output.secondAlterString = alterString2;
     return output;
 }

@@ -5,7 +5,6 @@
 #pragma once
 
 #include "mx/api/ScoreData.h"
-#include "mx/core/Enums.h"
 #include "mx/impl/Converter.h"
 
 namespace mxtest

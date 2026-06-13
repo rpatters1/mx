@@ -112,11 +112,16 @@ int main(int argc, const char *argv[])
     // the document manager is the liaison between our score data and the MusicXML DOM.
     // it completely hides the MusicXML DOM from us when using mx::api
     auto &mgr = DocumentManager::getInstance();
-    const auto documentID = mgr.createFromScore(score);
+    const auto idResult = mgr.createFromScore(score);
+    if (!idResult.ok())
+    {
+        return 1;
+    }
+    const auto documentID = idResult.value();
 
 // write to the console
 #if MX_WRITE_THIS_TO_THE_CONSOLE
-    mgr.writeToStream(documentID, std::cout);
+    (void)mgr.writeToStream(documentID, std::cout);
     std::cout << std::endl;
 #endif
 
@@ -124,10 +129,10 @@ int main(int argc, const char *argv[])
     // system can send the file to a gitignored location during automated runs;
     // see issue #150.
     const std::string outputPath = (argc > 1) ? argv[1] : "./example.musicxml";
-    mgr.writeToFile(documentID, outputPath);
+    const auto writeResult = mgr.writeToFile(documentID, outputPath);
 
     // we need to explicitly delete the object held by the manager
     mgr.destroyDocument(documentID);
 
-    return 0;
+    return writeResult.ok() ? 0 : 1;
 }
