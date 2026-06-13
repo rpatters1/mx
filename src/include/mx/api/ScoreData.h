@@ -21,6 +21,11 @@ namespace mx
 {
 namespace api
 {
+// Frozen for source compatibility; read-side informational only
+// (mx-impl-port-plan.md §4). The reader sets ThreePointZero iff the parsed
+// document's declared version string is exactly "3.0". This field no longer
+// influences output: mx writes MusicXML 4.0 documents, and the written root
+// version attribute is always "4.0".
 enum class MusicXmlVersion
 {
     unspecified,
@@ -32,6 +37,10 @@ class ScoreData
   public:
     ScoreData();
     MusicXmlVersion musicXmlVersion;
+
+    // Read side, verbatim preservation: exactly what the parsed root's
+    // version attribute carried, empty if absent. Not used when writing.
+    std::string declaredMusicXmlVersion;
     std::string musicXmlType;
     std::string workTitle;
     std::string workNumber;
@@ -72,6 +81,7 @@ std::vector<PartData>::iterator findPart(std::vector<PartData> &inParts, const s
 
 MXAPI_EQUALS_BEGIN(ScoreData)
 MXAPI_EQUALS_MEMBER(musicXmlVersion)
+MXAPI_EQUALS_MEMBER(declaredMusicXmlVersion)
 MXAPI_EQUALS_MEMBER(musicXmlType)
 MXAPI_EQUALS_MEMBER(workTitle)
 MXAPI_EQUALS_MEMBER(workNumber)
