@@ -3,16 +3,16 @@
 
 Produces a single composite score (0-100, higher = better) plus a per-axis
 breakdown and a worklist of the worst offenders. Built as a regression detector
-and a refactor compass for the M6 "better-gen" milestone: the score must rise as
-the generator is restructured, and the offender lists tell an agent where to work
-next.
+and a refactor compass: the score must rise as the generator is restructured,
+and the offender lists tell an agent where to work next.
 
 This script measures; it does not gate. The pass/fail floor lives in the
 Makefile (GEN_QUALITY_FLOOR). Lint is a separate concern handled by `make
 gen-lint` (pylint), deliberately kept out of this rubric.
 
-Scored code: every gen/*.py except this file. Globbing (rather than a hardcoded
-list) means a new module cannot hide complexity from the score.
+Scored code: every *.py under gen/ (recursively: the pipeline packages xsd/,
+ir/, plates/, press/ and the tests) except this file. Globbing (rather than a
+hardcoded list) means a new module cannot hide complexity from the score.
 
 Rubric (composite 0-100, higher = better):
     structure   50%   monoliths: LOC-weighted function size + file size
@@ -75,7 +75,7 @@ def loc_weighted(items, score_of):
 
 
 def scored_files():
-    return sorted(p for p in GEN.glob("*.py") if p.resolve().name != SELF)
+    return sorted(p for p in GEN.rglob("*.py") if p.resolve().name != SELF)
 
 
 def flatten_radon(blocks):
