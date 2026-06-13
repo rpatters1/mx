@@ -1,0 +1,61 @@
+// {{generated_banner}}
+
+#pragma once
+
+#include <span>
+#include <string>
+#include <string_view>
+#include <vector>
+
+namespace {{vars.namespace}}
+{
+
+{{#doc_lines}}
+/// {{value}}
+{{/doc_lines}}
+/// Structural representation (plan §2.2): a never-empty list of positive
+/// integers (the time-through-repeat indices), serialized comma-separated.
+/// Construction clamps each value to >= 1; an empty list becomes [1].
+class {{ident}} final
+{
+public:
+    /// The natural zero: the single value 1.
+    {{ident}}();
+
+    explicit {{ident}}(std::vector<int> values);
+
+    std::span<const int> values() const noexcept
+    {
+        return m_values;
+    }
+
+    void setValues(std::vector<int> values);
+
+    void addValue(int value);
+
+    std::string toString() const;
+
+    /// Strict: one or more comma-separated positive integers.
+    static bool tryParse(std::string_view text, {{ident}} &out);
+
+    /// Lenient: repairs into the nearest valid list.
+    static {{ident}} parse(std::string_view text);
+
+    bool operator==(const {{ident}} &other) const noexcept
+    {
+        return m_values == other.m_values;
+    }
+
+    bool operator!=(const {{ident}} &other) const noexcept
+    {
+        return !(*this == other);
+    }
+
+private:
+    void repair();
+
+    std::vector<int> m_values;
+    std::string m_text; // preserved wire spelling; empty = none
+};
+
+} // namespace {{vars.namespace}}

@@ -1,0 +1,8 @@
+{{#attributes}}
+{{#is_required}}
+    {{type_ref.ident}} m_{{ident}}{};
+{{/is_required}}
+{{#is_optional}}
+    std::optional<{{type_ref.ident}}> m_{{ident}};
+{{/is_optional}}
+{{/attributes}}

@@ -1,0 +1,105 @@
+// {{generated_banner}}
+
+#pragma once
+
+{{#deps}}
+#include "mx/core/generated/{{name.pascal}}.h"
+{{/deps}}
+{{#cases}}
+{{#is_primitive_decimal}}
+#include "mx/core/Decimal.h"
+{{/is_primitive_decimal}}
+{{/cases}}
+
+#include <cassert>
+#include <string>
+#include <string_view>
+#include <variant>
+
+namespace {{vars.namespace}}
+{
+
+{{#doc_lines}}
+/// {{value}}
+{{/doc_lines}}
+/// Tagged union over the schema's member types: exactly one alternative by
+/// construction. Alternatives are positional; dispatch is by Kind/index.
+class {{ident}} final
+{
+public:
+{{#cases}}
+{{#is_literal}}
+    /// Marker for the literal "{{wire}}".
+    struct {{name.pascal}} final
+    {
+        bool operator==(const {{name.pascal}} &) const noexcept = default;
+    };
+
+{{/is_literal}}
+{{/cases}}
+    enum class Kind
+    {
+{{#cases}}
+        {{tag_ident}},
+{{/cases}}
+    };
+
+    /// The natural zero: the first member's natural zero.
+    {{ident}}();
+
+{{#cases}}
+{{#is_literal}}
+    static {{type.ident}} {{tag_ident}}();
+{{/is_literal}}
+{{^is_literal}}
+    static {{type.ident}} {{tag_ident}}({{ref.ident}} value);
+{{/is_literal}}
+{{/cases}}
+
+    Kind kind() const noexcept
+    {
+        return static_cast<Kind>(m_value.index());
+    }
+
+{{#cases}}
+    bool is{{name.pascal}}() const noexcept
+    {
+        return m_value.index() == {{index0}};
+    }
+
+{{^is_literal}}
+    /// Precondition: is{{name.pascal}}().
+    const {{ref.ident}} &as{{name.pascal}}() const noexcept
+    {
+        assert(is{{name.pascal}}());
+        return *std::get_if<{{index0}}>(&m_value);
+    }
+
+{{/is_literal}}
+{{/cases}}
+    std::string toString() const;
+
+    /// Strict: members tried in schema order.
+    static bool tryParse(std::string_view text, {{ident}} &out);
+
+    /// Lenient: unparseable text falls back to the first member's lenient
+    /// parse (never produces an invalid value).
+    static {{ident}} parse(std::string_view text);
+
+    bool operator==(const {{ident}} &other) const = default;
+
+private:
+    using Storage = std::variant<
+{{#cases}}
+        {{#is_literal}}{{name.pascal}}{{/is_literal}}{{^is_literal}}{{ref.ident}}{{/is_literal}}{{^is_last}},{{/is_last}}
+{{/cases}}
+        >;
+
+    explicit {{ident}}(Storage value) : m_value{std::move(value)}
+    {
+    }
+
+    Storage m_value;
+};
+
+} // namespace {{vars.namespace}}

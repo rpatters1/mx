@@ -1,0 +1,134 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include "mx/core/Lexical.h"
+
+namespace {{vars.namespace}}
+{
+
+namespace
+{
+
+bool isLeap(int year) noexcept
+{
+    return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+}
+
+int daysInMonth(int year, int month) noexcept
+{
+    constexpr int kDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if (month == 2 && isLeap(year))
+    {
+        return 29;
+    }
+    return kDays[month - 1];
+}
+
+void appendPadded(std::string &out, int value, int width)
+{
+    const std::string digits = formatInt(value);
+    for (std::size_t i = digits.size(); i < static_cast<std::size_t>(width); ++i)
+    {
+        out.push_back('0');
+    }
+    out += digits;
+}
+
+} // namespace
+
+{{ident}}::{{ident}}(int year, int month, int day) noexcept : m_year{year}, m_month{month}, m_day{day}
+{
+    clamp();
+}
+
+void {{ident}}::setYear(int value) noexcept
+{
+    m_year = value;
+    clamp();
+}
+
+void {{ident}}::setMonth(int value) noexcept
+{
+    m_month = value;
+    clamp();
+}
+
+void {{ident}}::setDay(int value) noexcept
+{
+    m_day = value;
+    clamp();
+}
+
+void {{ident}}::clamp() noexcept
+{
+    if (m_year < 1)
+    {
+        m_year = 1;
+    }
+    if (m_year > 9999)
+    {
+        m_year = 9999;
+    }
+    if (m_month < 1)
+    {
+        m_month = 1;
+    }
+    if (m_month > 12)
+    {
+        m_month = 12;
+    }
+    if (m_day < 1)
+    {
+        m_day = 1;
+    }
+    const int cap = daysInMonth(m_year, m_month);
+    if (m_day > cap)
+    {
+        m_day = cap;
+    }
+}
+
+std::string {{ident}}::toString() const
+{
+    std::string out;
+    out.reserve(10);
+    appendPadded(out, m_year, 4);
+    out.push_back('-');
+    appendPadded(out, m_month, 2);
+    out.push_back('-');
+    appendPadded(out, m_day, 2);
+    return out;
+}
+
+bool {{ident}}::tryParse(std::string_view text, {{ident}} &out) noexcept
+{
+    const std::string_view t = trimWhitespace(text);
+    if (t.size() != 10 || t[4] != '-' || t[7] != '-')
+    {
+        return false;
+    }
+    int year = 0;
+    int month = 0;
+    int day = 0;
+    if (!tryParseInt(t.substr(0, 4), year) || !tryParseInt(t.substr(5, 2), month) ||
+        !tryParseInt(t.substr(8, 2), day))
+    {
+        return false;
+    }
+    if (year < 1 || month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month))
+    {
+        return false;
+    }
+    out = {{ident}}{year, month, day};
+    return true;
+}
+
+{{ident}} {{ident}}::parse(std::string_view text) noexcept
+{
+    {{ident}} out;
+    tryParse(text, out);
+    return out;
+}
+
+} // namespace {{vars.namespace}}

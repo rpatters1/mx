@@ -1,0 +1,10 @@
+{{#attributes}}
+{{#is_required}}
+    const {{type_ref.ident}} &{{ident}}() const noexcept;
+    void set{{name.pascal}}({{type_ref.ident}} value);
+{{/is_required}}
+{{#is_optional}}
+    const std::optional<{{type_ref.ident}}> &{{ident}}() const noexcept;
+    void set{{name.pascal}}(std::optional<{{type_ref.ident}}> value);
+{{/is_optional}}
+{{/attributes}}

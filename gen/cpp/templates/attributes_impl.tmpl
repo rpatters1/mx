@@ -1,0 +1,26 @@
+{{#attributes}}
+{{#is_required}}
+const {{type_ref.ident}} &{{type.ident}}::{{ident}}() const noexcept
+{
+    return m_{{ident}};
+}
+
+void {{type.ident}}::set{{name.pascal}}({{type_ref.ident}} value)
+{
+    m_{{ident}} = std::move(value);
+}
+
+{{/is_required}}
+{{#is_optional}}
+const std::optional<{{type_ref.ident}}> &{{type.ident}}::{{ident}}() const noexcept
+{
+    return m_{{ident}};
+}
+
+void {{type.ident}}::set{{name.pascal}}(std::optional<{{type_ref.ident}}> value)
+{
+    m_{{ident}} = std::move(value);
+}
+
+{{/is_optional}}
+{{/attributes}}

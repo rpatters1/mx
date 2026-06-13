@@ -1,0 +1,99 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include <cstddef>
+
+namespace {{vars.namespace}}
+{
+
+namespace
+{
+
+constexpr char kHex[] = "0123456789ABCDEF";
+
+void appendByte(std::string &out, std::uint8_t value)
+{
+    out.push_back(kHex[value >> 4]);
+    out.push_back(kHex[value & 0x0F]);
+}
+
+// The schema's pattern accepts digits and UPPERCASE hex letters only.
+bool hexValue(char c, std::uint8_t &out) noexcept
+{
+    if (c >= '0' && c <= '9')
+    {
+        out = static_cast<std::uint8_t>(c - '0');
+        return true;
+    }
+    if (c >= 'A' && c <= 'F')
+    {
+        out = static_cast<std::uint8_t>(c - 'A' + 10);
+        return true;
+    }
+    return false;
+}
+
+bool parseByte(std::string_view text, std::size_t offset, std::uint8_t &out) noexcept
+{
+    std::uint8_t hi = 0;
+    std::uint8_t lo = 0;
+    if (!hexValue(text[offset], hi) || !hexValue(text[offset + 1], lo))
+    {
+        return false;
+    }
+    out = static_cast<std::uint8_t>((hi << 4) | lo);
+    return true;
+}
+
+} // namespace
+
+std::string {{ident}}::toString() const
+{
+    std::string out;
+    out.reserve(m_alpha ? 9 : 7);
+    out.push_back('#');
+    if (m_alpha)
+    {
+        appendByte(out, *m_alpha);
+    }
+    appendByte(out, m_red);
+    appendByte(out, m_green);
+    appendByte(out, m_blue);
+    return out;
+}
+
+bool {{ident}}::tryParse(std::string_view text, {{ident}} &out) noexcept
+{
+    if ((text.size() != 7 && text.size() != 9) || text[0] != '#')
+    {
+        return false;
+    }
+    std::uint8_t bytes[4] = {0, 0, 0, 0};
+    const std::size_t count = (text.size() - 1) / 2;
+    for (std::size_t i = 0; i < count; ++i)
+    {
+        if (!parseByte(text, 1 + i * 2, bytes[i]))
+        {
+            return false;
+        }
+    }
+    if (count == 4)
+    {
+        out = {{ident}}{bytes[0], bytes[1], bytes[2], bytes[3]};
+    }
+    else
+    {
+        out = {{ident}}{bytes[0], bytes[1], bytes[2]};
+    }
+    return true;
+}
+
+{{ident}} {{ident}}::parse(std::string_view text) noexcept
+{
+    {{ident}} out;
+    tryParse(text, out);
+    return out;
+}
+
+} // namespace {{vars.namespace}}

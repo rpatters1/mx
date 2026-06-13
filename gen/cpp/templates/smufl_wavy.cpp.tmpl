@@ -1,0 +1,128 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include <utility>
+
+namespace {{vars.namespace}}
+{
+
+namespace
+{
+
+constexpr std::string_view kWiggle = "wiggle";
+constexpr std::string_view kGuitar = "guitar";
+constexpr std::string_view kVibratoStroke = "VibratoStroke";
+
+// The ASCII subset of XML name characters the schema's \c denotes.
+bool isNameChar(char c) noexcept
+{
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' ||
+           c == '.' || c == ':' || c == '_';
+}
+
+} // namespace
+
+{{ident}}::{{ident}}()
+{
+    repair();
+}
+
+{{ident}}::{{ident}}(Kind kind, std::string part) : m_kind{kind}, m_part{std::move(part)}
+{
+    repair();
+}
+
+void {{ident}}::setKind(Kind value)
+{
+    m_kind = value;
+    repair();
+}
+
+void {{ident}}::setPart(std::string value)
+{
+    m_part = std::move(value);
+    repair();
+}
+
+void {{ident}}::repair()
+{
+    if (m_kind != Kind::wiggle && m_kind != Kind::guitarVibratoStroke)
+    {
+        m_kind = Kind::wiggle;
+    }
+    std::string cleaned;
+    cleaned.reserve(m_part.size());
+    for (const char c : m_part)
+    {
+        if (isNameChar(c))
+        {
+            cleaned.push_back(c);
+        }
+    }
+    if (m_kind == Kind::wiggle && cleaned.empty())
+    {
+        cleaned = "X";
+    }
+    m_part = std::move(cleaned);
+}
+
+std::string {{ident}}::toString() const
+{
+    if (m_kind == Kind::wiggle)
+    {
+        std::string out{kWiggle};
+        out += m_part;
+        return out;
+    }
+    std::string out{kGuitar};
+    out += m_part;
+    out += kVibratoStroke;
+    return out;
+}
+
+bool {{ident}}::tryParse(std::string_view text, {{ident}} &out)
+{
+    const auto allNameChars = [](std::string_view s) {
+        for (const char c : s)
+        {
+            if (!isNameChar(c))
+            {
+                return false;
+            }
+        }
+        return true;
+    };
+    if (text.size() > kWiggle.size() && text.substr(0, kWiggle.size()) == kWiggle &&
+        allNameChars(text.substr(kWiggle.size())))
+    {
+        out = {{ident}}{Kind::wiggle, std::string{text.substr(kWiggle.size())}};
+        return true;
+    }
+    if (text.size() >= kGuitar.size() + kVibratoStroke.size() &&
+        text.substr(0, kGuitar.size()) == kGuitar &&
+        text.substr(text.size() - kVibratoStroke.size()) == kVibratoStroke)
+    {
+        const std::string_view middle =
+            text.substr(kGuitar.size(), text.size() - kGuitar.size() - kVibratoStroke.size());
+        if (allNameChars(middle))
+        {
+            out = {{ident}}{Kind::guitarVibratoStroke, std::string{middle}};
+            return true;
+        }
+    }
+    return false;
+}
+
+{{ident}} {{ident}}::parse(std::string_view text)
+{
+    {{ident}} out;
+    if (tryParse(text, out))
+    {
+        return out;
+    }
+    // Repair: keep what we can of the text as a wiggle suffix.
+    return {{ident}}{Kind::wiggle, std::string{text}};
+}
+
+} // namespace {{vars.namespace}}

@@ -1,0 +1,55 @@
+// {{generated_banner}}
+
+#pragma once
+
+{{#structural_deps}}
+#include "mx/core/generated/{{ident}}.h"
+{{/structural_deps}}
+{{#any_decimal}}
+#include "mx/core/Decimal.h"
+{{/any_decimal}}
+{{#any_name_token}}
+#include "mx/core/NameToken.h"
+#include "mx/core/Token.h"
+{{/any_name_token}}
+
+#include <optional>
+#include <string>
+
+namespace pugi
+{
+class xml_node;
+}
+
+namespace {{vars.namespace}}
+{
+
+{{#doc_lines}}
+/// {{value}}
+{{/doc_lines}}
+class {{ident}}{{^is_base}} final{{/is_base}}
+{
+public:
+{{>attributes_api}}
+{{#value}}
+    const {{type_ref.ident}} &{{ident}}() const noexcept;
+    void set{{name.pascal}}({{type_ref.ident}} value);
+{{/value}}
+    bool operator==(const {{ident}} &other) const = default;
+
+private:
+{{>attributes_members}}
+{{#value}}
+    {{type_ref.ident}} m_{{ident}}{};
+{{/value}}
+};
+
+{{ident}} parse{{ident}}(pugi::xml_node el);
+
+void parse{{ident}}Content({{ident}} &out, pugi::xml_node el);
+
+void serialize{{ident}}(const {{ident}} &v, pugi::xml_node parent, const char *tag);
+
+void serialize{{ident}}Content(const {{ident}} &v, pugi::xml_node el);
+
+} // namespace {{vars.namespace}}

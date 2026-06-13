@@ -1,0 +1,125 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include "mx/core/Lexical.h"
+#include "mx/core/Xml.h"
+
+#include <utility>
+
+namespace {{vars.namespace}}
+{
+
+{{ident}}::{{ident}}()
+{
+{{#alternatives}}
+{{#default_alt}}
+    *this = {{type.ident}}::{{ident}}({{>alt_payload_type}}{});
+{{/default_alt}}
+{{/alternatives}}
+}
+
+{{#alternatives}}
+{{type.ident}} {{type.ident}}::{{ident}}({{>alt_payload_type}} value)
+{
+    return {{type.ident}}{Storage{std::in_place_index<{{index0}}>, std::move(value)}};
+}
+
+{{/alternatives}}
+{{ident}} parse{{ident}}(pugi::xml_node el, pugi::xml_node &cursor)
+{
+{{#alternatives}}
+    if ({{>field_first_match}})
+    {
+{{#is_element}}
+{{#is_required}}
+        {{type_ref.ident}} value = {{>field_parse_expr}};
+        cursor = nextElement(cursor);
+        return {{type.ident}}::{{ident}}(std::move(value));
+{{/is_required}}
+{{#is_vector}}
+{{#min1}}
+        OneOrMore<{{type_ref.ident}}> items{ {{>field_parse_expr}} };
+        cursor = nextElement(cursor);
+        while ({{>field_first_match}})
+        {
+            items.add({{>field_parse_expr}});
+            cursor = nextElement(cursor);
+        }
+{{/min1}}
+{{^min1}}
+        std::vector<{{type_ref.ident}}> items;
+        while ({{>field_first_match}})
+        {
+            items.push_back({{>field_parse_expr}});
+            cursor = nextElement(cursor);
+        }
+{{/min1}}
+        return {{type.ident}}::{{ident}}(std::move(items));
+{{/is_vector}}
+{{/is_element}}
+{{^is_element}}
+{{#is_required}}
+        return {{type.ident}}::{{ident}}(parse{{type_ref.ident}}(el, cursor));
+{{/is_required}}
+{{#is_vector}}
+{{#min1}}
+        OneOrMore<{{type_ref.ident}}> items{parse{{type_ref.ident}}(el, cursor)};
+        while ({{>field_first_match}})
+        {
+            items.add(parse{{type_ref.ident}}(el, cursor));
+        }
+{{/min1}}
+{{^min1}}
+        std::vector<{{type_ref.ident}}> items;
+        while ({{>field_first_match}})
+        {
+            items.push_back(parse{{type_ref.ident}}(el, cursor));
+        }
+{{/min1}}
+        return {{type.ident}}::{{ident}}(std::move(items));
+{{/is_vector}}
+{{/is_element}}
+    }
+{{/alternatives}}
+    if (cursor)
+    {
+        throwUnknownElement(cursor);
+    }
+    throwMissingElement(el, {{#element_names}}{{#is_first}}{{value_q}}{{/is_first}}{{/element_names}});
+}
+
+void serialize{{ident}}(const {{ident}} &v, pugi::xml_node el)
+{
+    switch (v.kind())
+    {
+{{#alternatives}}
+    case {{type.ident}}::Kind::{{ident}}:
+{{#is_element}}
+{{#is_required}}
+        {{#type_ref.is_complex}}serialize{{type_ref.ident}}(v.as{{name.pascal}}(), el, {{tag_q}});{{/type_ref.is_complex}}{{#type_ref.is_value}}writeTextElement(el, {{tag_q}}, v.as{{name.pascal}}().toString());{{/type_ref.is_value}}{{#type_ref.is_primitive_string}}writeTextElement(el, {{tag_q}}, v.as{{name.pascal}}());{{/type_ref.is_primitive_string}}{{#type_ref.is_primitive_integer}}writeTextElement(el, {{tag_q}}, formatInt(v.as{{name.pascal}}()));{{/type_ref.is_primitive_integer}}{{#type_ref.is_primitive_decimal}}writeTextElement(el, {{tag_q}}, v.as{{name.pascal}}().toString());{{/type_ref.is_primitive_decimal}}
+{{/is_required}}
+{{#is_vector}}
+        for (const auto &item : v.as{{name.pascal}}(){{#min1}}.items(){{/min1}})
+        {
+            {{#type_ref.is_complex}}serialize{{type_ref.ident}}(item, el, {{tag_q}});{{/type_ref.is_complex}}{{#type_ref.is_value}}writeTextElement(el, {{tag_q}}, item.toString());{{/type_ref.is_value}}{{#type_ref.is_primitive_string}}writeTextElement(el, {{tag_q}}, item);{{/type_ref.is_primitive_string}}{{#type_ref.is_primitive_integer}}writeTextElement(el, {{tag_q}}, formatInt(item));{{/type_ref.is_primitive_integer}}{{#type_ref.is_primitive_decimal}}writeTextElement(el, {{tag_q}}, item.toString());{{/type_ref.is_primitive_decimal}}
+        }
+{{/is_vector}}
+{{/is_element}}
+{{^is_element}}
+{{#is_required}}
+        serialize{{type_ref.ident}}(v.as{{name.pascal}}(), el);
+{{/is_required}}
+{{#is_vector}}
+        for (const auto &item : v.as{{name.pascal}}(){{#min1}}.items(){{/min1}})
+        {
+            serialize{{type_ref.ident}}(item, el);
+        }
+{{/is_vector}}
+{{/is_element}}
+        break;
+{{/alternatives}}
+    }
+}
+
+} // namespace {{vars.namespace}}

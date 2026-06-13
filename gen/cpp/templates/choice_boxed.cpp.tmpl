@@ -1,0 +1,86 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include "mx/core/Xml.h"
+
+#include <utility>
+
+namespace {{vars.namespace}}
+{
+
+{{ident}}::{{ident}}() : m_value{std::in_place_index<0>, std::make_unique<{{#alternatives}}{{#is_first}}{{type_ref.ident}}{{/is_first}}{{/alternatives}}>()}
+{
+}
+
+{{ident}}::{{ident}}(const {{ident}} &other)
+{
+    *this = other;
+}
+
+{{ident}} &{{ident}}::operator=(const {{ident}} &other)
+{
+    switch (other.kind())
+    {
+{{#alternatives}}
+    case Kind::{{ident}}:
+        m_value.emplace<{{index0}}>(std::make_unique<{{type_ref.ident}}>(other.as{{name.pascal}}()));
+        break;
+{{/alternatives}}
+    }
+    return *this;
+}
+
+bool {{ident}}::operator==(const {{ident}} &other) const
+{
+    if (kind() != other.kind())
+    {
+        return false;
+    }
+    switch (kind())
+    {
+{{#alternatives}}
+    case Kind::{{ident}}:
+        return as{{name.pascal}}() == other.as{{name.pascal}}();
+{{/alternatives}}
+    }
+    return false;
+}
+
+{{#alternatives}}
+{{type.ident}} {{type.ident}}::{{ident}}({{type_ref.ident}} value)
+{
+    return {{type.ident}}{Storage{std::in_place_index<{{index0}}>, std::make_unique<{{type_ref.ident}}>(std::move(value))}};
+}
+
+{{/alternatives}}
+{{ident}} parse{{ident}}(pugi::xml_node el, pugi::xml_node &cursor)
+{
+{{#alternatives}}
+    if (cursorIs(cursor, {{tag_q}}))
+    {
+        {{type_ref.ident}} value = parse{{type_ref.ident}}(cursor);
+        cursor = nextElement(cursor);
+        return {{type.ident}}::{{ident}}(std::move(value));
+    }
+{{/alternatives}}
+    if (cursor)
+    {
+        throwUnknownElement(cursor);
+    }
+    throwMissingElement(el, {{#element_names}}{{#is_first}}{{value_q}}{{/is_first}}{{/element_names}});
+}
+
+void serialize{{ident}}(const {{ident}} &v, pugi::xml_node el)
+{
+    switch (v.kind())
+    {
+{{#alternatives}}
+    case {{type.ident}}::Kind::{{ident}}:
+        serialize{{type_ref.ident}}(v.as{{name.pascal}}(), el, {{tag_q}});
+        break;
+{{/alternatives}}
+    }
+}
+
+} // namespace {{vars.namespace}}

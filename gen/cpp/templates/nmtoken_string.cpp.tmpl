@@ -1,0 +1,78 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include <utility>
+
+namespace {{vars.namespace}}
+{
+
+namespace
+{
+
+// The ASCII subset of XML name characters (matches the schema's \c).
+bool isNameChar(char c) noexcept
+{
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' ||
+           c == '.' || c == ':' || c == '_';
+}
+
+} // namespace
+
+{{ident}}::{{ident}}()
+{
+    repair();
+}
+
+{{ident}}::{{ident}}(std::string value) : m_value{std::move(value)}
+{
+    repair();
+}
+
+void {{ident}}::setValue(std::string value)
+{
+    m_value = std::move(value);
+    repair();
+}
+
+void {{ident}}::repair()
+{
+    std::string cleaned;
+    cleaned.reserve(m_value.size());
+    for (const char c : m_value)
+    {
+        if (isNameChar(c))
+        {
+            cleaned.push_back(c);
+        }
+    }
+    if (cleaned.empty())
+    {
+        cleaned = "X";
+    }
+    m_value = std::move(cleaned);
+}
+
+bool {{ident}}::tryParse(std::string_view text, {{ident}} &out)
+{
+    if (text.empty())
+    {
+        return false;
+    }
+    for (const char c : text)
+    {
+        if (!isNameChar(c))
+        {
+            return false;
+        }
+    }
+    out = {{ident}}{std::string{text}};
+    return true;
+}
+
+{{ident}} {{ident}}::parse(std::string_view text)
+{
+    return {{ident}}{std::string{text}};
+}
+
+} // namespace {{vars.namespace}}
