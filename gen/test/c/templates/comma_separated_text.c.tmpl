@@ -1,0 +1,53 @@
+/* {{generated_banner}} */
+
+#include "mx_{{name.snake}}.h"
+
+#include "mx_runtime.h"
+
+#include <stdlib.h>
+#include <string.h>
+
+{{ident}} mx_{{name.snake}}_parse(const char *s) {
+    return mx_strdup(s);
+}
+
+char **mx_{{name.snake}}_items({{ident}} v, size_t *count) {
+    const char *s = v ? v : "";
+    size_t capacity = 1;
+    for (const char *p = s; *p; p++) {
+        if (*p == ',')
+            capacity++;
+    }
+    char **items = malloc((capacity + 1) * sizeof(char *));
+    if (!items)
+        abort(); /* the generator's runtime has no error channel for OOM */
+    size_t n = 0;
+    const char *start = s;
+    while (*start) {
+        const char *end = strchr(start, ',');
+        size_t len = end ? (size_t)(end - start) : strlen(start);
+        char *item = malloc(len + 1);
+        if (!item)
+            abort();
+        memcpy(item, start, len);
+        item[len] = '\0';
+        items[n++] = item;
+        if (!end)
+            break;
+        start = end + 1;
+        if (*start == ' ')
+            start++; /* the pattern's ", ?" separator */
+    }
+    items[n] = NULL;
+    if (count)
+        *count = n;
+    return items;
+}
+
+void mx_{{name.snake}}_items_free(char **items) {
+    if (!items)
+        return;
+    for (char **p = items; *p; p++)
+        free(*p);
+    free(items);
+}

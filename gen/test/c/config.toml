@@ -1,0 +1,155 @@
+# C generator target configuration.
+# A test target that keeps the generator honest about extensibility: MusicXML
+# 3.1, WITH the sounds.xml companion -- the counterpart to the Go target (same
+# 3.1 schema, sounds off), so the two differ only by the fold.
+#
+# The generator is language agnostic (the cardinal rule): everything C-shaped
+# about this target lives here and in its templates, never in generator code.
+
+[input]
+# MusicXML XSD this target generates from, relative to this config file.
+xsd = "../../../docs/musicxml-3.1-8bbe8e5.xsd"
+
+[output]
+# Directory for generated source files, relative to this config file.
+dir = "mx"
+
+[sounds]
+# Companion sounds file (vendored under docs/, version-matched to the XSD).
+# Folds the standard instrument-sound identifiers into the IR as a sound-id
+# enum unioned with an open string. Comment out to disable.
+xml = "../../../docs/sounds-3.1-8bbe8e5.xml"
+
+[target]
+symbol-prefix = "Mx"  # C has no namespaces; every type is prefixed
+inheritance   = false # and no inheritance; derived types flatten the base chain
+# C constants share one global namespace, so enum/union constants compose the
+# prefix and type name (MX_NOTE_TYPE_VALUE_1024TH).
+variant-scope = "composed"
+
+[naming]
+extends = "../../naming.base.toml"  # schema-forced renames shared by all targets
+field-convention   = "snake"
+variant-convention = "screaming"
+
+[types]
+# IR primitive -> C spelling. This non-validating harness gives the
+# NCName-derived identity primitives the same spelling as token, so the
+# lexical distinction the IR preserves costs it nothing.
+string               = "char *"
+token                = "char *"
+nmtoken              = "char *"
+id                   = "char *"
+idref                = "char *"
+date                 = "char *"
+decimal              = "double"
+integer              = "long"
+positive_integer     = "long"
+non_negative_integer = "long"
+
+[reserved]
+# C keywords a generated identifier must not be; <stdbool.h> is assumed by
+# generated code, so its macros are reserved too.
+words = [
+    "auto", "break", "case", "char", "const", "continue", "default", "do",
+    "double", "else", "enum", "extern", "float", "for", "goto", "if",
+    "inline", "int", "long", "register", "restrict", "return", "short",
+    "signed", "sizeof", "static", "struct", "switch", "typedef", "union",
+    "unsigned", "void", "volatile", "while",
+    "bool", "true", "false",
+]
+# Names this target's templates synthesize: the ordered-children fields, and
+# the Child/Kind type-name compositions. The collision gate enforces these.
+members = ["children", "children_count"]
+type-suffixes = ["Child", "Kind"]
+
+# ---- the render manifest: which templates produce which files ----------- #
+# The presence of [render] selects the press pipeline; everything C-shaped
+# lives in templates/ and here, never in generator code.
+
+[render]
+dir = "templates"
+
+[[render.type]]
+strategies = ["enum-class"]
+template   = "enum.h.tmpl"
+output     = "mx_{snake}.h"
+
+[[render.type]]
+strategies = ["enum-class"]
+template   = "enum.c.tmpl"
+output     = "mx_{snake}.c"
+
+[[render.type]]
+strategies = ["numeric-wrapper"]
+template   = "number.h.tmpl"
+output     = "mx_{snake}.h"
+
+[[render.type]]
+strategies = ["numeric-wrapper"]
+template   = "number.c.tmpl"
+output     = "mx_{snake}.c"
+
+[[render.type]]
+strategies = ["string-wrapper"]
+template   = "string.h.tmpl"
+output     = "mx_{snake}.h"
+
+[[render.type]]
+strategies = ["string-wrapper"]
+template   = "string.c.tmpl"
+output     = "mx_{snake}.c"
+
+[[render.type]]
+strategies = ["tagged-variant"]
+template   = "union.h.tmpl"
+output     = "mx_{snake}.h"
+
+[[render.type]]
+strategies = ["tagged-variant"]
+template   = "union.c.tmpl"
+output     = "mx_{snake}.c"
+
+[[render.type]]
+strategies = ["value-class", "composite-class", "flag", "attrs-class", "flatten"]
+template   = "complex.h.tmpl"
+output     = "mx_{snake}.h"
+
+[[render.type]]
+strategies = ["value-class", "composite-class", "flag", "attrs-class", "flatten"]
+template   = "complex.c.tmpl"
+output     = "mx_{snake}.c"
+
+# Bespoke handling: `types` rows claim specific types by wire name and
+# override the strategy rows for them. comma-separated-text keeps the stock
+# char* wire API and adds an items accessor that splits the list into a
+# malloc'd array of char*.
+[[render.type]]
+types    = ["comma-separated-text"]
+template = "comma_separated_text.h.tmpl"
+output   = "mx_{snake}.h"
+
+[[render.type]]
+types    = ["comma-separated-text"]
+template = "comma_separated_text.c.tmpl"
+output   = "mx_{snake}.c"
+
+[[render.once]]
+template = "runtime.h.tmpl"
+output   = "mx_runtime.h"
+
+[[render.once]]
+template = "runtime.c.tmpl"
+output   = "mx_runtime.c"
+
+[[render.once]]
+template = "document.h.tmpl"
+output   = "mx_document.h"
+
+[[render.once]]
+template = "document.c.tmpl"
+output   = "mx_document.c"
+
+[[render.once]]
+template = "sources.cmake.tmpl"
+output   = "sources.cmake"
