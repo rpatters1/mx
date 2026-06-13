@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 #
-# Developer tools for mx. Not a project deliverable.
+# mx-sdk: the pinned developer toolchain for mx. Not a project deliverable.
 
 FROM ubuntu:24.04
 
@@ -15,6 +15,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         gcovr \
         python3 \
         python3-venv \
+        golang-go \
+        libxml2-dev \
+        libxml2-utils \
+        pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Python quality tooling for `make gen-quality` / `make gen-lint`. Isolated in a
@@ -28,13 +32,11 @@ RUN python3 -m venv /opt/quality-venv \
         pylint==4.0.5 \
         cognitive_complexity==1.3.0
 
-# Unversioned name so the Makefile invokes the pinned formatter without
-# knowing the version suffix.
+# Unversioned name so the Makefile invokes the formatter without the suffix.
 RUN ln -sf /usr/bin/clang-format-18 /usr/local/bin/clang-format
 
-# Build with the pinned GCC. MX_RUNNING_IN_DOCKER tells the Makefile it
-# is inside the container. CCACHE_DIR lives under the mounted build
-# volume.
+# MX_RUNNING_IN_DOCKER flips the Makefile to its in-container branch. Build with
+# the pinned GCC; ccache state lives under the mounted build volume.
 ENV MX_RUNNING_IN_DOCKER=1 \
     CC=gcc-14 \
     CXX=g++-14 \
