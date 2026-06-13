@@ -3,13 +3,74 @@
 // Distributed under the MIT License
 
 #include "mx/api/MarkData.h"
-#include "mx/core/Enums.h"
+#include "mx/core/generated/DynamicsChoice.h"
+#include "mx/core/generated/FermataShape.h"
 #include "mx/impl/Converter.h"
 
 namespace mx
 {
 namespace api
 {
+namespace
+{
+// The wire literal of a dynamics alternative (the old core's
+// toString(DynamicsEnum); the new variant Kind carries no string).
+std::string dynamicsKindToString(core::DynamicsChoice::Kind kind)
+{
+    switch (kind)
+    {
+    case core::DynamicsChoice::Kind::p:
+        return "p";
+    case core::DynamicsChoice::Kind::pp:
+        return "pp";
+    case core::DynamicsChoice::Kind::ppp:
+        return "ppp";
+    case core::DynamicsChoice::Kind::pppp:
+        return "pppp";
+    case core::DynamicsChoice::Kind::ppppp:
+        return "ppppp";
+    case core::DynamicsChoice::Kind::pppppp:
+        return "pppppp";
+    case core::DynamicsChoice::Kind::f:
+        return "f";
+    case core::DynamicsChoice::Kind::ff:
+        return "ff";
+    case core::DynamicsChoice::Kind::fff:
+        return "fff";
+    case core::DynamicsChoice::Kind::ffff:
+        return "ffff";
+    case core::DynamicsChoice::Kind::fffff:
+        return "fffff";
+    case core::DynamicsChoice::Kind::ffffff:
+        return "ffffff";
+    case core::DynamicsChoice::Kind::mp:
+        return "mp";
+    case core::DynamicsChoice::Kind::mf:
+        return "mf";
+    case core::DynamicsChoice::Kind::sf:
+        return "sf";
+    case core::DynamicsChoice::Kind::sfp:
+        return "sfp";
+    case core::DynamicsChoice::Kind::sfpp:
+        return "sfpp";
+    case core::DynamicsChoice::Kind::fp:
+        return "fp";
+    case core::DynamicsChoice::Kind::rf:
+        return "rf";
+    case core::DynamicsChoice::Kind::rfz:
+        return "rfz";
+    case core::DynamicsChoice::Kind::sfz:
+        return "sfz";
+    case core::DynamicsChoice::Kind::sffz:
+        return "sffz";
+    case core::DynamicsChoice::Kind::fz:
+        return "fz";
+    default:
+        return "other-dynamics";
+    }
+}
+} // namespace
+
 bool isMarkDynamic(MarkType markType)
 {
     return (markType == MarkType::p) || (markType == MarkType::p) || (markType == MarkType::pp) ||
@@ -162,7 +223,7 @@ MarkData::MarkData(MarkType inMarkType)
     impl::Converter converter;
     if (isMarkDynamic(markType))
     {
-        name = mx::core::toString(converter.convertDynamic(markType));
+        name = dynamicsKindToString(converter.convertDynamic(markType));
     }
     else if (isMarkArticulation(markType))
     {
@@ -170,7 +231,7 @@ MarkData::MarkData(MarkType inMarkType)
     }
     else if (isMarkFermata(markType))
     {
-        name = mx::core::toString(converter.convertFermata(markType));
+        name = std::string{converter.convertFermata(markType).toString()};
     }
 }
 
@@ -183,7 +244,7 @@ MarkData::MarkData(Placement inPlacement, MarkType inMarkType)
     impl::Converter converter;
     if (isMarkDynamic(markType))
     {
-        name = mx::core::toString(converter.convertDynamic(markType));
+        name = dynamicsKindToString(converter.convertDynamic(markType));
     }
     else if (isMarkArticulation(markType))
     {
@@ -191,7 +252,7 @@ MarkData::MarkData(Placement inPlacement, MarkType inMarkType)
     }
     else if (isMarkFermata(markType))
     {
-        name = mx::core::toString(converter.convertFermata(markType));
+        name = std::string{converter.convertFermata(markType).toString()};
     }
 }
 } // namespace api
