@@ -3,21 +3,13 @@
 // Distributed under the MIT License
 
 #include "mx/impl/TupletReader.h"
-#include "mx/core/elements/ActualNotes.h"
-#include "mx/core/elements/NormalDot.h"
-#include "mx/core/elements/NormalNotes.h"
-#include "mx/core/elements/NormalType.h"
-#include "mx/core/elements/NormalTypeNormalDotGroup.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/TimeModification.h"
-#include "mx/core/elements/Tuplet.h"
-#include "mx/core/elements/TupletActual.h"
-#include "mx/core/elements/TupletDot.h"
-#include "mx/core/elements/TupletNormal.h"
-#include "mx/core/elements/TupletNumber.h"
-#include "mx/core/elements/TupletType.h"
-#include "mx/core/elements/Type.h"
-#include "mx/impl/PositionFunctions.h"
+#include "mx/core/generated/Note.h"
+#include "mx/core/generated/TimeModification.h"
+#include "mx/core/generated/TimeModificationGroup.h"
+#include "mx/core/generated/Tuplet.h"
+#include "mx/core/generated/TupletPortion.h"
+#include "mx/impl/Converter.h"
+#include "mx/impl/MarkDataFunctions.h"
 
 namespace mx
 {
@@ -31,16 +23,15 @@ TupletReader::TupletReader(const core::Tuplet &inMxTuplet, impl::Cursor inCursor
 void TupletReader::parseTuplet(std::vector<api::TupletStart> &outTupletStarts,
                                std::vector<api::TupletStop> &outTupletStops)
 {
-    const auto &attr = *myTuplet.getAttributes();
     api::TupletStart tupletStart;
-    tupletStart.positionData = getPositionData(attr);
+    tupletStart.positionData = impl::getPositionData(myTuplet);
 
-    if (attr.hasNumber)
+    if (myTuplet.number().has_value())
     {
-        tupletStart.numberLevel = attr.number.getValue();
+        tupletStart.numberLevel = myTuplet.number()->value();
     }
 
-    if (attr.type == core::StartStop::stop)
+    if (myTuplet.type() == core::StartStop::stop())
     {
         api::TupletStop tupletStop;
         tupletStop.positionData = tupletStart.positionData;
@@ -49,19 +40,19 @@ void TupletReader::parseTuplet(std::vector<api::TupletStart> &outTupletStarts,
         return;
     }
 
-    if (attr.hasShowNumber)
+    if (myTuplet.showNumber().has_value())
     {
-        switch (attr.showNumber)
+        switch (myTuplet.showNumber()->tag())
         {
-        case core::ShowTuplet::none:
+        case core::ShowTuplet::Tag::none:
             tupletStart.showActualNumber = api::Bool::no;
             tupletStart.showNormalNumber = api::Bool::no;
             break;
-        case core::ShowTuplet::both:
+        case core::ShowTuplet::Tag::both:
             tupletStart.showActualNumber = api::Bool::yes;
             tupletStart.showNormalNumber = api::Bool::yes;
             break;
-        case core::ShowTuplet::actual:
+        case core::ShowTuplet::Tag::actual:
             tupletStart.showActualNumber = api::Bool::yes;
             tupletStart.showNormalNumber = api::Bool::no;
             break;
@@ -72,53 +63,47 @@ void TupletReader::parseTuplet(std::vector<api::TupletStart> &outTupletStarts,
 
     Converter converter;
 
-    if (attr.hasBracket)
+    if (myTuplet.bracket().has_value())
     {
-        tupletStart.bracket = converter.convert(attr.bracket);
+        tupletStart.bracket = converter.convert(*myTuplet.bracket());
     }
 
-    if (myTuplet.getHasTupletActual())
+    if (myTuplet.tupletActual().has_value())
     {
-        const auto &actual = *myTuplet.getTupletActual();
+        const auto &actual = *myTuplet.tupletActual();
 
-        if (actual.getHasTupletNumber())
+        if (actual.tupletNumber().has_value())
         {
-            tupletStart.actualNumber = actual.getTupletNumber()->getValue().getValue();
+            tupletStart.actualNumber = actual.tupletNumber()->value();
         }
 
-        if (actual.getHasTupletType())
+        if (actual.tupletType().has_value())
         {
-            tupletStart.actualDurationName = converter.convert(actual.getTupletType()->getValue());
+            tupletStart.actualDurationName = converter.convert(actual.tupletType()->value());
         }
 
-        if (actual.getTupletDotSet().size() > 0)
-        {
-            tupletStart.actualDots = static_cast<int>(actual.getTupletDotSet().size());
-        }
+        tupletStart.actualDots = static_cast<int>(actual.tupletDot().size());
     }
     else
     {
         guessActualFromNote(tupletStart);
     }
 
-    if (myTuplet.getHasTupletNormal())
+    if (myTuplet.tupletNormal().has_value())
     {
-        const auto &normal = *myTuplet.getTupletNormal();
+        const auto &normal = *myTuplet.tupletNormal();
 
-        if (normal.getHasTupletNumber())
+        if (normal.tupletNumber().has_value())
         {
-            tupletStart.normalNumber = normal.getTupletNumber()->getValue().getValue();
+            tupletStart.normalNumber = normal.tupletNumber()->value();
         }
 
-        if (normal.getHasTupletType())
+        if (normal.tupletType().has_value())
         {
-            tupletStart.normalDurationName = converter.convert(normal.getTupletType()->getValue());
+            tupletStart.normalDurationName = converter.convert(normal.tupletType()->value());
         }
 
-        if (normal.getTupletDotSet().size() > 0)
-        {
-            tupletStart.normalDots = static_cast<int>(normal.getTupletDotSet().size());
-        }
+        tupletStart.normalDots = static_cast<int>(normal.tupletDot().size());
     }
     else
     {
@@ -130,49 +115,45 @@ void TupletReader::parseTuplet(std::vector<api::TupletStart> &outTupletStarts,
 
 void TupletReader::guessNormalFromNote(api::TupletStart &outTupletStart)
 {
-    if (!myNote.getHasTimeModification())
+    if (!myNote.timeModification().has_value())
     {
         return;
     }
-    const auto &timeMod = *myNote.getTimeModification();
-    outTupletStart.actualNumber = timeMod.getActualNotes()->getValue().getValue();
+    const auto &timeMod = *myNote.timeModification();
+    outTupletStart.actualNumber = timeMod.actualNotes();
 
     Converter converter;
-    if (timeMod.getHasNormalTypeNormalDotGroup())
+    if (timeMod.group().has_value())
     {
-        const auto &grp = *timeMod.getNormalTypeNormalDotGroup();
-        const auto durName = converter.convert(grp.getNormalType()->getValue());
-        outTupletStart.normalDurationName = durName;
-        outTupletStart.normalDots = static_cast<int>(grp.getNormalDotSet().size());
+        const auto &grp = *timeMod.group();
+        outTupletStart.normalDurationName = converter.convert(grp.normalType());
+        outTupletStart.normalDots = static_cast<int>(grp.normalDot().size());
     }
-    else if (myNote.getHasType())
+    else if (myNote.type().has_value())
     {
-        const auto durName = converter.convert(myNote.getType()->getValue());
-        outTupletStart.normalDurationName = durName;
+        outTupletStart.normalDurationName = converter.convert(myNote.type()->value());
     }
 }
 
 void TupletReader::guessActualFromNote(api::TupletStart &outTupletStart)
 {
-    if (!myNote.getHasTimeModification())
+    if (!myNote.timeModification().has_value())
     {
         return;
     }
-    const auto &timeMod = *myNote.getTimeModification();
-    outTupletStart.normalNumber = timeMod.getNormalNotes()->getValue().getValue();
+    const auto &timeMod = *myNote.timeModification();
+    outTupletStart.normalNumber = timeMod.normalNotes();
 
     Converter converter;
-    if (timeMod.getHasNormalTypeNormalDotGroup())
+    if (timeMod.group().has_value())
     {
-        const auto &grp = *timeMod.getNormalTypeNormalDotGroup();
-        const auto durName = converter.convert(grp.getNormalType()->getValue());
-        outTupletStart.actualDurationName = durName;
-        outTupletStart.actualDots = static_cast<int>(grp.getNormalDotSet().size());
+        const auto &grp = *timeMod.group();
+        outTupletStart.actualDurationName = converter.convert(grp.normalType());
+        outTupletStart.actualDots = static_cast<int>(grp.normalDot().size());
     }
-    else if (myNote.getHasType())
+    else if (myNote.type().has_value())
     {
-        const auto durName = converter.convert(myNote.getType()->getValue());
-        outTupletStart.actualDurationName = durName;
+        outTupletStart.actualDurationName = converter.convert(myNote.type()->value());
     }
 }
 

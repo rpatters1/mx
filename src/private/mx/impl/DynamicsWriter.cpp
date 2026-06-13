@@ -3,13 +3,86 @@
 // Distributed under the MIT License
 
 #include "mx/impl/DynamicsWriter.h"
-#include "mx/core/elements/Dynamics.h"
+#include "mx/core/generated/Dynamics.h"
+#include "mx/core/generated/DynamicsChoice.h"
+#include "mx/core/generated/Empty.h"
+#include "mx/core/generated/OtherText.h"
 #include "mx/impl/MarkDataFunctions.h"
+#include "mx/utility/Throw.h"
 
 namespace mx
 {
 namespace impl
 {
+
+static core::DynamicsChoice makeDynamicsChoice(core::DynamicsChoice::Kind kind, const std::string &otherName)
+{
+    using K = core::DynamicsChoice::Kind;
+    core::Empty empty{};
+    switch (kind)
+    {
+    case K::p:
+        return core::DynamicsChoice::p(empty);
+    case K::pp:
+        return core::DynamicsChoice::pp(empty);
+    case K::ppp:
+        return core::DynamicsChoice::ppp(empty);
+    case K::pppp:
+        return core::DynamicsChoice::pppp(empty);
+    case K::ppppp:
+        return core::DynamicsChoice::ppppp(empty);
+    case K::pppppp:
+        return core::DynamicsChoice::pppppp(empty);
+    case K::f:
+        return core::DynamicsChoice::f(empty);
+    case K::ff:
+        return core::DynamicsChoice::ff(empty);
+    case K::fff:
+        return core::DynamicsChoice::fff(empty);
+    case K::ffff:
+        return core::DynamicsChoice::ffff(empty);
+    case K::fffff:
+        return core::DynamicsChoice::fffff(empty);
+    case K::ffffff:
+        return core::DynamicsChoice::ffffff(empty);
+    case K::mp:
+        return core::DynamicsChoice::mp(empty);
+    case K::mf:
+        return core::DynamicsChoice::mf(empty);
+    case K::sf:
+        return core::DynamicsChoice::sf(empty);
+    case K::sfp:
+        return core::DynamicsChoice::sfp(empty);
+    case K::sfpp:
+        return core::DynamicsChoice::sfpp(empty);
+    case K::fp:
+        return core::DynamicsChoice::fp(empty);
+    case K::rf:
+        return core::DynamicsChoice::rf(empty);
+    case K::rfz:
+        return core::DynamicsChoice::rfz(empty);
+    case K::sfz:
+        return core::DynamicsChoice::sfz(empty);
+    case K::sffz:
+        return core::DynamicsChoice::sffz(empty);
+    case K::fz:
+        return core::DynamicsChoice::fz(empty);
+    case K::n:
+        return core::DynamicsChoice::n(empty);
+    case K::pf:
+        return core::DynamicsChoice::pf(empty);
+    case K::sfzp:
+        return core::DynamicsChoice::sfzp(empty);
+    case K::otherDynamics: {
+        core::OtherText ot;
+        ot.setValue(otherName);
+        return core::DynamicsChoice::otherDynamics(ot);
+    }
+    default:
+        return core::DynamicsChoice::p(empty);
+    }
+}
+
 DynamicsWriter::DynamicsWriter(const api::MarkData &inMark, impl::Cursor inCursor)
     : myMarkData{inMark}, myCursor{inCursor}, myConverter{}
 {
@@ -23,21 +96,15 @@ DynamicsWriter::DynamicsWriter(const api::MarkData &inMark, impl::Cursor inCurso
     MX_ASSERT(isMarkDynamic(inMark.markType));
 }
 
-core::DynamicsPtr DynamicsWriter::getDynamics() const
+core::Dynamics DynamicsWriter::getDynamics() const
 {
-    auto dyn = core::makeDynamics();
+    const auto kind = myConverter.convertDynamic(myMarkData.markType);
+    const bool isOther = kind == core::DynamicsChoice::Kind::otherDynamics;
+    const auto &otherName = isOther ? myMarkData.name : std::string{};
 
-    const auto value = myConverter.convertDynamic(myMarkData.markType);
-    core::DynamicsValue dynamicsValue;
-    dynamicsValue.setValue(value);
-    const bool isOther = value == core::DynamicsEnum::otherDynamics;
-
-    if (isOther && !myMarkData.name.empty())
-    {
-        dynamicsValue.setValue(myMarkData.name);
-    }
-    impl::setAttributesFromMarkData(myMarkData, *dyn->getAttributes());
-    dyn->setValue(dynamicsValue);
+    core::Dynamics dyn;
+    dyn.addChoice(makeDynamicsChoice(kind, otherName));
+    impl::setAttributesFromMarkData(myMarkData, dyn);
     return dyn;
 }
 } // namespace impl

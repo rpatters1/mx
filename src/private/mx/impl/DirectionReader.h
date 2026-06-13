@@ -5,7 +5,11 @@
 #pragma once
 
 #include "mx/api/DirectionData.h"
-#include "mx/core/elements/Direction.h"
+#include "mx/core/generated/Direction.h"
+#include "mx/core/generated/DirectionType.h"
+#include "mx/core/generated/Dynamics.h"
+#include "mx/core/generated/Harmony.h"
+#include "mx/core/generated/HarmonyChordGroup.h"
 #include "mx/impl/Converter.h"
 #include "mx/impl/Cursor.h"
 #include "mx/impl/PositionFunctions.h"
@@ -15,30 +19,18 @@
 
 namespace mx
 {
-namespace core
-{
-class DirectionType;
-using DirectionTypePtr = std::shared_ptr<DirectionType>;
-using DirectionTypeSet = std::vector<DirectionTypePtr>;
-class Dynamics;
-class Harmony;
-using HarmonyPtr = std::shared_ptr<Harmony>;
-using HarmonyPtrSet = std::vector<HarmonyPtr>;
-class HarmonyChordGroup;
-} // namespace core
-
 namespace impl
 {
 class DirectionReader
 {
   public:
-    DirectionReader(std::shared_ptr<const core::Direction> inDirection, Cursor inCursor);
-    DirectionReader(std::shared_ptr<const core::Harmony> inHarmony, Cursor inCursor);
+    DirectionReader(const core::Direction &inDirection, Cursor inCursor);
+    DirectionReader(const core::Harmony &inHarmony, Cursor inCursor);
     api::DirectionData getDirectionData();
 
   private:
-    const std::shared_ptr<const core::Direction> myDirection;
-    const std::shared_ptr<const core::Harmony> myHarmony;
+    const core::Direction *const myDirection;
+    const core::Harmony *const myHarmony;
     const Cursor myCursor;
     const Converter myConverter;
     api::DirectionData myOutDirectionData;
@@ -84,11 +76,9 @@ class DirectionReader
 
         if (positionData.placement == api::Placement::unspecified)
         {
-            const auto &dirAttr = *myDirection->getAttributes();
-
-            if (dirAttr.hasPlacement)
+            if (myDirection && myDirection->placement().has_value())
             {
-                positionData.placement = myConverter.convert(dirAttr.placement);
+                positionData.placement = myConverter.convert(*myDirection->placement());
             }
         }
 

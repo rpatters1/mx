@@ -3,85 +3,58 @@
 // Distributed under the MIT License
 
 #include "mx/impl/NotationsWriter.h"
-#include "mx/core/elements/Accent.h"
-#include "mx/core/elements/Arpeggiate.h"
-#include "mx/core/elements/Arrow.h"
-#include "mx/core/elements/ArrowDirection.h"
-#include "mx/core/elements/ArrowGroup.h"
-#include "mx/core/elements/Articulations.h"
-#include "mx/core/elements/ArticulationsChoice.h"
-#include "mx/core/elements/Bend.h"
-#include "mx/core/elements/BreathMark.h"
-#include "mx/core/elements/Caesura.h"
-#include "mx/core/elements/DelayedInvertedTurn.h"
-#include "mx/core/elements/DelayedTurn.h"
-#include "mx/core/elements/DetachedLegato.h"
-#include "mx/core/elements/Doit.h"
-#include "mx/core/elements/DoubleTongue.h"
-#include "mx/core/elements/DownBow.h"
-#include "mx/core/elements/Dynamics.h"
-#include "mx/core/elements/Falloff.h"
-#include "mx/core/elements/Fermata.h"
-#include "mx/core/elements/Fingering.h"
-#include "mx/core/elements/Fingernails.h"
-#include "mx/core/elements/Fret.h"
-#include "mx/core/elements/HammerOn.h"
-#include "mx/core/elements/Handbell.h"
-#include "mx/core/elements/Harmonic.h"
-#include "mx/core/elements/Heel.h"
-#include "mx/core/elements/Hole.h"
-#include "mx/core/elements/HoleClosed.h"
-#include "mx/core/elements/InvertedMordent.h"
-#include "mx/core/elements/InvertedTurn.h"
-#include "mx/core/elements/Mordent.h"
-#include "mx/core/elements/NonArpeggiate.h"
-#include "mx/core/elements/Notations.h"
-#include "mx/core/elements/NotationsChoice.h"
-#include "mx/core/elements/OpenString.h"
-#include "mx/core/elements/Ornaments.h"
-#include "mx/core/elements/OrnamentsChoice.h"
-#include "mx/core/elements/OtherArticulation.h"
-#include "mx/core/elements/OtherOrnament.h"
-#include "mx/core/elements/OtherTechnical.h"
-#include "mx/core/elements/Plop.h"
-#include "mx/core/elements/Pluck.h"
-#include "mx/core/elements/PullOff.h"
-#include "mx/core/elements/Schleifer.h"
-#include "mx/core/elements/Scoop.h"
-#include "mx/core/elements/Shake.h"
-#include "mx/core/elements/Slur.h"
-#include "mx/core/elements/SnapPizzicato.h"
-#include "mx/core/elements/Spiccato.h"
-#include "mx/core/elements/Staccatissimo.h"
-#include "mx/core/elements/Staccato.h"
-#include "mx/core/elements/Stopped.h"
-#include "mx/core/elements/Stress.h"
-#include "mx/core/elements/String.h"
-#include "mx/core/elements/StrongAccent.h"
-#include "mx/core/elements/Tap.h"
-#include "mx/core/elements/Technical.h"
-#include "mx/core/elements/Tenuto.h"
-#include "mx/core/elements/ThumbPosition.h"
-#include "mx/core/elements/Tied.h"
-#include "mx/core/elements/Toe.h"
-#include "mx/core/elements/Tremolo.h"
-#include "mx/core/elements/TrillMark.h"
-#include "mx/core/elements/TripleTongue.h"
-#include "mx/core/elements/Tuplet.h"
-#include "mx/core/elements/TupletActual.h"
-#include "mx/core/elements/TupletDot.h"
-#include "mx/core/elements/TupletNormal.h"
-#include "mx/core/elements/TupletNumber.h"
-#include "mx/core/elements/TupletType.h"
-#include "mx/core/elements/Turn.h"
-#include "mx/core/elements/Unstress.h"
-#include "mx/core/elements/UpBow.h"
-#include "mx/core/elements/VerticalTurn.h"
-#include "mx/core/elements/WavyLine.h"
+#include "mx/core/generated/Arpeggiate.h"
+#include "mx/core/generated/ArrowChoice.h"
+#include "mx/core/generated/ArrowChoiceGroup.h"
+#include "mx/core/generated/ArrowDirection.h"
+#include "mx/core/generated/ArticulationsChoice.h"
+#include "mx/core/generated/BreathMark.h"
+#include "mx/core/generated/Caesura.h"
+#include "mx/core/generated/EmptyLine.h"
+#include "mx/core/generated/EmptyPlacement.h"
+#include "mx/core/generated/EmptyPlacementSmufl.h"
+#include "mx/core/generated/EmptyTrillSound.h"
+#include "mx/core/generated/Fermata.h"
+#include "mx/core/generated/FermataShape.h"
+#include "mx/core/generated/Fret.h"
+#include "mx/core/generated/Handbell.h"
+#include "mx/core/generated/HandbellValue.h"
+#include "mx/core/generated/Harmonic.h"
+#include "mx/core/generated/HeelToe.h"
+#include "mx/core/generated/Hole.h"
+#include "mx/core/generated/HoleClosed.h"
+#include "mx/core/generated/HoleClosedValue.h"
+#include "mx/core/generated/HorizontalTurn.h"
+#include "mx/core/generated/Mordent.h"
+#include "mx/core/generated/NonArpeggiate.h"
+#include "mx/core/generated/NotationsChoice.h"
+#include "mx/core/generated/OrnamentsGroup.h"
+#include "mx/core/generated/OrnamentsGroupChoice.h"
+#include "mx/core/generated/OtherPlacementText.h"
+#include "mx/core/generated/ShowTuplet.h"
+#include "mx/core/generated/Slur.h"
+#include "mx/core/generated/String.h"
+#include "mx/core/generated/StringNumber.h"
+#include "mx/core/generated/StrongAccent.h"
+#include "mx/core/generated/TechnicalChoice.h"
+#include "mx/core/generated/Tied.h"
+#include "mx/core/generated/Tremolo.h"
+#include "mx/core/generated/TremoloMarks.h"
+#include "mx/core/generated/TremoloType.h"
+#include "mx/core/generated/Tuplet.h"
+#include "mx/core/generated/TupletDot.h"
+#include "mx/core/generated/TupletNumber.h"
+#include "mx/core/generated/TupletPortion.h"
+#include "mx/core/generated/TupletType.h"
+#include "mx/core/generated/UpDown.h"
+#include "mx/core/generated/UprightInverted.h"
+#include "mx/core/generated/WavyLine.h"
 #include "mx/impl/CurveFunctions.h"
 #include "mx/impl/DynamicsWriter.h"
 #include "mx/impl/MarkDataFunctions.h"
-#include "mx/utility/OptionalMembers.h"
+#include "mx/impl/PositionFunctions.h"
+
+#include <string>
 
 namespace mx
 {
@@ -89,190 +62,162 @@ namespace impl
 {
 namespace
 {
-template <typename ATTRIBUTES_TYPE>
-void setMordentSpecificAttributes(const api::MarkData &mark, ATTRIBUTES_TYPE &attributes)
+void setMordentSpecificAttributes(const api::MarkData &mark, core::Mordent &mordent)
 {
     Converter converter;
 
     if (mark.hasMordentLong)
     {
-        attributes.hasLong = true;
-        attributes.long_ = converter.convert(mark.mordentLong);
+        mordent.setLong(converter.convert(mark.mordentLong));
     }
 
     if (mark.hasMordentApproach && mark.mordentApproach != api::Placement::unspecified)
     {
-        attributes.hasApproach = true;
-        attributes.approach = converter.convert(mark.mordentApproach);
+        mordent.setApproach(converter.convert(mark.mordentApproach));
     }
 
     if (mark.hasMordentDeparture && mark.mordentDeparture != api::Placement::unspecified)
     {
-        attributes.hasDeparture = true;
-        attributes.departure = converter.convert(mark.mordentDeparture);
+        mordent.setDeparture(converter.convert(mark.mordentDeparture));
     }
 }
 } // namespace
 
 NotationsWriter::NotationsWriter(const api::NoteData &inNoteData, const MeasureCursor &inCursor,
                                  const ScoreWriter & /*inScoreWriter*/)
-    : myNoteData{inNoteData}, myCursor{inCursor}, myConverter{}, myOutNotations{nullptr}
+    : myNoteData{inNoteData}, myCursor{inCursor}, myConverter{}
 {
 }
 
-core::NotationsPtr NotationsWriter::getNotations() const
+core::Notations NotationsWriter::getNotations() const
 {
-    myOutNotations = core::makeNotations();
-    auto articulationsNotationChoice = makeArticulationsNotationsChoice();
-    auto articulations = articulationsNotationChoice->getArticulations();
-    auto ornamentsNotationChoice = makeOrnamentsNotationsChoice();
-    auto ornaments = ornamentsNotationChoice->getOrnaments();
-    auto technicalNotationChoice = makeTechnicalNotationsChoice();
-    auto technicals = technicalNotationChoice->getTechnical();
+    core::Notations outNotations;
+    core::Articulations articulations;
+    core::Ornaments ornaments;
+    core::Technical technicals;
 
     for (const auto &curve : myNoteData.noteAttachmentData.curveStops)
     {
-        auto curveNotationsChoice = core::makeNotationsChoice();
-        myOutNotations->addNotationsChoice(curveNotationsChoice);
-
         if (curve.curveType == api::CurveType::tie)
         {
-            curveNotationsChoice->setChoice(core::NotationsChoice::Choice::tied);
-            auto element = curveNotationsChoice->getTied();
-            auto attr = element->getAttributes();
-            writeAttributesFromCurveStop(curve, *attr);
+            core::Tied tied;
+            writeAttributesFromCurveStop(curve, tied);
+            outNotations.addChoice(core::NotationsChoice::tied(tied));
         }
         else if (curve.curveType == api::CurveType::slur)
         {
-            curveNotationsChoice->setChoice(core::NotationsChoice::Choice::slur);
-            auto element = curveNotationsChoice->getSlur();
-            auto attr = element->getAttributes();
-            writeAttributesFromCurveStop(curve, *attr);
+            core::Slur slur;
+            writeAttributesFromCurveStop(curve, slur);
+            outNotations.addChoice(core::NotationsChoice::slur(slur));
         }
     }
 
     for (const auto &curve : myNoteData.noteAttachmentData.curveContinuations)
     {
-        auto curveNotationsChoice = core::makeNotationsChoice();
-        myOutNotations->addNotationsChoice(curveNotationsChoice);
-
         if (curve.curveType == api::CurveType::tie)
         {
-            curveNotationsChoice->setChoice(core::NotationsChoice::Choice::tied);
-            auto element = curveNotationsChoice->getTied();
-            auto attr = element->getAttributes();
-            writeAttributesFromCurveContinue(curve, *attr);
+            core::Tied tied;
+            writeAttributesFromCurveContinue(curve, tied);
+            outNotations.addChoice(core::NotationsChoice::tied(tied));
         }
         else if (curve.curveType == api::CurveType::slur)
         {
-            curveNotationsChoice->setChoice(core::NotationsChoice::Choice::slur);
-            auto element = curveNotationsChoice->getSlur();
-            auto attr = element->getAttributes();
-            writeAttributesFromCurveContinue(curve, *attr);
+            core::Slur slur;
+            writeAttributesFromCurveContinue(curve, slur);
+            outNotations.addChoice(core::NotationsChoice::slur(slur));
         }
     }
 
     for (const auto &curve : myNoteData.noteAttachmentData.curveStarts)
     {
-        auto curveNotationsChoice = core::makeNotationsChoice();
-        myOutNotations->addNotationsChoice(curveNotationsChoice);
-
         if (curve.curveType == api::CurveType::tie)
         {
-            curveNotationsChoice->setChoice(core::NotationsChoice::Choice::tied);
-            auto element = curveNotationsChoice->getTied();
-            auto attr = element->getAttributes();
-            writeAttributesFromCurveStart(curve, *attr);
+            core::Tied tied;
+            writeAttributesFromCurveStart(curve, tied);
+            outNotations.addChoice(core::NotationsChoice::tied(tied));
         }
         else if (curve.curveType == api::CurveType::slur)
         {
-            curveNotationsChoice->setChoice(core::NotationsChoice::Choice::slur);
-            auto element = curveNotationsChoice->getSlur();
-            auto attr = element->getAttributes();
-            writeAttributesFromCurveStart(curve, *attr);
+            core::Slur slur;
+            writeAttributesFromCurveStart(curve, slur);
+            outNotations.addChoice(core::NotationsChoice::slur(slur));
         }
     }
 
     for (const auto &tupletStop : myNoteData.noteAttachmentData.tupletStops)
     {
-        auto tupletNotationsChoice = core::makeNotationsChoice();
-        myOutNotations->addNotationsChoice(tupletNotationsChoice);
-        tupletNotationsChoice->setChoice(core::NotationsChoice::Choice::tuplet);
-        auto tuplet = tupletNotationsChoice->getTuplet();
-        tuplet->getAttributes()->type = core::StartStop::stop;
+        core::Tuplet tuplet;
+        tuplet.setType(core::StartStop::stop());
 
         if (tupletStop.numberLevel > 0)
         {
-            tuplet->getAttributes()->hasNumber = true;
-            tuplet->getAttributes()->number = core::NumberLevel{tupletStop.numberLevel};
+            tuplet.setNumber(core::NumberLevel{tupletStop.numberLevel});
         }
+
+        outNotations.addChoice(core::NotationsChoice::tuplet(tuplet));
     }
 
     for (const auto &tupletStart : myNoteData.noteAttachmentData.tupletStarts)
     {
-        auto tupletNotationsChoice = core::makeNotationsChoice();
-        myOutNotations->addNotationsChoice(tupletNotationsChoice);
-        tupletNotationsChoice->setChoice(core::NotationsChoice::Choice::tuplet);
-        auto tuplet = tupletNotationsChoice->getTuplet();
-        tuplet->getAttributes()->type = core::StartStop::start;
-        tuplet->setHasTupletActual(true);
-        tuplet->setHasTupletNormal(true);
+        core::Tuplet tuplet;
+        tuplet.setType(core::StartStop::start());
 
-        tuplet->getTupletActual()->getTupletNumber()->setValue(core::NonNegativeInteger{tupletStart.actualNumber});
-        tuplet->getTupletActual()->setHasTupletType(true);
-        tuplet->getTupletActual()->getTupletType()->setValue(myConverter.convert(tupletStart.actualDurationName));
+        core::TupletPortion actual;
+        core::TupletNumber tn1;
+        tn1.setValue(tupletStart.actualNumber);
+        actual.setTupletNumber(tn1);
+        core::TupletType tt1;
+        tt1.setValue(myConverter.convert(tupletStart.actualDurationName));
+        actual.setTupletType(tt1);
         for (int d = 0; d < tupletStart.actualDots; ++d)
         {
-            tuplet->getTupletActual()->addTupletDot(core::makeTupletDot());
+            actual.addTupletDot(core::TupletDot{});
         }
+        tuplet.setTupletActual(actual);
 
-        tuplet->getTupletNormal()->getTupletNumber()->setValue(core::NonNegativeInteger{tupletStart.normalNumber});
-        tuplet->getTupletNormal()->setHasTupletType(true);
-        tuplet->getTupletNormal()->getTupletType()->setValue(myConverter.convert(tupletStart.normalDurationName));
+        core::TupletPortion normal;
+        core::TupletNumber tn2;
+        tn2.setValue(tupletStart.normalNumber);
+        normal.setTupletNumber(tn2);
+        core::TupletType tt2;
+        tt2.setValue(myConverter.convert(tupletStart.normalDurationName));
+        normal.setTupletType(tt2);
         for (int d = 0; d < tupletStart.normalDots; ++d)
         {
-            tuplet->getTupletNormal()->addTupletDot(core::makeTupletDot());
+            normal.addTupletDot(core::TupletDot{});
         }
-
-        tuplet->getTupletNormal()->setHasTupletNumber(true);
-        tuplet->getTupletActual()->setHasTupletNumber(true);
+        tuplet.setTupletNormal(normal);
 
         if (tupletStart.numberLevel > 0)
         {
-            tuplet->getAttributes()->hasNumber = true;
-            tuplet->getAttributes()->number = core::NumberLevel{tupletStart.numberLevel};
+            tuplet.setNumber(core::NumberLevel{tupletStart.numberLevel});
         }
 
         if (tupletStart.bracket != api::Bool::unspecified)
         {
-            tuplet->getAttributes()->hasBracket = true;
-            tuplet->getAttributes()->bracket = myConverter.convert(tupletStart.bracket);
+            tuplet.setBracket(myConverter.convert(tupletStart.bracket));
         }
 
         if (tupletStart.showActualNumber != api::Bool::unspecified)
         {
-            auto &hasShow = tuplet->getAttributes()->hasShowNumber;
-            auto &show = tuplet->getAttributes()->showNumber;
-
             if (tupletStart.showActualNumber == api::Bool::yes)
             {
                 if (tupletStart.showNormalNumber == api::Bool::yes)
                 {
-                    hasShow = true;
-                    show = core::ShowTuplet::both;
+                    tuplet.setShowNumber(core::ShowTuplet::both());
                 }
                 else
                 {
-                    hasShow = true;
-                    show = core::ShowTuplet::actual;
+                    tuplet.setShowNumber(core::ShowTuplet::actual());
                 }
             }
             else if (tupletStart.showActualNumber == api::Bool::no)
             {
-                hasShow = true;
-                show = core::ShowTuplet::none;
+                tuplet.setShowNumber(core::ShowTuplet::none());
             }
         }
+
+        outNotations.addChoice(core::NotationsChoice::tuplet(tuplet));
     }
 
     for (const auto &mark : myNoteData.noteAttachmentData.marks)
@@ -291,560 +236,562 @@ core::NotationsPtr NotationsWriter::getNotations() const
         }
         else if (isMarkDynamic(mark.markType))
         {
-            auto dynamicNotationsChoice = core::makeNotationsChoice();
-            myOutNotations->addNotationsChoice(dynamicNotationsChoice);
-            dynamicNotationsChoice->setChoice(core::NotationsChoice::Choice::dynamics);
             DynamicsWriter dynamicsWriter{mark, myCursor};
-            dynamicNotationsChoice->setDynamics(dynamicsWriter.getDynamics());
+            outNotations.addChoice(core::NotationsChoice::dynamics(dynamicsWriter.getDynamics()));
         }
         else if (isMarkFermata(mark.markType))
         {
-            auto fermataNotationsChoice = core::makeNotationsChoice();
-            myOutNotations->addNotationsChoice(fermataNotationsChoice);
-            fermataNotationsChoice->setChoice(core::NotationsChoice::Choice::fermata);
-            auto &fermata = *fermataNotationsChoice->getFermata();
-            auto &attr = *fermata.getAttributes();
-            impl::setAttributesFromMarkData(mark, attr);
+            core::Fermata fermata;
+            impl::setAttributesFromMarkData(mark, fermata);
 
             if (mark.markType == api::MarkType::fermata)
             {
-                fermata.setValue(core::FermataShape::emptystring);
-                attr.hasType = false;
+                fermata.setValue(core::FermataShape::empty());
             }
             else if (mark.markType == api::MarkType::fermataNormal)
             {
-                fermata.setValue(core::FermataShape::normal);
-                attr.hasType = false;
+                fermata.setValue(core::FermataShape::normal());
             }
             else if (mark.markType == api::MarkType::fermataAngled)
             {
-                fermata.setValue(core::FermataShape::angled);
-                attr.hasType = false;
+                fermata.setValue(core::FermataShape::angled());
             }
             else if (mark.markType == api::MarkType::fermataSquare)
             {
-                fermata.setValue(core::FermataShape::square);
-                attr.hasType = false;
+                fermata.setValue(core::FermataShape::square());
             }
             else if (mark.markType == api::MarkType::fermataUpright)
             {
-                fermata.setValue(core::FermataShape::emptystring);
-                attr.hasType = true;
-                attr.type = core::UprightInverted::upright;
+                fermata.setValue(core::FermataShape::empty());
+                fermata.setType(core::UprightInverted::upright());
             }
             else if (mark.markType == api::MarkType::fermataNormalUpright)
             {
-                fermata.setValue(core::FermataShape::normal);
-                attr.hasType = true;
-                attr.type = core::UprightInverted::upright;
+                fermata.setValue(core::FermataShape::normal());
+                fermata.setType(core::UprightInverted::upright());
             }
             else if (mark.markType == api::MarkType::fermataAngledUpright)
             {
-                fermata.setValue(core::FermataShape::angled);
-                attr.hasType = true;
-                attr.type = core::UprightInverted::upright;
+                fermata.setValue(core::FermataShape::angled());
+                fermata.setType(core::UprightInverted::upright());
             }
             else if (mark.markType == api::MarkType::fermataSquareUpright)
             {
-                fermata.setValue(core::FermataShape::square);
-                attr.hasType = true;
-                attr.type = core::UprightInverted::upright;
+                fermata.setValue(core::FermataShape::square());
+                fermata.setType(core::UprightInverted::upright());
             }
             else if (mark.markType == api::MarkType::fermataInverted)
             {
-                fermata.setValue(core::FermataShape::emptystring);
-                attr.hasType = true;
-                attr.type = core::UprightInverted::inverted;
+                fermata.setValue(core::FermataShape::empty());
+                fermata.setType(core::UprightInverted::inverted());
             }
             else if (mark.markType == api::MarkType::fermataNormalInverted)
             {
-                fermata.setValue(core::FermataShape::normal);
-                attr.hasType = true;
-                attr.type = core::UprightInverted::inverted;
+                fermata.setValue(core::FermataShape::normal());
+                fermata.setType(core::UprightInverted::inverted());
             }
             else if (mark.markType == api::MarkType::fermataAngledInverted)
             {
-                fermata.setValue(core::FermataShape::angled);
-                attr.hasType = true;
-                attr.type = core::UprightInverted::inverted;
+                fermata.setValue(core::FermataShape::angled());
+                fermata.setType(core::UprightInverted::inverted());
             }
             else if (mark.markType == api::MarkType::fermataSquareInverted)
             {
-                fermata.setValue(core::FermataShape::square);
-                attr.hasType = true;
-                attr.type = core::UprightInverted::inverted;
+                fermata.setValue(core::FermataShape::square());
+                fermata.setType(core::UprightInverted::inverted());
             }
+
+            outNotations.addChoice(core::NotationsChoice::fermata(fermata));
         }
         else if (isMarkNonArpeggiate(mark.markType))
         {
-            auto nonArpeggiateNotationsChoice = core::makeNotationsChoice();
-            myOutNotations->addNotationsChoice(nonArpeggiateNotationsChoice);
-            nonArpeggiateNotationsChoice->setChoice(core::NotationsChoice::Choice::nonArpeggiate);
-            auto &nonArpeggiate = *nonArpeggiateNotationsChoice->getNonArpeggiate();
-            auto &attr = *nonArpeggiate.getAttributes();
-            impl::setAttributesFromMarkData(mark, attr);
+            core::NonArpeggiate nonArpeggiate;
+            impl::setAttributesFromMarkData(mark, nonArpeggiate);
+            outNotations.addChoice(core::NotationsChoice::nonArpeggiate(nonArpeggiate));
         }
         else if (isMarkArpeggiate(mark.markType))
         {
-            auto arpeggiateNotationsChoice = core::makeNotationsChoice();
-            myOutNotations->addNotationsChoice(arpeggiateNotationsChoice);
-            arpeggiateNotationsChoice->setChoice(core::NotationsChoice::Choice::arpeggiate);
-            auto &arpeggiate = *arpeggiateNotationsChoice->getArpeggiate();
-            auto &attr = *arpeggiate.getAttributes();
-            impl::setAttributesFromMarkData(mark, attr);
+            core::Arpeggiate arpeggiate;
+            impl::setAttributesFromMarkData(mark, arpeggiate);
 
             if (mark.markType == api::MarkType::arpeggiate)
             {
                 // TODO: fixme - MusicXML 4.0 adds UpDownNone with 'none' value
-                attr.hasDirection = false;
             }
             else if (mark.markType == api::MarkType::arpeggiateUp)
             {
-                attr.direction = core::UpDown::up;
-                attr.hasDirection = true;
+                arpeggiate.setDirection(core::UpDown::up());
             }
             else if (mark.markType == api::MarkType::arpeggiateDown)
             {
-                attr.direction = core::UpDown::down;
-                attr.hasDirection = true;
+                arpeggiate.setDirection(core::UpDown::down());
             }
+
+            outNotations.addChoice(core::NotationsChoice::arpeggiate(arpeggiate));
         }
     }
 
-    if (articulations->getArticulationsChoiceSet().size() > 0)
+    if (!articulations.choice().empty())
     {
-        myOutNotations->addNotationsChoice(articulationsNotationChoice);
+        outNotations.addChoice(core::NotationsChoice::articulations(articulations));
     }
 
-    if (ornaments->getOrnamentsChoiceSet().size() > 0)
+    if (!ornaments.group().empty())
     {
-        myOutNotations->addNotationsChoice(ornamentsNotationChoice);
+        outNotations.addChoice(core::NotationsChoice::ornaments(ornaments));
     }
 
-    if (technicals->getTechnicalChoiceSet().size() > 0)
+    if (!technicals.choice().empty())
     {
-        myOutNotations->addNotationsChoice(technicalNotationChoice);
+        outNotations.addChoice(core::NotationsChoice::technical(technicals));
     }
 
-    return myOutNotations;
+    return outNotations;
 }
 
-core::NotationsChoicePtr NotationsWriter::makeArticulationsNotationsChoice() const
+core::NotationsChoice NotationsWriter::makeArticulationsNotationsChoice() const
 {
-    auto notationsChoice = core::makeNotationsChoice();
-    notationsChoice->setChoice(core::NotationsChoice::Choice::articulations);
-    return notationsChoice;
+    return core::NotationsChoice::articulations(core::Articulations{});
 }
 
-core::NotationsChoicePtr NotationsWriter::makeOrnamentsNotationsChoice() const
+core::NotationsChoice NotationsWriter::makeOrnamentsNotationsChoice() const
 {
-    auto notationsChoice = core::makeNotationsChoice();
-    notationsChoice->setChoice(core::NotationsChoice::Choice::ornaments);
-    return notationsChoice;
+    return core::NotationsChoice::ornaments(core::Ornaments{});
 }
 
-core::NotationsChoicePtr NotationsWriter::makeTechnicalNotationsChoice() const
+core::NotationsChoice NotationsWriter::makeTechnicalNotationsChoice() const
 {
-    auto notationsChoice = core::makeNotationsChoice();
-    notationsChoice->setChoice(core::NotationsChoice::Choice::technical);
-    return notationsChoice;
+    return core::NotationsChoice::technical(core::Technical{});
 }
 
-void NotationsWriter::addArticulation(const api::MarkData &mark,
-                                      const core::ArticulationsPtr &outArticulationsPtr) const
+void NotationsWriter::addArticulation(const api::MarkData &mark, core::Articulations &outArticulations) const
 {
     if (!myConverter.isArticulation(mark.markType) && !api::isMarkCustom(mark.markType))
     {
         return;
     }
 
-    auto articulationsChoice = core::makeArticulationsChoice();
-    auto choiceValue = myConverter.convertArticulation(mark.markType);
-    articulationsChoice->setChoice(choiceValue);
-    outArticulationsPtr->addArticulationsChoice(articulationsChoice);
+    const auto kind = myConverter.convertArticulation(mark.markType);
 
-    if (mark.markType == api::MarkType::accent)
+    switch (kind)
     {
-        auto element = articulationsChoice->getAccent();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::accent: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outArticulations.addChoice(core::ArticulationsChoice::accent(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::strongAccent)
-    {
-        auto element = articulationsChoice->getStrongAccent();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::strongAccent: {
+        core::StrongAccent sa;
+        setAttributesFromPositionData(mark.positionData, sa);
+        outArticulations.addChoice(core::ArticulationsChoice::strongAccent(sa));
+        break;
     }
-    else if (mark.markType == api::MarkType::staccato)
-    {
-        auto element = articulationsChoice->getStaccato();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::staccato: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outArticulations.addChoice(core::ArticulationsChoice::staccato(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::tenuto)
-    {
-        auto element = articulationsChoice->getTenuto();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::tenuto: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outArticulations.addChoice(core::ArticulationsChoice::tenuto(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::detachedLegato)
-    {
-        auto element = articulationsChoice->getDetachedLegato();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::detachedLegato: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outArticulations.addChoice(core::ArticulationsChoice::detachedLegato(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::staccatissimo)
-    {
-        auto element = articulationsChoice->getStaccatissimo();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::staccatissimo: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outArticulations.addChoice(core::ArticulationsChoice::staccatissimo(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::spiccato)
-    {
-        auto element = articulationsChoice->getSpiccato();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::spiccato: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outArticulations.addChoice(core::ArticulationsChoice::spiccato(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::scoop)
-    {
-        auto element = articulationsChoice->getScoop();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::scoop: {
+        core::EmptyLine el;
+        setAttributesFromPositionData(mark.positionData, el);
+        outArticulations.addChoice(core::ArticulationsChoice::scoop(el));
+        break;
     }
-    else if (mark.markType == api::MarkType::plop)
-    {
-        auto element = articulationsChoice->getPlop();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::plop: {
+        core::EmptyLine el;
+        setAttributesFromPositionData(mark.positionData, el);
+        outArticulations.addChoice(core::ArticulationsChoice::plop(el));
+        break;
     }
-    else if (mark.markType == api::MarkType::doit)
-    {
-        auto element = articulationsChoice->getDoit();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::doit: {
+        core::EmptyLine el;
+        setAttributesFromPositionData(mark.positionData, el);
+        outArticulations.addChoice(core::ArticulationsChoice::doit(el));
+        break;
     }
-    else if (mark.markType == api::MarkType::falloff)
-    {
-        auto element = articulationsChoice->getFalloff();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::falloff: {
+        core::EmptyLine el;
+        setAttributesFromPositionData(mark.positionData, el);
+        outArticulations.addChoice(core::ArticulationsChoice::falloff(el));
+        break;
     }
-    else if (mark.markType == api::MarkType::breathMark)
-    {
-        auto element = articulationsChoice->getBreathMark();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::breathMark: {
+        core::BreathMark bm;
+        setAttributesFromPositionData(mark.positionData, bm);
+        outArticulations.addChoice(core::ArticulationsChoice::breathMark(bm));
+        break;
     }
-    else if (mark.markType == api::MarkType::caesura)
-    {
-        auto element = articulationsChoice->getCaesura();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::caesura: {
+        core::Caesura c;
+        setAttributesFromPositionData(mark.positionData, c);
+        outArticulations.addChoice(core::ArticulationsChoice::caesura(c));
+        break;
     }
-    else if (mark.markType == api::MarkType::stress)
-    {
-        auto element = articulationsChoice->getStress();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::stress: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outArticulations.addChoice(core::ArticulationsChoice::stress(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::unstress)
-    {
-        auto element = articulationsChoice->getUnstress();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::unstress: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outArticulations.addChoice(core::ArticulationsChoice::unstress(ep));
+        break;
     }
-    else if (api::isMarkCustom(mark.markType))
-    {
-        const auto customName = api::getCustomMarkName(mark.markType);
-        auto element = articulationsChoice->getOtherArticulation();
-        element->setValue(core::XsString{customName});
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::softAccent: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outArticulations.addChoice(core::ArticulationsChoice::softAccent(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::otherArticulation)
-    {
-        auto element = articulationsChoice->getOtherArticulation();
-        element->setValue(core::XsString{mark.name});
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::ArticulationsChoice::Kind::otherArticulation: {
+        core::OtherPlacementText opt;
+        setAttributesFromPositionData(mark.positionData, opt);
+        if (api::isMarkCustom(mark.markType))
+        {
+            opt.setValue(api::getCustomMarkName(mark.markType));
+        }
+        else
+        {
+            opt.setValue(mark.name);
+        }
+        outArticulations.addChoice(core::ArticulationsChoice::otherArticulation(opt));
+        break;
+    }
+    default:
+        break;
     }
 }
 
-void NotationsWriter::addOrnament(const api::MarkData &mark, const core::OrnamentsPtr &outOrnamentsPtr) const
+void NotationsWriter::addOrnament(const api::MarkData &mark, core::Ornaments &outOrnaments) const
 {
     if (!isMarkOrnament(mark.markType))
     {
         return;
     }
 
-    auto ornamentsChoice = core::makeOrnamentsChoice();
-    auto choiceValue = myConverter.convertOrnament(mark.markType);
-    ornamentsChoice->setChoice(choiceValue);
-    outOrnamentsPtr->addOrnamentsChoice(ornamentsChoice);
+    const auto kind = myConverter.convertOrnament(mark.markType);
+    core::OrnamentsGroup group;
 
-    if (mark.markType == api::MarkType::trillMark)
+    switch (kind)
     {
-        auto element = ornamentsChoice->getTrillMark();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::OrnamentsGroupChoice::Kind::trillMark: {
+        core::EmptyTrillSound ets;
+        setAttributesFromPositionData(mark.positionData, ets);
+        group.setChoice(core::OrnamentsGroupChoice::trillMark(ets));
+        break;
     }
-    else if (mark.markType == api::MarkType::turn)
-    {
-        auto element = ornamentsChoice->getTurn();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::OrnamentsGroupChoice::Kind::turn: {
+        core::HorizontalTurn ht;
+        setAttributesFromPositionData(mark.positionData, ht);
+        group.setChoice(core::OrnamentsGroupChoice::turn(ht));
+        break;
     }
-    else if (mark.markType == api::MarkType::delayedTurn)
-    {
-        auto element = ornamentsChoice->getDelayedTurn();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::OrnamentsGroupChoice::Kind::delayedTurn: {
+        core::HorizontalTurn ht;
+        setAttributesFromPositionData(mark.positionData, ht);
+        group.setChoice(core::OrnamentsGroupChoice::delayedTurn(ht));
+        break;
     }
-    else if (mark.markType == api::MarkType::invertedTurn)
-    {
-        auto element = ornamentsChoice->getInvertedTurn();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::OrnamentsGroupChoice::Kind::invertedTurn: {
+        core::HorizontalTurn ht;
+        setAttributesFromPositionData(mark.positionData, ht);
+        group.setChoice(core::OrnamentsGroupChoice::invertedTurn(ht));
+        break;
     }
-    else if (mark.markType == api::MarkType::delayedInvertedTurn)
-    {
-        auto element = ornamentsChoice->getDelayedInvertedTurn();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::OrnamentsGroupChoice::Kind::delayedInvertedTurn: {
+        core::HorizontalTurn ht;
+        setAttributesFromPositionData(mark.positionData, ht);
+        group.setChoice(core::OrnamentsGroupChoice::delayedInvertedTurn(ht));
+        break;
     }
-    else if (mark.markType == api::MarkType::verticalTurn)
-    {
-        auto element = ornamentsChoice->getVerticalTurn();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::OrnamentsGroupChoice::Kind::verticalTurn: {
+        core::EmptyTrillSound ets;
+        setAttributesFromPositionData(mark.positionData, ets);
+        group.setChoice(core::OrnamentsGroupChoice::verticalTurn(ets));
+        break;
     }
-    else if (mark.markType == api::MarkType::shake)
-    {
-        auto element = ornamentsChoice->getShake();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::OrnamentsGroupChoice::Kind::invertedVerticalTurn: {
+        core::EmptyTrillSound ets;
+        setAttributesFromPositionData(mark.positionData, ets);
+        group.setChoice(core::OrnamentsGroupChoice::invertedVerticalTurn(ets));
+        break;
     }
-    else if (mark.markType == api::MarkType::wavyLine)
-    {
-        auto element = ornamentsChoice->getWavyLine();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::OrnamentsGroupChoice::Kind::shake: {
+        core::EmptyTrillSound ets;
+        setAttributesFromPositionData(mark.positionData, ets);
+        group.setChoice(core::OrnamentsGroupChoice::shake(ets));
+        break;
     }
-    else if (mark.markType == api::MarkType::mordent)
-    {
-        auto element = ornamentsChoice->getMordent();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
-        setMordentSpecificAttributes(mark, *attributes);
+    case core::OrnamentsGroupChoice::Kind::wavyLine: {
+        core::WavyLine wl;
+        setAttributesFromPositionData(mark.positionData, wl);
+        group.setChoice(core::OrnamentsGroupChoice::wavyLine(wl));
+        break;
     }
-    else if (mark.markType == api::MarkType::invertedMordent)
-    {
-        auto element = ornamentsChoice->getInvertedMordent();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
-        setMordentSpecificAttributes(mark, *attributes);
+    case core::OrnamentsGroupChoice::Kind::mordent: {
+        core::Mordent m;
+        setAttributesFromPositionData(mark.positionData, m);
+        setMordentSpecificAttributes(mark, m);
+        group.setChoice(core::OrnamentsGroupChoice::mordent(m));
+        break;
     }
-    else if (mark.markType == api::MarkType::schleifer)
-    {
-        auto element = ornamentsChoice->getSchleifer();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::OrnamentsGroupChoice::Kind::invertedMordent: {
+        core::Mordent m;
+        setAttributesFromPositionData(mark.positionData, m);
+        setMordentSpecificAttributes(mark, m);
+        group.setChoice(core::OrnamentsGroupChoice::invertedMordent(m));
+        break;
     }
-    else if (isMarkTremolo(mark.markType))
-    {
-        ornamentsChoice->setChoice(core::OrnamentsChoice::Choice::tremolo);
-        auto element = ornamentsChoice->getTremolo();
-        auto attributes = element->getAttributes();
-        attributes->hasType = true;
-        attributes->type = mx::core::StartStopSingle::single;
-        setAttributesFromPositionData(mark.positionData, *attributes);
-        element->setValue(mx::core::TremoloMarks{api::numTremoloSlashes(mark.markType)});
+    case core::OrnamentsGroupChoice::Kind::schleifer: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        group.setChoice(core::OrnamentsGroupChoice::schleifer(ep));
+        break;
     }
-    else if (api::isMarkCustom(mark.markType))
-    {
+    case core::OrnamentsGroupChoice::Kind::tremolo: {
+        core::Tremolo tremolo;
+        tremolo.setType(core::TremoloType::single());
+        setAttributesFromPositionData(mark.positionData, tremolo);
+        tremolo.setValue(core::TremoloMarks{api::numTremoloSlashes(mark.markType)});
+        group.setChoice(core::OrnamentsGroupChoice::tremolo(tremolo));
+        break;
     }
-    else if ((mark.markType == api::MarkType::unknownOrnament) || (mark.markType == api::MarkType::otherOrnament))
-    // TODO - SMUFLKILL - handle custom enum values?
-    {
-        auto element = ornamentsChoice->getOtherOrnament();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
-
+    case core::OrnamentsGroupChoice::Kind::haydn: {
+        core::EmptyTrillSound ets;
+        setAttributesFromPositionData(mark.positionData, ets);
+        group.setChoice(core::OrnamentsGroupChoice::haydn(ets));
+        break;
+    }
+    case core::OrnamentsGroupChoice::Kind::otherOrnament: {
+        core::OtherPlacementText opt;
+        setAttributesFromPositionData(mark.positionData, opt);
         if (!mark.name.empty())
         {
-            element->setValue(core::XsString{mark.name});
+            opt.setValue(mark.name);
         }
+        // TODO - SMUFLKILL - handle custom enum values?
+        group.setChoice(core::OrnamentsGroupChoice::otherOrnament(opt));
+        break;
     }
+    default:
+        return;
+    }
+
+    outOrnaments.addGroup(group);
 }
 
-void NotationsWriter::addTechnical(const api::MarkData &mark, const core::TechnicalPtr &outTechnicalPtr) const
+void NotationsWriter::addTechnical(const api::MarkData &mark, core::Technical &outTechnical) const
 {
     if (!isMarkTechnical(mark.markType))
     {
         return;
     }
 
-    auto technicalChoice = core::makeTechnicalChoice();
-    auto choiceValue = myConverter.convertTechnicalMark(mark.markType);
-    technicalChoice->setChoice(choiceValue);
-    outTechnicalPtr->addTechnicalChoice(technicalChoice);
+    const auto kind = myConverter.convertTechnicalMark(mark.markType);
 
-    if (mark.markType == api::MarkType::upBow)
+    switch (kind)
     {
-        auto element = technicalChoice->getUpBow();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::TechnicalChoice::Kind::upBow: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outTechnical.addChoice(core::TechnicalChoice::upBow(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::downBow)
-    {
-        auto element = technicalChoice->getDownBow();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::TechnicalChoice::Kind::downBow: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outTechnical.addChoice(core::TechnicalChoice::downBow(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::harmonic)
-    {
-        auto element = technicalChoice->getHarmonic();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::TechnicalChoice::Kind::harmonic: {
+        core::Harmonic h;
+        setAttributesFromPositionData(mark.positionData, h);
+        outTechnical.addChoice(core::TechnicalChoice::harmonic(h));
+        break;
     }
-    else if (mark.markType == api::MarkType::openString)
-    {
-        auto element = technicalChoice->getOpenString();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::TechnicalChoice::Kind::openString: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outTechnical.addChoice(core::TechnicalChoice::openString(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::thumbPosition)
-    {
-        auto element = technicalChoice->getThumbPosition();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::TechnicalChoice::Kind::thumbPosition: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outTechnical.addChoice(core::TechnicalChoice::thumbPosition(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::doubleTongue)
-    {
-        auto element = technicalChoice->getDoubleTongue();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::TechnicalChoice::Kind::doubleTongue: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outTechnical.addChoice(core::TechnicalChoice::doubleTongue(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::tripleTongue)
-    {
-        auto element = technicalChoice->getTripleTongue();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::TechnicalChoice::Kind::tripleTongue: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outTechnical.addChoice(core::TechnicalChoice::tripleTongue(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::stopped)
-    {
-        auto element = technicalChoice->getStopped();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::TechnicalChoice::Kind::stopped: {
+        core::EmptyPlacementSmufl eps;
+        setAttributesFromPositionData(mark.positionData, eps);
+        outTechnical.addChoice(core::TechnicalChoice::stopped(eps));
+        break;
     }
-    else if (mark.markType == api::MarkType::snapPizzicato)
-    {
-        auto element = technicalChoice->getSnapPizzicato();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
+    case core::TechnicalChoice::Kind::snapPizzicato: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outTechnical.addChoice(core::TechnicalChoice::snapPizzicato(ep));
+        break;
     }
-    else if (mark.markType == api::MarkType::fret)
-    {
-        auto element = technicalChoice->getFret();
-        auto value = core::NonNegativeInteger{};
-        value.parse(mark.name);
-        element->setValue(value);
-    }
-    else if (mark.markType == api::MarkType::string_)
-    {
-        auto element = technicalChoice->getString();
-        auto value = core::StringNumber{};
-        value.parse(mark.name);
-        element->setValue(value);
-    }
-    else if (mark.markType == api::MarkType::heel)
-    {
-        auto element = technicalChoice->getHeel();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
-    }
-    else if (mark.markType == api::MarkType::toe)
-    {
-        auto element = technicalChoice->getToe();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
-    }
-    else if (mark.markType == api::MarkType::fingernails)
-    {
-        auto element = technicalChoice->getFingernails();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
-    }
-    else if (mark.markType == api::MarkType::hole)
-    {
-        auto element = technicalChoice->getHole();
-        setAttributesFromPositionData(mark.positionData, *element->getAttributes());
-        core::HoleClosedValue closedValue = core::HoleClosedValue::no;
-        if (mark.name == "windClosedHole")
-            closedValue = core::HoleClosedValue::yes;
-        else if (mark.name == "windHalfClosedHole3")
-            closedValue = core::HoleClosedValue::half;
-        element->getHoleClosed()->setValue(closedValue);
-    }
-    else if (mark.markType == api::MarkType::arrow)
-    {
-        auto element = technicalChoice->getArrow();
-        setAttributesFromPositionData(mark.positionData, *element->getAttributes());
-        element->setChoice(core::Arrow::Choice::arrowGroup);
-        core::ArrowDirectionEnum direction = core::ArrowDirectionEnum::up;
-        if (mark.name == "arrowOpenLeft")
-            direction = core::ArrowDirectionEnum::left;
-        else if (mark.name == "arrowOpenRight")
-            direction = core::ArrowDirectionEnum::right;
-        else if (mark.name == "arrowOpenDown")
-            direction = core::ArrowDirectionEnum::down;
-        else if (mark.name == "arrowOpenUpLeft")
-            direction = core::ArrowDirectionEnum::northwest;
-        else if (mark.name == "arrowOpenUpRight")
-            direction = core::ArrowDirectionEnum::northeast;
-        else if (mark.name == "arrowOpenDownRight")
-            direction = core::ArrowDirectionEnum::southeast;
-        else if (mark.name == "arrowOpenDownLeft")
-            direction = core::ArrowDirectionEnum::southwest;
-        element->getArrowGroup()->getArrowDirection()->setValue(direction);
-    }
-    else if (mark.markType == api::MarkType::handbell)
-    {
-        auto element = technicalChoice->getHandbell();
-        using HB = core::HandbellValue;
-        HB value = HB::gyro;
-        if (mark.name == "handbellsDamp3")
-            value = HB::damp;
-        else if (mark.name == "handbellsEcho1")
-            value = HB::echo;
-        else if (mark.name == "handbellsHandMartellato")
-            value = HB::handMartellato;
-        else if (mark.name == "handbellsMalletLft")
-            value = HB::malletLift;
-        else if (mark.name == "handbellsMalletBellOnTable")
-            value = HB::malletTable;
-        else if (mark.name == "handbellsMartellato")
-            value = HB::martellato;
-        else if (mark.name == "handbellsMartellatoLift")
-            value = HB::martellatoLift;
-        else if (mark.name == "handbellsMutedMartellato")
-            value = HB::mutedMartellato;
-        else if (mark.name == "handbellsPluckLift")
-            value = HB::pluckLift;
-        else if (mark.name == "handbellsSwing")
-            value = HB::swing;
-        element->setValue(value);
-    }
-    else if ((mark.markType == api::MarkType::unknownTechnical) || (mark.markType == api::MarkType::otherTechnical))
-    {
-        auto element = technicalChoice->getOtherTechnical();
-        auto attributes = element->getAttributes();
-        setAttributesFromPositionData(mark.positionData, *attributes);
-
+    case core::TechnicalChoice::Kind::fret: {
+        core::Fret f;
+        int fretValue = 0;
         if (!mark.name.empty())
         {
-            element->setValue(core::XsString{mark.name});
+            try
+            {
+                fretValue = std::stoi(mark.name);
+            }
+            catch (...)
+            {
+            }
         }
+        f.setValue(fretValue);
+        outTechnical.addChoice(core::TechnicalChoice::fret(f));
+        break;
+    }
+    case core::TechnicalChoice::Kind::string: {
+        core::String s;
+        s.setValue(core::StringNumber::parse(mark.name));
+        outTechnical.addChoice(core::TechnicalChoice::string(s));
+        break;
+    }
+    case core::TechnicalChoice::Kind::heel: {
+        core::HeelToe ht;
+        setAttributesFromPositionData(mark.positionData, ht);
+        outTechnical.addChoice(core::TechnicalChoice::heel(ht));
+        break;
+    }
+    case core::TechnicalChoice::Kind::toe: {
+        core::HeelToe ht;
+        setAttributesFromPositionData(mark.positionData, ht);
+        outTechnical.addChoice(core::TechnicalChoice::toe(ht));
+        break;
+    }
+    case core::TechnicalChoice::Kind::fingernails: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outTechnical.addChoice(core::TechnicalChoice::fingernails(ep));
+        break;
+    }
+    case core::TechnicalChoice::Kind::hole: {
+        core::Hole hole;
+        setAttributesFromPositionData(mark.positionData, hole);
+        core::HoleClosed holeClosed;
+        core::HoleClosedValue closedValue = core::HoleClosedValue::no();
+        if (mark.name == "windClosedHole")
+            closedValue = core::HoleClosedValue::yes();
+        else if (mark.name == "windHalfClosedHole3")
+            closedValue = core::HoleClosedValue::half();
+        holeClosed.setValue(closedValue);
+        hole.setHoleClosed(holeClosed);
+        outTechnical.addChoice(core::TechnicalChoice::hole(hole));
+        break;
+    }
+    case core::TechnicalChoice::Kind::arrow: {
+        core::Arrow arrow;
+        setAttributesFromPositionData(mark.positionData, arrow);
+        core::ArrowDirection direction = core::ArrowDirection::up();
+        if (mark.name == "arrowOpenLeft")
+            direction = core::ArrowDirection::left();
+        else if (mark.name == "arrowOpenRight")
+            direction = core::ArrowDirection::right();
+        else if (mark.name == "arrowOpenDown")
+            direction = core::ArrowDirection::down();
+        else if (mark.name == "arrowOpenUpLeft")
+            direction = core::ArrowDirection::northwest();
+        else if (mark.name == "arrowOpenUpRight")
+            direction = core::ArrowDirection::northeast();
+        else if (mark.name == "arrowOpenDownRight")
+            direction = core::ArrowDirection::southeast();
+        else if (mark.name == "arrowOpenDownLeft")
+            direction = core::ArrowDirection::southwest();
+        core::ArrowChoiceGroup acg;
+        acg.setArrowDirection(direction);
+        arrow.setChoice(core::ArrowChoice::group(acg));
+        outTechnical.addChoice(core::TechnicalChoice::arrow(arrow));
+        break;
+    }
+    case core::TechnicalChoice::Kind::handbell: {
+        using HB = core::HandbellValue;
+        HB value = HB::gyro();
+        if (mark.name == "handbellsDamp3")
+            value = HB::damp();
+        else if (mark.name == "handbellsEcho1")
+            value = HB::echo();
+        else if (mark.name == "handbellsHandMartellato")
+            value = HB::handMartellato();
+        else if (mark.name == "handbellsMalletLft")
+            value = HB::malletLift();
+        else if (mark.name == "handbellsMalletBellOnTable")
+            value = HB::malletTable();
+        else if (mark.name == "handbellsMartellato")
+            value = HB::martellato();
+        else if (mark.name == "handbellsMartellatoLift")
+            value = HB::martellatoLift();
+        else if (mark.name == "handbellsMutedMartellato")
+            value = HB::mutedMartellato();
+        else if (mark.name == "handbellsPluckLift")
+            value = HB::pluckLift();
+        else if (mark.name == "handbellsSwing")
+            value = HB::swing();
+        core::Handbell handbell;
+        handbell.setValue(value);
+        outTechnical.addChoice(core::TechnicalChoice::handbell(handbell));
+        break;
+    }
+    case core::TechnicalChoice::Kind::otherTechnical: {
+        core::OtherPlacementText opt;
+        setAttributesFromPositionData(mark.positionData, opt);
+        if (!mark.name.empty())
+        {
+            opt.setValue(mark.name);
+        }
+        outTechnical.addChoice(core::TechnicalChoice::otherTechnical(opt));
+        break;
+    }
+    default:
+        break;
     }
 }
 } // namespace impl

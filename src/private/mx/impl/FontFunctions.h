@@ -5,9 +5,12 @@
 #pragma once
 
 #include "mx/api/FontData.h"
-#include "mx/core/CommaSeparatedText.h"
-#include "mx/core/Enums.h"
-#include "mx/core/FontSize.h"
+#include "mx/core/Decimal.h"
+#include "mx/core/generated/FontFamily.h"
+#include "mx/core/generated/FontSize.h"
+#include "mx/core/generated/FontStyle.h"
+#include "mx/core/generated/FontWeight.h"
+#include "mx/core/generated/NumberOfLines.h"
 #include "mx/impl/Converter.h"
 #include "mx/utility/OptionalMembers.h"
 
@@ -15,26 +18,27 @@ namespace mx
 {
 namespace impl
 {
-MX_ATTR_FUNC_OPTIONAL(hasFontFamily, HasFontFamily, bool, false);
-MX_ATTR_FUNC_OPTIONAL(fontFamily, FontFamily, core::CommaSeparatedText, core::CommaSeparatedText{});
+MX_OPTIONAL_HAS_FUNC(fontFamily, FontFamily);
+MX_OPTIONAL_GET_VALUE_FUNC(fontFamily, FontFamily, core::FontFamily, core::FontFamily{});
 
-MX_ATTR_FUNC_OPTIONAL(hasFontStyle, HasFontStyle, bool, false);
-MX_ATTR_FUNC_OPTIONAL(fontStyle, FontStyle, core::FontStyle, core::FontStyle{});
+MX_OPTIONAL_HAS_FUNC(fontStyle, FontStyle);
+MX_OPTIONAL_GET_VALUE_FUNC(fontStyle, FontStyle, core::FontStyle, core::FontStyle{});
 
-MX_ATTR_FUNC_OPTIONAL(hasFontSize, HasFontSize, bool, false);
-MX_ATTR_FUNC_OPTIONAL(fontSize, FontSize, core::FontSize, core::FontSize{core::CssFontSize::medium});
+MX_OPTIONAL_HAS_FUNC(fontSize, FontSize);
+MX_OPTIONAL_GET_VALUE_FUNC(fontSize, FontSize, core::FontSize,
+                           core::FontSize::cssFontSize(core::CSSFontSize::medium()));
 
-MX_ATTR_FUNC_OPTIONAL(hasFontWeight, HasFontWeight, bool, false);
-MX_ATTR_FUNC_OPTIONAL(fontWeight, FontWeight, core::FontWeight, core::FontWeight::normal);
+MX_OPTIONAL_HAS_FUNC(fontWeight, FontWeight);
+MX_OPTIONAL_GET_VALUE_FUNC(fontWeight, FontWeight, core::FontWeight, core::FontWeight::normal());
 
-MX_ATTR_FUNC_OPTIONAL(hasLineThrough, HasLineThrough, bool, false);
-MX_ATTR_FUNC_OPTIONAL_WITH_GETTER(lineThrough, LineThrough, int, 0);
+MX_OPTIONAL_HAS_FUNC(lineThrough, LineThrough);
+MX_OPTIONAL_GET_INT_FUNC(lineThrough, LineThrough, 0);
 
-MX_ATTR_FUNC_OPTIONAL(hasOverline, HasOverline, bool, false);
-MX_ATTR_FUNC_OPTIONAL_WITH_GETTER(overline, Overline, int, 0);
+MX_OPTIONAL_HAS_FUNC(overline, Overline);
+MX_OPTIONAL_GET_INT_FUNC(overline, Overline, 0);
 
-MX_ATTR_FUNC_OPTIONAL(hasUnderline, HasUnderline, bool, false);
-MX_ATTR_FUNC_OPTIONAL_WITH_GETTER(underline, Underline, int, 0);
+MX_OPTIONAL_HAS_FUNC(underline, Underline);
+MX_OPTIONAL_GET_INT_FUNC(underline, Underline, 0);
 
 template <typename ATTRIBUTES_TYPE> std::vector<std::string> getFontFamily(const ATTRIBUTES_TYPE &inAttributes)
 {
@@ -43,14 +47,12 @@ template <typename ATTRIBUTES_TYPE> std::vector<std::string> getFontFamily(const
         return std::vector<std::string>{};
     }
 
-    const auto &fontFamily = checkFontFamily<ATTRIBUTES_TYPE>(&inAttributes);
-    auto iter = fontFamily.getValuesBeginConst();
-    auto end = fontFamily.getValuesEndConst();
+    const auto fontFamily = checkFontFamily<ATTRIBUTES_TYPE>(&inAttributes);
     std::vector<std::string> outStrings;
 
-    for (; iter != end; ++iter)
+    for (const auto &item : fontFamily.items())
     {
-        outStrings.emplace_back(iter->getValue());
+        outStrings.emplace_back(item);
     }
     return outStrings;
 }
@@ -77,8 +79,7 @@ template <typename ATTRIBUTES_TYPE> api::FontWeight getFontWeight(const ATTRIBUT
 }
 
 template <typename ATTRIBUTES_TYPE>
-api::FontSizeType getFontSize(const ATTRIBUTES_TYPE &inAttributes, core::DecimalType &outPointSize,
-                              api::CssSize &outCssSize)
+api::FontSizeType getFontSize(const ATTRIBUTES_TYPE &inAttributes, long double &outPointSize, api::CssSize &outCssSize)
 {
     if (!checkHasFontSize<ATTRIBUTES_TYPE>(&inAttributes))
     {
@@ -87,18 +88,18 @@ api::FontSizeType getFontSize(const ATTRIBUTES_TYPE &inAttributes, core::Decimal
         return api::FontSizeType::unspecified;
     }
 
-    const auto &coreFontSize = checkFontSize<ATTRIBUTES_TYPE>(&inAttributes);
+    const auto coreFontSize = checkFontSize<ATTRIBUTES_TYPE>(&inAttributes);
     Converter converter;
 
-    if (coreFontSize.getIsCssFontSize())
+    if (coreFontSize.isCSSFontSize())
     {
         outPointSize = -1.0L;
-        outCssSize = converter.convert(coreFontSize.getValueCssFontSize());
+        outCssSize = converter.convert(coreFontSize.asCSSFontSize());
         return api::FontSizeType::css;
     }
     else
     {
-        outPointSize = coreFontSize.getValueDecimal().getValue();
+        outPointSize = coreFontSize.asDecimal().value();
         outCssSize = api::CssSize::unspecified;
         return api::FontSizeType::point;
     }
@@ -130,26 +131,26 @@ template <typename ATTRIBUTES_TYPE> api::FontData getFontData(const ATTRIBUTES_T
     return outFontData;
 }
 
-MX_ATTR_SETFUNC_OPTIONAL(hasFontFamily, HasFontFamily, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL(fontFamily, FontFamily, core::CommaSeparatedText, core::CommaSeparatedText{});
+MX_OPTIONAL_SET_HAS_FUNC(fontFamily, setFontFamily, FontFamily);
+MX_OPTIONAL_SET_VALUE_FUNC(fontFamily, setFontFamily, FontFamily);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasFontStyle, HasFontStyle, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL(fontStyle, FontStyle, core::FontStyle, core::FontStyle{});
+MX_OPTIONAL_SET_HAS_FUNC(fontStyle, setFontStyle, FontStyle);
+MX_OPTIONAL_SET_VALUE_FUNC(fontStyle, setFontStyle, FontStyle);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasFontSize, HasFontSize, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL(fontSize, FontSize, core::FontSize, core::FontSize{core::CssFontSize::medium});
+MX_OPTIONAL_SET_HAS_FUNC(fontSize, setFontSize, FontSize);
+MX_OPTIONAL_SET_VALUE_FUNC(fontSize, setFontSize, FontSize);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasFontWeight, HasFontWeight, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL(fontWeight, FontWeight, core::FontWeight, core::FontWeight::normal);
+MX_OPTIONAL_SET_HAS_FUNC(fontWeight, setFontWeight, FontWeight);
+MX_OPTIONAL_SET_VALUE_FUNC(fontWeight, setFontWeight, FontWeight);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasLineThrough, HasLineThrough, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL_WITH_SETTER(lineThrough, LineThrough, int, 0);
+MX_OPTIONAL_SET_HAS_FUNC(lineThrough, setLineThrough, LineThrough);
+MX_OPTIONAL_SET_INT_FUNC(lineThrough, setLineThrough, LineThrough);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasOverline, HasOverline, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL_WITH_SETTER(overline, Overline, int, 0);
+MX_OPTIONAL_SET_HAS_FUNC(overline, setOverline, Overline);
+MX_OPTIONAL_SET_INT_FUNC(overline, setOverline, Overline);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasUnderline, HasUnderline, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL_WITH_SETTER(underline, Underline, int, 0);
+MX_OPTIONAL_SET_HAS_FUNC(underline, setUnderline, Underline);
+MX_OPTIONAL_SET_INT_FUNC(underline, setUnderline, Underline);
 
 template <typename ATTRIBUTES_TYPE>
 void setAttributesFromFontFamily(const std::vector<std::string> &fontFamilyData, ATTRIBUTES_TYPE &outAttributes)
@@ -160,13 +161,7 @@ void setAttributesFromFontFamily(const std::vector<std::string> &fontFamilyData,
         return;
     }
 
-    core::XsTokenSet tokens;
-    for (const auto &s : fontFamilyData)
-    {
-        tokens.emplace_back(s);
-    }
-    core::CommaSeparatedText csv;
-    csv.setValues(tokens);
+    core::FontFamily csv{fontFamilyData};
     lookForAndSetHasFontFamily(true, &outAttributes);
     lookForAndSetFontFamily(csv, &outAttributes);
 }
@@ -213,11 +208,11 @@ void setAttributesFromFontSize(const api::FontData &value, ATTRIBUTES_TYPE &outA
 
     if (value.sizeType == api::FontSizeType::css)
     {
-        fontSize.setCssFontSize(converter.convert(value.sizeCss));
+        fontSize = core::FontSize::cssFontSize(converter.convert(value.sizeCss));
     }
     else if (value.sizeType == api::FontSizeType::point)
     {
-        fontSize.setDecimal(core::Decimal{value.sizePoint});
+        fontSize = core::FontSize::decimal(core::Decimal{static_cast<double>(value.sizePoint)});
     }
 
     lookForAndSetFontSize(fontSize, &outAttributes);

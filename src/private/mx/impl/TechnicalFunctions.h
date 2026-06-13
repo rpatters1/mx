@@ -5,10 +5,10 @@
 #pragma once
 
 #include "mx/api/MarkData.h"
+#include "mx/core/generated/TechnicalChoice.h"
 #include "mx/impl/Cursor.h"
 
-#include <memory>
-#include <vector>
+#include <span>
 
 // TODO - import fingering
 // TODO - import pluck
@@ -22,25 +22,18 @@
 
 namespace mx
 {
-namespace core
-{
-class TechnicalChoice;
-using TechnicalChoicePtr = std::shared_ptr<TechnicalChoice>;
-using TechnicalChoiceSet = std::vector<TechnicalChoicePtr>;
-} // namespace core
-
 namespace impl
 {
 class TechnicalFunctions
 {
 
   public:
-    TechnicalFunctions(const core::TechnicalChoiceSet &inTechincalChoiceSet, Cursor inCursor);
+    TechnicalFunctions(std::span<const core::TechnicalChoice> inTechincalChoiceSet, Cursor inCursor);
 
     void parseTechnicalMarks(std::vector<api::MarkData> &outMarks) const;
 
   private:
-    const core::TechnicalChoiceSet &myTechincalChoiceSet;
+    std::span<const core::TechnicalChoice> myTechincalChoiceSet;
     const Cursor myCursor;
 
   private:

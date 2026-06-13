@@ -3,7 +3,9 @@
 // Distributed under the MIT License
 
 #include "mx/impl/Cursor.h"
-#include "mx/core/elements/Duration.h"
+#include "mx/core/generated/PositiveDivisions.h"
+
+#include <cmath>
 
 namespace mx
 {
@@ -35,9 +37,9 @@ void Cursor::reset()
     isChordActive = false;
 }
 
-int Cursor::convertDurationToGlobalTickScale(const core::Duration &duration) const
+int Cursor::convertDurationToGlobalTickScale(const core::PositiveDivisions &duration) const
 {
-    return convertDurationToGlobalTickScale(static_cast<long double>(duration.getValue().getValue()));
+    return convertDurationToGlobalTickScale(static_cast<long double>(duration.value().value()));
 }
 
 int Cursor::convertDurationToGlobalTickScale(long double durationValue) const

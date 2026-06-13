@@ -3,144 +3,56 @@
 // Distributed under the MIT License
 
 #include "mx/impl/MeasureWriter.h"
-#include "mx/core/elements/Accidental.h"
-#include "mx/core/elements/AccordionRegistration.h"
-#include "mx/core/elements/Backup.h"
-#include "mx/core/elements/BarStyle.h"
-#include "mx/core/elements/Barline.h"
-#include "mx/core/elements/Beam.h"
-#include "mx/core/elements/BeatType.h"
-#include "mx/core/elements/Beats.h"
-#include "mx/core/elements/Bracket.h"
-#include "mx/core/elements/Cancel.h"
-#include "mx/core/elements/Chromatic.h"
-#include "mx/core/elements/Clef.h"
-#include "mx/core/elements/ClefOctaveChange.h"
-#include "mx/core/elements/Coda.h"
-#include "mx/core/elements/Cue.h"
-#include "mx/core/elements/CueNoteGroup.h"
-#include "mx/core/elements/Damp.h"
-#include "mx/core/elements/DampAll.h"
-#include "mx/core/elements/Dashes.h"
-#include "mx/core/elements/Diatonic.h"
-#include "mx/core/elements/Direction.h"
-#include "mx/core/elements/DirectionType.h"
-#include "mx/core/elements/Directive.h"
-#include "mx/core/elements/Divisions.h"
-#include "mx/core/elements/Dot.h"
-#include "mx/core/elements/Duration.h"
-#include "mx/core/elements/Dynamics.h"
-#include "mx/core/elements/EditorialGroup.h"
-#include "mx/core/elements/EditorialVoiceGroup.h"
-#include "mx/core/elements/Ending.h"
-#include "mx/core/elements/Eyeglasses.h"
-#include "mx/core/elements/Fermata.h"
-#include "mx/core/elements/Fifths.h"
-#include "mx/core/elements/Footnote.h"
-#include "mx/core/elements/Forward.h"
-#include "mx/core/elements/FullNoteGroup.h"
-#include "mx/core/elements/FullNoteTypeChoice.h"
-#include "mx/core/elements/Grace.h"
-#include "mx/core/elements/GraceNoteGroup.h"
-#include "mx/core/elements/HarpPedals.h"
-#include "mx/core/elements/Image.h"
-#include "mx/core/elements/Instrument.h"
-#include "mx/core/elements/Instruments.h"
-#include "mx/core/elements/Key.h"
-#include "mx/core/elements/KeyChoice.h"
-#include "mx/core/elements/LayoutGroup.h"
-#include "mx/core/elements/LeftMargin.h"
-#include "mx/core/elements/Level.h"
-#include "mx/core/elements/Line.h"
-#include "mx/core/elements/Lyric.h"
-#include "mx/core/elements/MeasureLayout.h"
-#include "mx/core/elements/MeasureNumbering.h"
-#include "mx/core/elements/MeasureStyle.h"
-#include "mx/core/elements/Metronome.h"
-#include "mx/core/elements/Mode.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/MusicDataGroup.h"
-#include "mx/core/elements/NormalNoteGroup.h"
-#include "mx/core/elements/Notations.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/NoteChoice.h"
-#include "mx/core/elements/Notehead.h"
-#include "mx/core/elements/NoteheadText.h"
-#include "mx/core/elements/OctaveChange.h"
-#include "mx/core/elements/OctaveShift.h"
-#include "mx/core/elements/Offset.h"
-#include "mx/core/elements/OtherDirection.h"
-#include "mx/core/elements/PartAbbreviationDisplay.h"
-#include "mx/core/elements/PartNameDisplay.h"
-#include "mx/core/elements/PartSymbol.h"
-#include "mx/core/elements/PartwiseMeasure.h"
-#include "mx/core/elements/Pedal.h"
-#include "mx/core/elements/Percussion.h"
-#include "mx/core/elements/Pitch.h"
-#include "mx/core/elements/Play.h"
-#include "mx/core/elements/PrincipalVoice.h"
-#include "mx/core/elements/Print.h"
-#include "mx/core/elements/Properties.h"
-#include "mx/core/elements/Rehearsal.h"
-#include "mx/core/elements/Repeat.h"
-#include "mx/core/elements/Rest.h"
-#include "mx/core/elements/RightMargin.h"
-#include "mx/core/elements/Scordatura.h"
-#include "mx/core/elements/Segno.h"
-#include "mx/core/elements/Sign.h"
-#include "mx/core/elements/Staff.h"
-#include "mx/core/elements/StaffDetails.h"
-#include "mx/core/elements/Staves.h"
-#include "mx/core/elements/Stem.h"
-#include "mx/core/elements/StringMute.h"
-#include "mx/core/elements/SystemDistance.h"
-#include "mx/core/elements/SystemDividers.h"
-#include "mx/core/elements/SystemLayout.h"
-#include "mx/core/elements/SystemMargins.h"
-#include "mx/core/elements/Tie.h"
-#include "mx/core/elements/Time.h"
-#include "mx/core/elements/TimeChoice.h"
-#include "mx/core/elements/TimeModification.h"
-#include "mx/core/elements/TimeSignatureGroup.h"
-#include "mx/core/elements/TopSystemDistance.h"
-#include "mx/core/elements/TraditionalKey.h"
-#include "mx/core/elements/Transpose.h"
-#include "mx/core/elements/Type.h"
-#include "mx/core/elements/Unpitched.h"
-#include "mx/core/elements/Voice.h"
-#include "mx/core/elements/WavyLine.h"
-#include "mx/core/elements/Wedge.h"
-#include "mx/core/elements/Words.h"
+#include "mx/core/Decimal.h"
+#include "mx/core/generated/AllMarginsGroup.h"
+#include "mx/core/generated/Backup.h"
+#include "mx/core/generated/BackwardForward.h"
+#include "mx/core/generated/BarStyleColor.h"
+#include "mx/core/generated/Barline.h"
+#include "mx/core/generated/Ending.h"
+#include "mx/core/generated/EndingNumber.h"
+#include "mx/core/generated/Forward.h"
+#include "mx/core/generated/LayoutGroup.h"
+#include "mx/core/generated/LeftRightMarginsGroup.h"
+#include "mx/core/generated/MarginType.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/PageLayout.h"
+#include "mx/core/generated/PageLayoutGroup.h"
+#include "mx/core/generated/PageMargins.h"
+#include "mx/core/generated/PartwiseMeasure.h"
+#include "mx/core/generated/PositiveDivisions.h"
+#include "mx/core/generated/Print.h"
+#include "mx/core/generated/Repeat.h"
+#include "mx/core/generated/RightLeftMiddle.h"
+#include "mx/core/generated/SystemLayout.h"
+#include "mx/core/generated/SystemMargins.h"
+#include "mx/core/generated/Tenths.h"
+#include "mx/core/generated/YesNo.h"
 #include "mx/impl/Converter.h"
 #include "mx/impl/DirectionWriter.h"
 #include "mx/impl/LayoutFunctions.h"
 #include "mx/impl/NoteWriter.h"
 #include "mx/impl/ScoreWriter.h"
+#include "mx/utility/Throw.h"
 
 #include <limits>
 
 namespace mx
 {
-namespace core
-{
-class PartwiseMeasure;
-using PartwiseMeasurePtr = std::shared_ptr<PartwiseMeasure>;
-} // namespace core
-
 namespace impl
 {
 MeasureWriter::MeasureWriter(const api::MeasureData &inMeasureData, const MeasureCursor &inCursor,
                              const ScoreWriter &inScoreWriter)
-    : myMeasureData{inMeasureData}, myOutMeasure{nullptr}, myPreviousCursor{inCursor}, myScoreWriter{inScoreWriter},
+    : myMeasureData{inMeasureData}, myOutMeasure{}, myPreviousCursor{inCursor}, myScoreWriter{inScoreWriter},
       myPropertiesWriter{nullptr}, myConverter{}, myBarlinesIter{inMeasureData.barlines.cbegin()},
       myBarlinesEnd{inMeasureData.barlines.cend()}, myMeasureKeysIter{inMeasureData.keys.cbegin()},
       myMeasureKeysEnd{inMeasureData.keys.cend()}, myHistory{inCursor}
 {
 }
 
-core::PartwiseMeasurePtr MeasureWriter::getPartwiseMeasure()
+core::PartwiseMeasure MeasureWriter::getPartwiseMeasure()
 {
-    myOutMeasure = core::makePartwiseMeasure();
+    myOutMeasure = core::PartwiseMeasure{};
     myPropertiesWriter = std::unique_ptr<PropertiesWriter>{new PropertiesWriter{myOutMeasure}};
     auto cursor = myHistory.getCursor();
     cursor.reset();
@@ -160,29 +72,26 @@ core::PartwiseMeasurePtr MeasureWriter::getPartwiseMeasure()
 void MeasureWriter::writeMeasureGlobals()
 {
     writeBarlines(0);
-    auto &measureAttr = *myOutMeasure->getAttributes();
 
     if (myMeasureData.number.size() > 0)
     {
-        measureAttr.number = core::XsToken{myMeasureData.number};
+        myOutMeasure.setNumber(myMeasureData.number);
     }
     else
     {
-        measureAttr.number = core::XsToken{std::to_string(myHistory.getCursor().measureIndex + 1)};
+        myOutMeasure.setNumber(std::to_string(myHistory.getCursor().measureIndex + 1));
     }
 
     if (myMeasureData.width >= 0.0)
     {
-        measureAttr.hasWidth = true;
-        measureAttr.width = core::TenthsValue{myMeasureData.width};
+        myOutMeasure.setWidth(core::Tenths{core::Decimal{static_cast<double>(myMeasureData.width)}});
     }
 
     Converter converter;
 
     if (myMeasureData.implicit != api::Bool::unspecified)
     {
-        measureAttr.hasImplicit = true;
-        measureAttr.implicit = converter.convert(myMeasureData.implicit);
+        myOutMeasure.setImplicit(converter.convert(myMeasureData.implicit));
     }
 
     if (myScoreWriter.isSystemInfo(myHistory.getCursor().measureIndex))
@@ -273,92 +182,175 @@ void MeasureWriter::writeSystemInfo()
         return;
     }
 
-    auto outPrintMdc = core::makeMusicDataChoice();
-    outPrintMdc->setChoice(core::MusicDataChoice::Choice::print);
-    auto &outPrint = *outPrintMdc->getPrint();
-    auto &outLayoutGroup = *outPrint.getLayoutGroup();
-    myOutMeasure->getMusicDataGroup()->addMusicDataChoice(outPrintMdc);
+    core::Print outPrint{};
     myHistory.log("writePrint");
 
     if (isSpecified(systemData.newSystem))
     {
-        outPrint.getAttributes()->hasNewSystem = true;
-        outPrint.getAttributes()->newSystem =
-            systemData.newSystem == api::Bool::yes ? core::YesNo::yes : core::YesNo::no;
+        outPrint.setNewSystem(systemData.newSystem == api::Bool::yes ? core::YesNo::yes() : core::YesNo::no());
     }
 
     if (systemData.layout.isUsed())
     {
-        auto &outSystemLayout = *outLayoutGroup.getSystemLayout();
         const auto &inSystemLayout = systemData.layout;
+        auto outSystemLayout = outPrint.layout().systemLayout().value_or(core::SystemLayout{});
+        auto outLayoutGroup = outPrint.layout();
+        bool needsSystemLayout = false;
 
         if (inSystemLayout.margins)
         {
-            outLayoutGroup.setHasSystemLayout(true);
             const auto &inMargins = inSystemLayout.margins.value();
-            outSystemLayout.setHasSystemMargins(true);
-            auto &margins = *outSystemLayout.getSystemMargins();
-            margins.getLeftMargin()->setValue(core::TenthsValue{static_cast<core::DecimalType>(inMargins.left)});
-            margins.getRightMargin()->setValue(core::TenthsValue{static_cast<core::DecimalType>(inMargins.right)});
+            core::LeftRightMarginsGroup lrm;
+            lrm.setLeftMargin(core::Tenths{core::Decimal{static_cast<double>(inMargins.left)}});
+            lrm.setRightMargin(core::Tenths{core::Decimal{static_cast<double>(inMargins.right)}});
+            core::SystemMargins sysMargins;
+            sysMargins.setLeftRightMargins(lrm);
+            outSystemLayout.setSystemMargins(sysMargins);
+            needsSystemLayout = true;
         }
 
         if (inSystemLayout.topSystemDistance)
         {
-            outLayoutGroup.setHasSystemLayout(true);
-            outSystemLayout.setHasTopSystemDistance(true);
-            outSystemLayout.getTopSystemDistance()->setValue(
-                core::TenthsValue{static_cast<core::DecimalType>(inSystemLayout.topSystemDistance.value())});
+            outSystemLayout.setTopSystemDistance(
+                core::Tenths{core::Decimal{static_cast<double>(inSystemLayout.topSystemDistance.value())}});
+            needsSystemLayout = true;
         }
 
         if (inSystemLayout.systemDistance)
         {
-            outLayoutGroup.setHasSystemLayout(true);
-            outSystemLayout.setHasSystemDistance(true);
-            outSystemLayout.getSystemDistance()->setValue(
-                core::TenthsValue{static_cast<core::DecimalType>(inSystemLayout.systemDistance.value())});
+            outSystemLayout.setSystemDistance(
+                core::Tenths{core::Decimal{static_cast<double>(inSystemLayout.systemDistance.value())}});
+            needsSystemLayout = true;
+        }
+
+        if (needsSystemLayout)
+        {
+            outLayoutGroup.setSystemLayout(outSystemLayout);
+            outPrint.setLayout(outLayoutGroup);
         }
     }
+
+    myOutMeasure.addMusicData(core::MusicDataChoice::print(outPrint));
 }
 
 void MeasureWriter::writePageInfo(const api::PageData &inPageData)
 {
     // since a print object may have been added by writeSystemInfo, we don't want to add another one. we will
     // search for a print object and use it if we find it, otherwise we will add a new one.
-    core::PrintPtr outPrint = nullptr;
-    for (const auto &mdc : myOutMeasure->getMusicDataGroup()->getMusicDataChoiceSet())
+    // In the new value-based API we have to find the index of an existing print MusicDataChoice.
+    const auto existingData = myOutMeasure.musicData();
+    int printIndex = -1;
+    int idx = 0;
+    for (const auto &mdc : existingData)
     {
-        if (mdc->getChoice() == core::MusicDataChoice::Choice::print)
+        if (mdc.isPrint())
         {
-            outPrint = mdc->getPrint();
+            printIndex = idx;
             break;
         }
+        ++idx;
     }
-    if (outPrint == nullptr)
+
+    core::Print outPrint{};
+    if (printIndex >= 0)
     {
-        // since we didn't find an existing print object, we will create one and add it to the measure
-        auto mdc = core::makeMusicDataChoice();
-        mdc->setChoice(core::MusicDataChoice::Choice::print);
-        outPrint = mdc->getPrint();
-        myOutMeasure->getMusicDataGroup()->addMusicDataChoice(mdc);
+        outPrint = existingData[printIndex].asPrint();
     }
 
     if (isSpecified(inPageData.newPage))
     {
-        outPrint->getAttributes()->hasNewPage = true;
-        outPrint->getAttributes()->newPage = inPageData.newPage == api::Bool::yes ? core::YesNo::yes : core::YesNo::no;
+        outPrint.setNewPage(inPageData.newPage == api::Bool::yes ? core::YesNo::yes() : core::YesNo::no());
     }
 
     if (inPageData.pageLayoutData.isUsed())
     {
-        const auto outPageLayout = createPageLayout(inPageData.pageLayoutData);
-        outPrint->getLayoutGroup()->setHasPageLayout(true);
-        outPrint->getLayoutGroup()->setPageLayout(outPageLayout);
+        // createPageLayout is static in LayoutFunctions.cpp — replicate inline
+        const auto &inPageLayout = inPageData.pageLayoutData;
+        auto outLayoutGroup = outPrint.layout();
+        // We need to build a PageLayout — defer to addPageLayout helper via a
+        // temporary ScoreHeaderGroup, but that's complex. Instead, build inline.
+        // The LayoutFunctions.cpp createPageLayout is static, so we inline it here.
+        // The logic mirrors the function in LayoutFunctions.cpp.
+        core::PageLayout outPageLayout{};
+
+        if (inPageLayout.size)
+        {
+            core::PageLayoutGroup group;
+            group.setPageHeight(core::Tenths{core::Decimal{static_cast<double>(inPageLayout.size->height)}});
+            group.setPageWidth(core::Tenths{core::Decimal{static_cast<double>(inPageLayout.size->width)}});
+            outPageLayout.setGroup(group);
+        }
+
+        // page margins
+        const auto &inPageMargins = inPageLayout.margins;
+        if (inPageMargins.isUsed())
+        {
+            const bool areEvenOddSame = inPageMargins.same();
+
+            if (inPageMargins.odd)
+            {
+                core::PageMargins m;
+                m.setType(areEvenOddSame ? core::MarginType::both() : core::MarginType::odd());
+                core::AllMarginsGroup allMargins;
+                core::LeftRightMarginsGroup lrm;
+                lrm.setLeftMargin(core::Tenths{core::Decimal{static_cast<double>(inPageMargins.odd->left)}});
+                lrm.setRightMargin(core::Tenths{core::Decimal{static_cast<double>(inPageMargins.odd->right)}});
+                allMargins.setLeftRightMargins(lrm);
+                allMargins.setTopMargin(core::Tenths{core::Decimal{static_cast<double>(inPageMargins.odd->top)}});
+                allMargins.setBottomMargin(core::Tenths{core::Decimal{static_cast<double>(inPageMargins.odd->bottom)}});
+                m.setAllMargins(allMargins);
+                (void)outPageLayout.addPageMargins(std::move(m));
+            }
+
+            if (inPageMargins.even && !areEvenOddSame)
+            {
+                core::PageMargins m;
+                m.setType(core::MarginType::even());
+                core::AllMarginsGroup allMargins;
+                core::LeftRightMarginsGroup lrm;
+                lrm.setLeftMargin(core::Tenths{core::Decimal{static_cast<double>(inPageMargins.even->left)}});
+                lrm.setRightMargin(core::Tenths{core::Decimal{static_cast<double>(inPageMargins.even->right)}});
+                allMargins.setLeftRightMargins(lrm);
+                allMargins.setTopMargin(core::Tenths{core::Decimal{static_cast<double>(inPageMargins.even->top)}});
+                allMargins.setBottomMargin(
+                    core::Tenths{core::Decimal{static_cast<double>(inPageMargins.even->bottom)}});
+                m.setAllMargins(allMargins);
+                (void)outPageLayout.addPageMargins(std::move(m));
+            }
+        }
+
+        outLayoutGroup.setPageLayout(outPageLayout);
+        outPrint.setLayout(outLayoutGroup);
     }
 
     if (inPageData.pageNumber)
     {
-        outPrint->getAttributes()->hasPageNumber = true;
-        outPrint->getAttributes()->pageNumber = *inPageData.pageNumber;
+        outPrint.setPageNumber(*inPageData.pageNumber);
+    }
+
+    if (printIndex >= 0)
+    {
+        // Replace the existing print entry. We need to rebuild musicData.
+        std::vector<core::MusicDataChoice> newData;
+        newData.reserve(existingData.size());
+        int i = 0;
+        for (const auto &mdc : existingData)
+        {
+            if (i == printIndex)
+            {
+                newData.push_back(core::MusicDataChoice::print(outPrint));
+            }
+            else
+            {
+                newData.push_back(mdc);
+            }
+            ++i;
+        }
+        myOutMeasure.setMusicData(std::move(newData));
+    }
+    else
+    {
+        myOutMeasure.addMusicData(core::MusicDataChoice::print(outPrint));
     }
 }
 
@@ -400,8 +392,6 @@ void MeasureWriter::writeVoices(const api::StaffData &inStaff)
         {
             writeDirections(directionIter, directionEnd, noteIter, std::cbegin(voice.second.notes), noteEnd);
         }
-
-        //                mx::api::NoteData noteForOutsideOfLoop;
 
         for (; noteIter != noteEnd; ++noteIter, ++noteIndex)
         {
@@ -451,13 +441,10 @@ void MeasureWriter::writeVoices(const api::StaffData &inStaff)
             myPropertiesWriter->flushBuffer();
             writeDirections(directionIter, directionEnd, noteIter, std::cbegin(voice.second.notes), noteEnd);
 
-            auto mdc = core::makeMusicDataChoice();
-            mdc->setChoice(core::MusicDataChoice::Choice::note);
             NoteWriter writer{
                 apiNote,  myHistory.getCursor(), myScoreWriter, myPreviousCursor.isChordActive, voice.second.notes,
                 noteIndex};
-            mdc->setNote(writer.getNote(isStartOfChord));
-            myOutMeasure->getMusicDataGroup()->addMusicDataChoice(mdc);
+            myOutMeasure.addMusicData(core::MusicDataChoice::note(writer.getNote(isStartOfChord)));
             myHistory.log("addNote cursorTime " + std::to_string(myHistory.getCursor().tickTimePosition) +
                           ", noteTime " + std::to_string(apiNote.tickTimePosition));
             advanceCursorIfNeeded(apiNote, noteIter, noteEnd);
@@ -548,21 +535,17 @@ void MeasureWriter::backup(const int inTicks)
         return;
     }
 
-    auto backupMdc = core::makeMusicDataChoice();
-    backupMdc->setChoice(core::MusicDataChoice::Choice::backup);
-    auto backup = backupMdc->getBackup();
-    backup->getDuration()->setValue(core::PositiveDivisionsValue{static_cast<core::DecimalType>(safeTickAmount)});
-    myOutMeasure->getMusicDataGroup()->addMusicDataChoice(backupMdc);
+    core::Backup b{};
+    b.setDuration(core::PositiveDivisions{core::Decimal{static_cast<double>(safeTickAmount)}});
+    myOutMeasure.addMusicData(core::MusicDataChoice::backup(b));
     myHistory.advanceTickTimePosition(-1 * safeTickAmount, "write backup");
 }
 
 void MeasureWriter::forward(const int ticks)
 {
-    auto forwardMdc = core::makeMusicDataChoice();
-    forwardMdc->setChoice(core::MusicDataChoice::Choice::forward);
-    auto forward = forwardMdc->getForward();
-    forward->getDuration()->setValue(core::PositiveDivisionsValue{static_cast<core::DecimalType>(ticks)});
-    myOutMeasure->getMusicDataGroup()->addMusicDataChoice(forwardMdc);
+    core::Forward f{};
+    f.setDuration(core::PositiveDivisions{core::Decimal{static_cast<double>(ticks)}});
+    myOutMeasure.addMusicData(core::MusicDataChoice::forward(f));
     myHistory.advanceTickTimePosition(ticks, "write forward");
 }
 
@@ -679,13 +662,11 @@ void MeasureWriter::writeDirection(const api::DirectionData &inDirectionData)
         myPropertiesWriter->flushBuffer();
     }
 
-    // auto directionMdc = core::makeMusicDataChoice();
-    // directionMdc->setChoice( core::MusicDataChoice::Choice::direction );
     DirectionWriter directionWriter{inDirectionData, myHistory.getCursor()};
     auto mdcSet = directionWriter.getDirectionLikeThings();
     for (const auto &mdc : mdcSet)
     {
-        myOutMeasure->getMusicDataGroup()->addMusicDataChoice(mdc);
+        myOutMeasure.addMusicData(mdc);
     }
     myHistory.log("addDirection cursorTime " + std::to_string(myHistory.getCursor().tickTimePosition) +
                   ", directionTime " + std::to_string(inDirectionData.tickTimePosition));
@@ -695,63 +676,61 @@ void MeasureWriter::writeBarlines(int tickTimePosition)
 {
     for (; myBarlinesIter != myBarlinesEnd && myBarlinesIter->tickTimePosition <= tickTimePosition; ++myBarlinesIter)
     {
-        auto mdc = core::makeMusicDataChoice();
-        mdc->setChoice(core::MusicDataChoice::Choice::barline);
-        auto barlineElement = mdc->getBarline();
+        core::Barline barlineElement{};
 
         if (myBarlinesIter->barlineType != api::BarlineType::unspecified &&
             myBarlinesIter->barlineType != api::BarlineType::unsupported)
         {
-            barlineElement->setHasBarStyle(true);
-            barlineElement->getBarStyle()->setValue(myConverter.convert(myBarlinesIter->barlineType));
+            core::BarStyleColor bsc{};
+            bsc.setValue(myConverter.convert(myBarlinesIter->barlineType));
+            barlineElement.setBarStyle(bsc);
         }
 
         if (myBarlinesIter->endingType != api::EndingType::none)
         {
-            barlineElement->setHasEnding(true);
-            auto ending = barlineElement->getEnding();
-            ending->getAttributes()->type = myConverter.convert(myBarlinesIter->endingType);
+            core::Ending ending{};
+            ending.setType(myConverter.convert(myBarlinesIter->endingType));
 
             if (myBarlinesIter->endingNumber > 0)
             {
-                ending->getAttributes()->number = std::to_string(myBarlinesIter->endingNumber);
+                core::EndingNumber en{};
+                en.addValue(myBarlinesIter->endingNumber);
+                ending.setNumber(en);
             }
+
+            barlineElement.setEnding(ending);
         }
 
         if (myBarlinesIter->location != api::HorizontalAlignment::unspecified)
         {
-            barlineElement->getAttributes()->hasLocation = true;
-            barlineElement->getAttributes()->location = myConverter.convertBarlinePlacement(myBarlinesIter->location);
+            barlineElement.setLocation(myConverter.convertBarlinePlacement(myBarlinesIter->location));
         }
         else if (myBarlinesIter->location == api::HorizontalAlignment::left || myBarlinesIter->tickTimePosition == 0)
         {
-            barlineElement->getAttributes()->hasLocation = true;
-            barlineElement->getAttributes()->location =
-                myConverter.convertBarlinePlacement(mx::api::HorizontalAlignment::left);
+            barlineElement.setLocation(myConverter.convertBarlinePlacement(mx::api::HorizontalAlignment::left));
         }
         else
         {
-            barlineElement->getAttributes()->hasLocation = true;
-            barlineElement->getAttributes()->location =
-                myConverter.convertBarlinePlacement(mx::api::HorizontalAlignment::right);
+            barlineElement.setLocation(myConverter.convertBarlinePlacement(mx::api::HorizontalAlignment::right));
         }
 
         if (myBarlinesIter->repeat)
         {
-            const auto repeatElement = barlineElement->getRepeat();
-            barlineElement->setHasRepeat(true);
+            core::Repeat repeatElement{};
 
             if (myBarlinesIter->location == api::HorizontalAlignment::left || myBarlinesIter->tickTimePosition == 0)
             {
-                repeatElement->getAttributes()->direction = mx::core::BackwardForward::forward;
+                repeatElement.setDirection(mx::core::BackwardForward::forward());
             }
             else
             {
-                repeatElement->getAttributes()->direction = mx::core::BackwardForward::backward;
+                repeatElement.setDirection(mx::core::BackwardForward::backward());
             }
+
+            barlineElement.setRepeat(repeatElement);
         }
 
-        myOutMeasure->getMusicDataGroup()->addMusicDataChoice(mdc);
+        myOutMeasure.addMusicData(core::MusicDataChoice::barline(barlineElement));
         myHistory.log("writeBarline");
     }
 }

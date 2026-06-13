@@ -7,79 +7,55 @@
 #include "mx/api/DirectionData.h"
 #include "mx/api/KeyData.h"
 #include "mx/api/NoteData.h"
-#include "mx/core/elements/Alter.h"
-#include "mx/core/elements/Backup.h"
-#include "mx/core/elements/BarStyle.h"
-#include "mx/core/elements/Barline.h"
-#include "mx/core/elements/BeatType.h"
-#include "mx/core/elements/Beats.h"
-#include "mx/core/elements/Bookmark.h"
-#include "mx/core/elements/Cancel.h"
-#include "mx/core/elements/Clef.h"
-#include "mx/core/elements/ClefOctaveChange.h"
-#include "mx/core/elements/CueNoteGroup.h"
-#include "mx/core/elements/Direction.h"
-#include "mx/core/elements/DisplayOctave.h"
-#include "mx/core/elements/DisplayStep.h"
-#include "mx/core/elements/DisplayStepOctaveGroup.h"
-#include "mx/core/elements/Divisions.h"
-#include "mx/core/elements/Duration.h"
-#include "mx/core/elements/EditorialVoiceGroup.h"
-#include "mx/core/elements/Ending.h"
-#include "mx/core/elements/Fifths.h"
-#include "mx/core/elements/Figure.h"
-#include "mx/core/elements/FigureNumber.h"
-#include "mx/core/elements/FiguredBass.h"
-#include "mx/core/elements/Forward.h"
-#include "mx/core/elements/FullNoteGroup.h"
-#include "mx/core/elements/FullNoteTypeChoice.h"
-#include "mx/core/elements/GraceNoteGroup.h"
-#include "mx/core/elements/Grouping.h"
-#include "mx/core/elements/Harmony.h"
-#include "mx/core/elements/Key.h"
-#include "mx/core/elements/KeyAccidental.h"
-#include "mx/core/elements/KeyAlter.h"
-#include "mx/core/elements/KeyChoice.h"
-#include "mx/core/elements/KeyOctave.h"
-#include "mx/core/elements/KeyStep.h"
-#include "mx/core/elements/Line.h"
-#include "mx/core/elements/Link.h"
-#include "mx/core/elements/MeasureStyle.h"
-#include "mx/core/elements/MeasureStyleChoice.h"
-#include "mx/core/elements/Mode.h"
-#include "mx/core/elements/MultipleRest.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/MusicDataGroup.h"
-#include "mx/core/elements/NonTraditionalKey.h"
-#include "mx/core/elements/NormalNoteGroup.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/NoteChoice.h"
-#include "mx/core/elements/Octave.h"
-#include "mx/core/elements/Pitch.h"
-#include "mx/core/elements/Prefix.h"
-#include "mx/core/elements/Print.h"
-#include "mx/core/elements/Properties.h"
-#include "mx/core/elements/Rest.h"
-#include "mx/core/elements/Sign.h"
-#include "mx/core/elements/Sound.h"
-#include "mx/core/elements/Staff.h"
-#include "mx/core/elements/StaffDetails.h"
-#include "mx/core/elements/StaffLines.h"
-#include "mx/core/elements/Step.h"
-#include "mx/core/elements/Suffix.h"
-#include "mx/core/elements/Time.h"
-#include "mx/core/elements/TimeChoice.h"
-#include "mx/core/elements/TimeSignatureGroup.h"
-#include "mx/core/elements/TraditionalKey.h"
-#include "mx/core/elements/Type.h"
-#include "mx/core/elements/Unpitched.h"
-#include "mx/core/elements/Voice.h"
+#include "mx/core/generated/Attributes.h"
+#include "mx/core/generated/AttributesChoice.h"
+#include "mx/core/generated/Backup.h"
+#include "mx/core/generated/BarStyleColor.h"
+#include "mx/core/generated/Barline.h"
+#include "mx/core/generated/Bookmark.h"
+#include "mx/core/generated/Cancel.h"
+#include "mx/core/generated/Clef.h"
+#include "mx/core/generated/ClefGroup.h"
+#include "mx/core/generated/ClefSign.h"
+#include "mx/core/generated/Direction.h"
+#include "mx/core/generated/Ending.h"
+#include "mx/core/generated/Figure.h"
+#include "mx/core/generated/FiguredBass.h"
+#include "mx/core/generated/Forward.h"
+#include "mx/core/generated/Grouping.h"
+#include "mx/core/generated/Harmony.h"
+#include "mx/core/generated/Key.h"
+#include "mx/core/generated/KeyAccidental.h"
+#include "mx/core/generated/KeyChoice.h"
+#include "mx/core/generated/Link.h"
+#include "mx/core/generated/MeasureStyle.h"
+#include "mx/core/generated/MeasureStyleChoice.h"
+#include "mx/core/generated/Mode.h"
+#include "mx/core/generated/MultipleRest.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/NonTraditionalKeyGroup.h"
+#include "mx/core/generated/Note.h"
+#include "mx/core/generated/PartwiseMeasure.h"
+#include "mx/core/generated/PositiveDivisions.h"
+#include "mx/core/generated/Print.h"
+#include "mx/core/generated/RightLeftMiddle.h"
+#include "mx/core/generated/Semitones.h"
+#include "mx/core/generated/Sound.h"
+#include "mx/core/generated/StaffDetails.h"
+#include "mx/core/generated/StaffDetailsGroup.h"
+#include "mx/core/generated/StartStopDiscontinue.h"
+#include "mx/core/generated/Step.h"
+#include "mx/core/generated/StyleText.h"
+#include "mx/core/generated/TraditionalKeyGroup.h"
+#include "mx/core/generated/Transpose.h"
+#include "mx/core/generated/YesNo.h"
 #include "mx/impl/Converter.h"
 #include "mx/impl/DirectionReader.h"
 #include "mx/impl/NoteFunctions.h"
 #include "mx/impl/NoteReader.h"
 #include "mx/impl/TimeReader.h"
 #include "mx/utility/Throw.h"
+#include "mx/utility/Unused.h"
 
 #include <set>
 
@@ -93,19 +69,19 @@ std::string figureToText(const core::Figure &figure)
 {
     std::string text;
 
-    if (figure.getHasPrefix())
+    if (figure.prefix().has_value())
     {
-        text += figure.getPrefix()->getValue().getValue();
+        text += figure.prefix()->value();
     }
 
-    if (figure.getHasFigureNumber())
+    if (figure.figureNumber().has_value())
     {
-        text += figure.getFigureNumber()->getValue().getValue();
+        text += figure.figureNumber()->value();
     }
 
-    if (figure.getHasSuffix())
+    if (figure.suffix().has_value())
     {
-        text += figure.getSuffix()->getValue().getValue();
+        text += figure.suffix()->value();
     }
 
     return text;
@@ -115,9 +91,9 @@ std::string figuredBassToText(const core::FiguredBass &figuredBass)
 {
     std::string text;
 
-    for (const auto &figure : figuredBass.getFigureSet())
+    for (const auto &figure : figuredBass.figure())
     {
-        const auto figureText = figureToText(*figure);
+        const auto figureText = figureToText(figure);
 
         if (figureText.empty())
         {
@@ -136,7 +112,7 @@ std::string figuredBassToText(const core::FiguredBass &figuredBass)
 }
 
 int getFiguredBassStaffIndex(const MeasureCursor &cursor, const api::MeasureData &measure,
-                             const core::NotePtr &nextNotePtr)
+                             const core::Note *nextNotePtr)
 {
     auto staffIndex = cursor.staffIndex;
 
@@ -183,8 +159,7 @@ std::pair<api::MeasureData, std::optional<api::TransposeData>> MeasureReader::ge
     // TODO - that's stupid, remove const designations
     std::lock_guard<std::mutex> lock(myMutex);
     myOutMeasureData = api::MeasureData{};
-    const auto &attr = *myPartwiseMeasure.getAttributes();
-    myOutMeasureData.number = attr.number.getValue();
+    myOutMeasureData.number = myPartwiseMeasure.number();
 
     // if we are parsing the first measure of the part, then we need to return transpose information
     std::optional<api::TransposeData> transpose;
@@ -194,26 +169,27 @@ std::pair<api::MeasureData, std::optional<api::TransposeData>> MeasureReader::ge
         myOutMeasureData.number = "";
     }
 
-    if (attr.hasWidth)
+    if (myPartwiseMeasure.width().has_value())
     {
-        myOutMeasureData.width = attr.width.getValue();
+        myOutMeasureData.width = static_cast<long double>(myPartwiseMeasure.width()->value().value());
     }
 
-    if (attr.hasImplicit)
+    if (myPartwiseMeasure.implicit().has_value())
     {
-        myOutMeasureData.implicit = attr.implicit == core::YesNo::yes ? api::Bool::yes : api::Bool::no;
+        myOutMeasureData.implicit =
+            myPartwiseMeasure.implicit()->tag() == core::YesNo::Tag::yes ? api::Bool::yes : api::Bool::no;
     }
 
     addStavesToOutMeasure();
     parseTimeSignature();
 
-    const auto &mdcSet = myPartwiseMeasure.getMusicDataGroup()->getMusicDataChoiceSet();
-    auto iter = mdcSet.cbegin();
-    const auto endIter = mdcSet.cend();
+    const auto mdcSpan = myPartwiseMeasure.musicData();
+    auto iter = mdcSpan.begin();
+    const auto endIter = mdcSpan.end();
 
     for (; iter != endIter; ++iter)
     {
-        const auto &mdc = **iter;
+        const auto &mdc = *iter;
 
         // incredibly, we need to know if the note following this one has a 'chord' tag
         // otherwise we don't know whether or not the current note if part of a chord,
@@ -221,16 +197,15 @@ std::pair<api::MeasureData, std::optional<api::TransposeData>> MeasureReader::ge
         // current tick position in myCurrentCursor
         auto peekAheadAtNextNoteIter = iter + 1;
 
-        while (mdc.getChoice() == core::MusicDataChoice::Choice::note && peekAheadAtNextNoteIter != endIter &&
-               (*peekAheadAtNextNoteIter)->getChoice() != core::MusicDataChoice::Choice::note)
+        while (mdc.isNote() && peekAheadAtNextNoteIter != endIter && !peekAheadAtNextNoteIter->isNote())
         {
             ++peekAheadAtNextNoteIter;
         }
 
-        core::NotePtr nextNotePtr = nullptr;
-        if (peekAheadAtNextNoteIter != endIter)
+        const core::Note *nextNotePtr = nullptr;
+        if (peekAheadAtNextNoteIter != endIter && peekAheadAtNextNoteIter->isNote())
         {
-            nextNotePtr = (*peekAheadAtNextNoteIter)->getNote();
+            nextNotePtr = &peekAheadAtNextNoteIter->asNote();
         }
 
         auto maybeTranspose = parseMusicDataChoice(mdc, nextNotePtr);
@@ -257,7 +232,7 @@ impl::MeasureCursor MeasureReader::getCursor() const
 
 void MeasureReader::parseTimeSignature() const
 {
-    TimeReader timeReader{myPartwiseMeasure.getMusicDataGroup()->getMusicDataChoiceSet()};
+    TimeReader timeReader{myPartwiseMeasure.musicData()};
     api::TimeSignatureData timeSignature;
 
     if (timeReader.getIsTimeFound())
@@ -281,99 +256,92 @@ void MeasureReader::parseTimeSignature() const
 
 // see .h file for explanation of the return value
 std::optional<api::TransposeData> MeasureReader::parseMusicDataChoice(const core::MusicDataChoice &mdc,
-                                                                      const core::NotePtr &nextNotePtr) const
+                                                                      const core::Note *nextNotePtr) const
 {
     // if we are parsing the first measure of the part, then we need to return transpose information
     std::optional<api::TransposeData> transpose;
-    switch (mdc.getChoice())
-    {
-    case core::MusicDataChoice::Choice::note: {
-        myCurrentCursor.isBackupInProgress = false;
-        parseNote(*mdc.getNote(), nextNotePtr);
-        break;
-    }
-    case core::MusicDataChoice::Choice::backup: {
-        parseBackup(*mdc.getBackup());
-        break;
-    }
-    case core::MusicDataChoice::Choice::forward: {
 
+    if (mdc.isNote())
+    {
         myCurrentCursor.isBackupInProgress = false;
-        parseForward(*mdc.getForward());
-        break;
+        parseNote(mdc.asNote(), nextNotePtr);
     }
-    case core::MusicDataChoice::Choice::direction: {
+    else if (mdc.isBackup())
+    {
+        parseBackup(mdc.asBackup());
+    }
+    else if (mdc.isForward())
+    {
         myCurrentCursor.isBackupInProgress = false;
-        parseDirection(mdc.getDirection());
+        parseForward(mdc.asForward());
+    }
+    else if (mdc.isDirection())
+    {
+        myCurrentCursor.isBackupInProgress = false;
+        parseDirection(mdc.asDirection());
         advanceTickTimePosition(0, "parseDirection");
-        break;
     }
-    case core::MusicDataChoice::Choice::properties: {
+    else if (mdc.isAttributes())
+    {
         myCurrentCursor.isBackupInProgress = false;
-        transpose = parseProperties(*mdc.getProperties());
-        advanceTickTimePosition(0, "parseProperties");
-        break;
+        transpose = parseAttributes(mdc.asAttributes());
+        advanceTickTimePosition(0, "parseAttributes");
     }
-    case core::MusicDataChoice::Choice::harmony: {
+    else if (mdc.isHarmony())
+    {
         myCurrentCursor.isBackupInProgress = false;
-        parseHarmony(mdc.getHarmony());
+        parseHarmony(mdc.asHarmony());
         advanceTickTimePosition(0, "parseHarmony");
-        break;
     }
-    case core::MusicDataChoice::Choice::figuredBass: {
+    else if (mdc.isFiguredBass())
+    {
         myCurrentCursor.isBackupInProgress = false;
-        parseFiguredBass(*mdc.getFiguredBass(), nextNotePtr);
+        parseFiguredBass(mdc.asFiguredBass(), nextNotePtr);
         advanceTickTimePosition(0, "parseFiguredBass");
-        break;
     }
-    case core::MusicDataChoice::Choice::print: {
+    else if (mdc.isPrint())
+    {
         myCurrentCursor.isBackupInProgress = false;
-        parsePrint(*mdc.getPrint());
+        parsePrint(mdc.asPrint());
         advanceTickTimePosition(0, "parsePrint");
-        break;
     }
-    case core::MusicDataChoice::Choice::sound: {
+    else if (mdc.isSound())
+    {
         myCurrentCursor.isBackupInProgress = false;
-        parseSound(*mdc.getSound());
+        parseSound(mdc.asSound());
         advanceTickTimePosition(0, "parseSound");
-        break;
     }
-    case core::MusicDataChoice::Choice::barline: {
+    else if (mdc.isBarline())
+    {
         myCurrentCursor.isBackupInProgress = false;
-        parseBarline(*mdc.getBarline());
+        parseBarline(mdc.asBarline());
         advanceTickTimePosition(0, "parseBarline");
-        break;
     }
-    case core::MusicDataChoice::Choice::grouping: {
+    else if (mdc.isGrouping())
+    {
         myCurrentCursor.isBackupInProgress = false;
-        parseGrouping(*mdc.getGrouping());
+        parseGrouping(mdc.asGrouping());
         advanceTickTimePosition(0, "parseGrouping");
-        break;
     }
-    case core::MusicDataChoice::Choice::link: {
+    else if (mdc.isLink())
+    {
         myCurrentCursor.isBackupInProgress = false;
-        parseLink(*mdc.getLink());
+        parseLink(mdc.asLink());
         advanceTickTimePosition(0, "parseLink");
-        break;
     }
-    case core::MusicDataChoice::Choice::bookmark: {
+    else if (mdc.isBookmark())
+    {
         myCurrentCursor.isBackupInProgress = false;
-        parseBookmark(*mdc.getBookmark());
+        parseBookmark(mdc.asBookmark());
         advanceTickTimePosition(0, "parseBookmark");
-        break;
     }
-    default: {
-        MX_THROW("unsupported MusicDataChoice::Choice value");
-    }
-    }
+    // isListening() — not handled, silently skip
+
     return transpose;
 }
 
-void MeasureReader::parseNote(const core::Note &inMxNote, const core::NotePtr &nextNotePtr) const
+void MeasureReader::parseNote(const core::Note &inMxNote, const core::Note *nextNotePtr) const
 {
-    MX_UNUSED(inMxNote);
-    MX_UNUSED(nextNotePtr);
-
     bool isNextNotePartOfAChord = false;
 
     if (nextNotePtr)
@@ -417,7 +385,7 @@ void MeasureReader::parseBackup(const core::Backup &inMxBackup) const
     }
 
     myCurrentCursor.isBackupInProgress = true;
-    const int backupAmount = myCurrentCursor.convertDurationToGlobalTickScale(*inMxBackup.getDuration());
+    const int backupAmount = myCurrentCursor.convertDurationToGlobalTickScale(inMxBackup.duration());
     advanceTickTimePosition(-1 * backupAmount, "backup");
 
     if (myCurrentCursor.tickTimePosition < 0)
@@ -429,32 +397,26 @@ void MeasureReader::parseBackup(const core::Backup &inMxBackup) const
 
 void MeasureReader::parseForward(const core::Forward &inMxForward) const
 {
-    const int forwardAmount = myCurrentCursor.convertDurationToGlobalTickScale(*inMxForward.getDuration());
+    const int forwardAmount = myCurrentCursor.convertDurationToGlobalTickScale(inMxForward.duration());
     advanceTickTimePosition(forwardAmount, "forward");
 }
 
-template <typename T>
-static void parseDirectionImpl(std::shared_ptr<const T> inDirection, api::MeasureData &ioMeasureData,
-                               const MeasureCursor &inMeasureCursor);
-
-template <typename T>
-static void parseDirectionImpl(std::shared_ptr<const T> inDirection, api::MeasureData &ioMeasureData,
-                               const MeasureCursor &inMeasureCursor)
+void MeasureReader::parseDirection(const core::Direction &inDirection) const
 {
-    DirectionReader reader{inDirection, inMeasureCursor};
+    DirectionReader reader{inDirection, myCurrentCursor};
     auto directionData = reader.getDirectionData();
 
-    // make an adjustment if the directionData refers to a non-existant staff
+    // make an adjustment if the directionData refers to a non-existent staff
     size_t staffIndex = 0;
-    bool isStaffIndexSpecified = inDirection->getHasStaff();
+    bool isStaffIndexSpecified = inDirection.staff().has_value();
     bool isStaffIndexInsane = false;
 
     if (isStaffIndexSpecified)
     {
-        staffIndex = static_cast<size_t>(inDirection->getStaff()->getValue().getValue() - 1);
+        staffIndex = static_cast<size_t>(*inDirection.staff() - 1);
     }
 
-    isStaffIndexInsane = staffIndex >= ioMeasureData.staves.size();
+    isStaffIndexInsane = staffIndex >= myOutMeasureData.staves.size();
 
     if (!isStaffIndexSpecified || isStaffIndexInsane)
     {
@@ -468,64 +430,51 @@ static void parseDirectionImpl(std::shared_ptr<const T> inDirection, api::Measur
 
     // in-case we made a mistake in the code above which calculates the staffIndex
     // make a final check to see if the staffIndex is in-bounds - throw if stupid
-    MX_ASSERT(staffIndex < ioMeasureData.staves.size());
-    auto &staff = ioMeasureData.staves.at(staffIndex);
+    MX_ASSERT(staffIndex < myOutMeasureData.staves.size());
+    auto &staff = myOutMeasureData.staves.at(staffIndex);
     staff.directions.emplace_back(std::move(directionData));
 }
 
-void MeasureReader::parseDirection(std::shared_ptr<const core::Direction> inDirection) const
-{
-    parseDirectionImpl<core::Direction>(inDirection, myOutMeasureData, myCurrentCursor);
-}
-
-std::optional<api::TransposeData> MeasureReader::parseProperties(const core::Properties &inMxProperties) const
+std::optional<api::TransposeData> MeasureReader::parseAttributes(const core::Attributes &inMxAttributes) const
 {
     // if we are parsing the first measure of the part, then we need to return transpose information
     std::optional<api::TransposeData> transpose;
-    if (inMxProperties.getHasDivisions())
+
+    if (inMxAttributes.divisions().has_value())
     {
-        const auto newDivisionsValueDecimal = inMxProperties.getDivisions()->getValue().getValue();
+        const auto newDivisionsValueDecimal = inMxAttributes.divisions()->value().value();
         myCurrentCursor.ticksPerQuarter = static_cast<int>(std::ceil(newDivisionsValueDecimal - 0.5));
     }
 
     // TODO - continue work on measure numbering and style etc
-    for (const auto &measureStylePtr : inMxProperties.getMeasureStyleSet())
+    for (const auto &measureStyle : inMxAttributes.measureStyle())
     {
-        const auto &measureStyle = *measureStylePtr;
-        if (measureStyle.getMeasureStyleChoice()->getChoice() == core::MeasureStyleChoice::Choice::multipleRest)
+        if (measureStyle.choice().isMultipleRest())
         {
-            const auto &mr = *measureStyle.getMeasureStyleChoice()->getMultipleRest();
-            if (!mr.getValue().getIsEmpty())
-            {
-                const auto value = mr.getValue().getValueNumber().getValue();
-                myOutMeasureData.multiMeasureRest = value;
-            }
+            const auto &mr = measureStyle.choice().asMultipleRest();
+            myOutMeasureData.multiMeasureRest = mr.value();
         }
     }
 
-    for (const auto &keyPtr : inMxProperties.getKeySet())
+    for (const auto &key : inMxAttributes.key())
     {
+        const auto &keyChoiceObj = key.choice();
+        const auto keyType = keyChoiceObj.kind();
 
-        const auto &key = *keyPtr;
-        const auto &attr = *key.getAttributes();
-        const auto keyChoiceObj = *key.getKeyChoice();
-        const auto keyType = keyChoiceObj.getChoice();
-
-        if (keyType == core::KeyChoice::Choice::nonTraditionalKey)
+        if (keyType == core::KeyChoice::Kind::nonTraditionalKey)
         {
             api::KeyData keyData;
-            const auto &nonTraditionalKeyParts = key.getKeyChoice()->getNonTraditionalKeySet();
+            const auto &nonTraditionalKeyParts = keyChoiceObj.asNonTraditionalKey();
             for (const auto &nonTraditionalKeyPart : nonTraditionalKeyParts)
             {
                 api::KeyComponent keyComponent{};
 
-                if (nonTraditionalKeyPart->getHasKeyAccidental())
+                if (nonTraditionalKeyPart.keyAccidental().has_value())
                 {
-                    keyComponent.accidental =
-                        myConverter.convert(nonTraditionalKeyPart->getKeyAccidental()->getValue());
+                    keyComponent.accidental = myConverter.convert(nonTraditionalKeyPart.keyAccidental()->value());
                 }
 
-                const auto alter = nonTraditionalKeyPart->getKeyAlter()->getValue().getValue();
+                const auto alter = nonTraditionalKeyPart.keyAlter().value().value();
                 if (alter != 0.0)
                 {
                     const auto semitoneAndCents = Converter::convertToSemitonesAndCents(alter);
@@ -533,7 +482,7 @@ std::optional<api::TransposeData> MeasureReader::parseProperties(const core::Pro
                     keyComponent.cents = semitoneAndCents.second;
                 }
 
-                keyComponent.step = myConverter.convert(nonTraditionalKeyPart->getKeyStep()->getValue());
+                keyComponent.step = myConverter.convert(nonTraditionalKeyPart.keyStep());
                 keyData.nonTraditional.emplace_back(keyComponent);
             }
 
@@ -543,36 +492,36 @@ std::optional<api::TransposeData> MeasureReader::parseProperties(const core::Pro
 
         api::KeyData keyData;
         // TODO - do position attributes
-        const auto &traditionalKey = *keyChoiceObj.getTraditionalKey();
+        const auto &traditionalKey = keyChoiceObj.asTraditionalKey();
 
-        if (attr.hasNumber)
+        if (key.number().has_value())
         {
-            keyData.staffIndex = attr.number.getValue() - 1;
+            keyData.staffIndex = key.number()->value() - 1;
             if (keyData.staffIndex > myCurrentCursor.getNumStaves() - 1)
             {
                 keyData.staffIndex = -1;
             }
         }
 
-        keyData.fifths = traditionalKey.getFifths()->getValue().getValue();
-        if (traditionalKey.getHasCancel())
+        keyData.fifths = traditionalKey.fifths().value();
+        if (traditionalKey.cancel().has_value())
         {
-            keyData.cancel = traditionalKey.getCancel()->getValue().getValue();
+            keyData.cancel = traditionalKey.cancel()->value().value();
         }
 
-        if (traditionalKey.getHasMode())
+        if (traditionalKey.mode().has_value())
         {
             // TODO - support all modes, not just major/minor
-            const auto coreMode = traditionalKey.getMode()->getValue().getValue();
-            if (coreMode == core::ModeEnum::major)
+            const auto coreMode = traditionalKey.mode()->value();
+            if (coreMode == "major")
             {
                 keyData.mode = api::KeyMode::major;
             }
-            else if (coreMode == core::ModeEnum::minor)
+            else if (coreMode == "minor")
             {
                 keyData.mode = api::KeyMode::minor;
             }
-            else if (coreMode == core::ModeEnum::minor)
+            else
             {
                 keyData.mode = api::KeyMode::unsupported;
             }
@@ -581,27 +530,54 @@ std::optional<api::TransposeData> MeasureReader::parseProperties(const core::Pro
 
         myOutMeasureData.keys.emplace_back(std::move(keyData));
     }
-    importStaffDetails(inMxProperties);
-    importClefs(inMxProperties.getClefSet());
+    importStaffDetails(inMxAttributes);
+    importClefs(inMxAttributes.clef());
 
-    if (!inMxProperties.getTransposeSet().empty())
+    if (inMxAttributes.choice().isTranspose() && !inMxAttributes.choice().asTranspose().empty())
     {
         // TODO support transpositions at places other than the start of the score
         if (myCurrentCursor.measureIndex == 0 && myCurrentCursor.tickTimePosition == 0)
         {
-            const auto &coreTranspose = *inMxProperties.getTransposeSet().front();
+            const auto &coreTranspose = inMxAttributes.choice().asTranspose().front();
             transpose = Converter::convertToTransposeData(coreTranspose);
         }
     }
     return transpose;
 }
 
-void MeasureReader::parseHarmony(std::shared_ptr<const core::Harmony> inHarmony) const
+void MeasureReader::parseHarmony(const core::Harmony &inHarmony) const
 {
-    parseDirectionImpl<core::Harmony>(inHarmony, myOutMeasureData, myCurrentCursor);
+    DirectionReader reader{inHarmony, myCurrentCursor};
+    auto directionData = reader.getDirectionData();
+
+    // make an adjustment if the directionData refers to a non-existent staff
+    size_t staffIndex = 0;
+    bool isStaffIndexSpecified = inHarmony.staff().has_value();
+    bool isStaffIndexInsane = false;
+
+    if (isStaffIndexSpecified)
+    {
+        staffIndex = static_cast<size_t>(*inHarmony.staff() - 1);
+    }
+
+    isStaffIndexInsane = staffIndex >= myOutMeasureData.staves.size();
+
+    if (!isStaffIndexSpecified || isStaffIndexInsane)
+    {
+        staffIndex = 0;
+        directionData.isStaffValueSpecified = false;
+    }
+    else
+    {
+        directionData.isStaffValueSpecified = true;
+    }
+
+    MX_ASSERT(staffIndex < myOutMeasureData.staves.size());
+    auto &staff = myOutMeasureData.staves.at(staffIndex);
+    staff.directions.emplace_back(std::move(directionData));
 }
 
-void MeasureReader::parseFiguredBass(const core::FiguredBass &inMxFiguredBass, const core::NotePtr &nextNotePtr) const
+void MeasureReader::parseFiguredBass(const core::FiguredBass &inMxFiguredBass, const core::Note *nextNotePtr) const
 {
     auto text = figuredBassToText(inMxFiguredBass);
 
@@ -635,32 +611,33 @@ void MeasureReader::parseFiguredBass(const core::FiguredBass &inMxFiguredBass, c
 
 void MeasureReader::parsePrint(const core::Print &inMxPrint) const
 {
-    coutItemNotSupported(inMxPrint);
+    MX_UNUSED(inMxPrint);
+    // std::cout << "print is not supported" << std::endl;
 }
 
 void MeasureReader::parseSound(const core::Sound &inMxSound) const
 {
-    coutItemNotSupported(inMxSound);
+    MX_UNUSED(inMxSound);
+    // std::cout << "sound is not supported" << std::endl;
 }
 
 void MeasureReader::parseBarline(const core::Barline &inMxBarline) const
 {
     auto barline = api::BarlineData{};
-    const auto &attr = *inMxBarline.getAttributes();
     auto loc = api::HorizontalAlignment::unspecified;
     auto style = api::BarlineType::unspecified;
     auto endingType = api::EndingType::none;
     auto endingNumber = 0;
     auto repeat = false;
 
-    if (attr.hasLocation)
+    if (inMxBarline.location().has_value())
     {
-        loc = myConverter.convertBarlinePlacement(attr.location);
+        loc = myConverter.convertBarlinePlacement(*inMxBarline.location());
     }
 
-    if (inMxBarline.getHasBarStyle())
+    if (inMxBarline.barStyle().has_value())
     {
-        style = myConverter.convert(inMxBarline.getBarStyle()->getValue());
+        style = myConverter.convert(inMxBarline.barStyle()->value());
     }
 
     // make a right-side barline last in the data
@@ -673,36 +650,33 @@ void MeasureReader::parseBarline(const core::Barline &inMxBarline) const
         barline.tickTimePosition = myCurrentCursor.tickTimePosition;
     }
 
-    if (inMxBarline.getHasEnding())
+    if (inMxBarline.ending().has_value())
     {
-        const auto &ending = inMxBarline.getEnding();
-        const auto &endingAttributes = ending->getAttributes();
+        const auto &ending = *inMxBarline.ending();
 
-        switch (endingAttributes->type)
+        switch (ending.type().tag())
         {
-        case core::StartStopDiscontinue::start:
+        case core::StartStopDiscontinue::Tag::start:
             endingType = api::EndingType::start;
             break;
 
-        case core::StartStopDiscontinue::stop:
+        case core::StartStopDiscontinue::Tag::stop:
             endingType = api::EndingType::stop;
             break;
 
-        case core::StartStopDiscontinue::discontinue:
+        case core::StartStopDiscontinue::Tag::discontinue:
             endingType = api::EndingType::discontinue;
             break;
         };
 
-        const auto &number = endingAttributes->number;
-        const auto &numValues = number.getValues();
+        const auto &numValues = ending.number().values();
         if (!numValues.empty())
         {
-            const auto iter = numValues.begin();
-            endingNumber = *iter;
+            endingNumber = numValues.front();
         }
     }
 
-    if (inMxBarline.getHasRepeat())
+    if (inMxBarline.repeat().has_value())
     {
         repeat = true;
     }
@@ -717,39 +691,35 @@ void MeasureReader::parseBarline(const core::Barline &inMxBarline) const
 
 void MeasureReader::parseGrouping(const core::Grouping &inMxGrouping) const
 {
-    coutItemNotSupported(inMxGrouping);
+    MX_UNUSED(inMxGrouping);
+    // std::cout << "grouping is not supported" << std::endl;
 }
 
 void MeasureReader::parseLink(const core::Link &inMxLink) const
 {
-    coutItemNotSupported(inMxLink);
+    MX_UNUSED(inMxLink);
+    // std::cout << "link is not supported" << std::endl;
 }
 
 void MeasureReader::parseBookmark(const core::Bookmark &inMxBookmark) const
 {
-    coutItemNotSupported(inMxBookmark);
+    MX_UNUSED(inMxBookmark);
+    // std::cout << "bookmark is not supported" << std::endl;
 }
 
-void MeasureReader::coutItemNotSupported(const core::ElementInterface &element) const
+void MeasureReader::importStaffDetails(const core::Attributes &inMxAttributes) const
 {
-    MX_UNUSED(element);
-    // std::cout << element.getElementName() << " is not supported" << std::endl;
-}
-
-void MeasureReader::importStaffDetails(const core::Properties &inMxProperties) const
-{
-    for (const auto &staffDetailsPtr : inMxProperties.getStaffDetailsSet())
+    for (const auto &staffDetails : inMxAttributes.staffDetails())
     {
-        if (!staffDetailsPtr || !staffDetailsPtr->getHasStaffLines())
+        if (!staffDetails.group().has_value())
         {
             continue;
         }
 
-        const auto &attr = *staffDetailsPtr->getAttributes();
         auto staffIndex = 0;
-        if (attr.hasNumber)
+        if (staffDetails.number().has_value())
         {
-            staffIndex = attr.number.getValue() - 1;
+            staffIndex = staffDetails.number()->value() - 1;
         }
 
         if (staffIndex < 0 || staffIndex >= static_cast<int>(myOutMeasureData.staves.size()))
@@ -757,19 +727,14 @@ void MeasureReader::importStaffDetails(const core::Properties &inMxProperties) c
             continue;
         }
 
-        myOutMeasureData.staves.at(static_cast<size_t>(staffIndex)).staffLines =
-            staffDetailsPtr->getStaffLines()->getValue().getValue();
+        myOutMeasureData.staves.at(static_cast<size_t>(staffIndex)).staffLines = staffDetails.group()->staffLines();
     }
 }
 
-void MeasureReader::importClefs(const core::ClefSet &inClefs) const
+void MeasureReader::importClefs(std::span<const core::Clef> inClefs) const
 {
-    auto iter = inClefs.cbegin();
-    auto endIter = inClefs.cend();
-
-    for (; iter != endIter; ++iter)
+    for (const auto &clef : inClefs)
     {
-        const auto &clef = **iter;
         importClef(clef);
     }
 }
@@ -779,11 +744,11 @@ void MeasureReader::importClef(const core::Clef &inClef) const
     api::ClefData clefData;
     clefData.tickTimePosition = myCurrentCursor.tickTimePosition;
     auto converter = Converter{};
-    clefData.symbol = converter.convert(inClef.getSign()->getValue());
+    clefData.symbol = converter.convert(inClef.clef().sign());
 
-    if (inClef.getHasLine())
+    if (inClef.clef().line().has_value())
     {
-        clefData.line = inClef.getLine()->getValue().getValue();
+        clefData.line = inClef.clef().line()->value();
     }
     else
     {
@@ -813,21 +778,19 @@ void MeasureReader::importClef(const core::Clef &inClef) const
         }
     }
 
-    if (inClef.getHasClefOctaveChange())
+    if (inClef.clef().clefOctaveChange().has_value())
     {
-        clefData.octaveChange = inClef.getClefOctaveChange()->getValue().getValue();
+        clefData.octaveChange = *inClef.clef().clefOctaveChange();
     }
     else
     {
         clefData.octaveChange = 0;
     }
 
-    const auto &attr = *inClef.getAttributes();
-
     int celfStaffIndex = -1;
-    if (attr.hasNumber)
+    if (inClef.number().has_value())
     {
-        celfStaffIndex = attr.number.getValue() - 1;
+        celfStaffIndex = inClef.number()->value() - 1;
     }
     else
     {
@@ -836,9 +799,9 @@ void MeasureReader::importClef(const core::Clef &inClef) const
 
     if (myCurrentCursor.tickTimePosition == 0)
     {
-        if (attr.hasAfterBarline)
+        if (inClef.afterBarline().has_value())
         {
-            if (attr.afterBarline == core::YesNo::yes)
+            if (inClef.afterBarline()->tag() == core::YesNo::Tag::yes)
             {
                 clefData.location = api::ClefLocation::afterBarline;
             }

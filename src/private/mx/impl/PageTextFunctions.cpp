@@ -3,11 +3,12 @@
 // Distributed under the MIT License
 
 #include "mx/impl/PageTextFunctions.h"
-#include "mx/core/elements/Credit.h"
-#include "mx/core/elements/CreditChoice.h"
-#include "mx/core/elements/CreditType.h"
-#include "mx/core/elements/CreditWords.h"
-#include "mx/core/elements/ScoreHeaderGroup.h"
+#include "mx/core/generated/Credit.h"
+#include "mx/core/generated/CreditChoice.h"
+#include "mx/core/generated/CreditChoiceGroup.h"
+#include "mx/core/generated/CreditChoiceGroupChoice.h"
+#include "mx/core/generated/FormattedTextID.h"
+#include "mx/core/generated/ScoreHeaderGroup.h"
 #include "mx/impl/FontFunctions.h"
 #include "mx/impl/PositionFunctions.h"
 
@@ -19,32 +20,27 @@ void createPageTextItems(const std::vector<api::PageTextData> &inPageTextItems, 
 {
     for (const auto &p : inPageTextItems)
     {
-        auto credit = core::makeCredit();
-        auto choice = credit->getCreditChoice();
-        choice->setChoice(core::CreditChoice::Choice::creditWords);
-        auto words = choice->getCreditWords();
-        auto attr = credit->getAttributes();
+        core::FormattedTextID words;
+        words.setValue(p.text);
+        impl::setAttributesFromFontData(p.fontData, words);
+        impl::setAttributesFromPositionData(p.positionData, words);
 
-        words->setValue(core::XsString{p.text});
+        core::CreditChoiceGroupChoice groupChoice = core::CreditChoiceGroupChoice::creditWords(words);
+        core::CreditChoiceGroup group;
+        group.setChoice(groupChoice);
 
-        impl::setAttributesFromFontData(p.fontData, *words->getAttributes());
-        impl::setAttributesFromPositionData(p.positionData, *words->getAttributes());
+        core::Credit credit;
+        credit.setChoice(core::CreditChoice::group(group));
 
         if (!p.description.empty())
         {
-            auto descrip = core::makeCreditType();
-            descrip->setValue(core::XsString{p.description});
-            credit->addCreditType(descrip);
+            credit.addCreditType(p.description);
         }
 
         if (p.pageNumber > 0)
         {
-            credit->getAttributes()->hasPage = true;
-            credit->getAttributes()->page = core::PositiveInteger{p.pageNumber};
+            credit.setPage(p.pageNumber);
         }
-        const auto wattr = words->getAttributes();
-
-        // getPositionData( p.positionData, *wattr );
 
         outHeader.addCredit(credit);
     }
@@ -52,35 +48,34 @@ void createPageTextItems(const std::vector<api::PageTextData> &inPageTextItems, 
 
 void createPageTextItems(const core::ScoreHeaderGroup &inHeader, std::vector<api::PageTextData> &outPageTextItems)
 {
-
-    for (const auto &c : inHeader.getCreditSet())
+    for (const auto &c : inHeader.credit())
     {
-        const auto choice = c->getCreditChoice();
-
-        if (choice->getChoice() != core::CreditChoice::Choice::creditWords)
+        if (!c.choice().isGroup())
         {
-            // ignore images for now
             continue;
         }
 
-        auto pageText = api::PageTextData{};
-
-        if (c->getAttributes()->hasPage)
+        const auto &group = c.choice().asGroup();
+        if (!group.choice().isCreditWords())
         {
-            pageText.pageNumber = c->getAttributes()->page.getValue();
+            continue;
         }
 
-        auto words = choice->getCreditWords();
-        pageText.text = words->getValue().getValue();
-        auto attr = words->getAttributes();
-        pageText.positionData = impl::getPositionData(*(attr));
-        pageText.fontData = impl::getFontData(*(attr));
+        api::PageTextData pageText{};
 
-        const auto &creditTypeSet = c->getCreditTypeSet();
-        if (creditTypeSet.size() > 0)
+        if (c.page().has_value())
         {
-            const auto &t = *creditTypeSet.cbegin();
-            pageText.description = t->getValue().getValue();
+            pageText.pageNumber = *c.page();
+        }
+
+        const auto &words = group.choice().asCreditWords();
+        pageText.text = words.value();
+        pageText.positionData = impl::getPositionData(words);
+        pageText.fontData = impl::getFontData(words);
+
+        if (!c.creditType().empty())
+        {
+            pageText.description = c.creditType().front();
         }
 
         outPageTextItems.push_back(pageText);

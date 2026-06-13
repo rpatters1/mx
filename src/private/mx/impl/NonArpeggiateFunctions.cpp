@@ -3,7 +3,7 @@
 // Distributed under the MIT License
 
 #include "mx/impl/NonArpeggiateFunctions.h"
-#include "mx/core/elements/NonArpeggiate.h"
+#include "mx/core/generated/NonArpeggiate.h"
 #include "mx/impl/MarkDataFunctions.h"
 
 namespace mx
@@ -18,9 +18,8 @@ NonArpeggiateFunctions::NonArpeggiateFunctions(const core::NonArpeggiate &inNonA
 
 api::MarkData NonArpeggiateFunctions::parseNonArpeggiate() const
 {
-    const auto &attr = myNonArpeggiate.getAttributes();
     api::MarkData markData{api::MarkType::nonArpeggiate};
-    impl::parseMarkDataAttributes(attr, markData);
+    impl::parseMarkDataAttributes(myNonArpeggiate, markData);
     markData.tickTimePosition = myCursor.tickTimePosition;
     return markData;
 }

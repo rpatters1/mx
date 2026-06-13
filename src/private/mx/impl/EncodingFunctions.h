@@ -5,8 +5,8 @@
 #pragma once
 
 #include "mx/api/EncodingData.h"
-#include "mx/core/elements/Encoding.h"
-#include "mx/core/elements/ScoreHeaderGroup.h"
+#include "mx/core/generated/Encoding.h"
+#include "mx/core/generated/ScoreHeaderGroup.h"
 
 namespace mx
 {

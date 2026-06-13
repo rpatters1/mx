@@ -3,20 +3,15 @@
 // Distributed under the MIT License
 
 #include "mx/impl/MetronomeReader.h"
-#include "mx/core/elements/BeatUnit.h"
-#include "mx/core/elements/BeatUnitDot.h"
-#include "mx/core/elements/BeatUnitGroup.h"
-#include "mx/core/elements/BeatUnitPer.h"
-#include "mx/core/elements/BeatUnitPerOrNoteRelationNoteChoice.h"
-#include "mx/core/elements/Metronome.h"
-#include "mx/core/elements/MetronomeNote.h"
-#include "mx/core/elements/MetronomeRelation.h"
-#include "mx/core/elements/MetronomeRelationGroup.h"
-#include "mx/core/elements/NoteRelationNote.h"
-#include "mx/core/elements/PerMinute.h"
-#include "mx/core/elements/PerMinuteOrBeatUnitChoice.h"
+#include "mx/core/generated/BeatUnitGroup.h"
+#include "mx/core/generated/Metronome.h"
+#include "mx/core/generated/MetronomeChoice.h"
+#include "mx/core/generated/MetronomeChoiceGroup.h"
+#include "mx/core/generated/MetronomeChoiceGroupChoice.h"
+#include "mx/core/generated/PerMinute.h"
 #include "mx/impl/Converter.h"
 #include "mx/utility/StringToInt.h"
+#include "mx/utility/Throw.h"
 
 namespace mx
 {
@@ -25,7 +20,7 @@ namespace impl
 MetronomeReader::MetronomeReader(MetronomeReaderParameters &&params)
     : myMutex{}, myOutTempoData{}, myMetronome{params.metronome},
       myPreviousTempoData{std::move(params.previousTempoData)}, myCursor{std::move(params.cursor)},
-      myBeatUnitPerOrNoteRelationNoteChoice{*myMetronome.getBeatUnitPerOrNoteRelationNoteChoice()}
+      myBeatUnitPerOrNoteRelationNoteChoice{myMetronome.choice()}
 {
 }
 
@@ -33,16 +28,18 @@ api::TempoData MetronomeReader::getTempoData() const
 {
     std::lock_guard<std::mutex> lock{myMutex};
     myOutTempoData = api::TempoData{};
-    using FirstChoice = core::BeatUnitPerOrNoteRelationNoteChoice::Choice;
-    const auto firstChoice = myBeatUnitPerOrNoteRelationNoteChoice.getChoice();
+    // the old core's beatUnitPer is the new core's group; the old core's
+    // noteRelationNote (metronome-note based) is group2
+    using FirstChoice = core::MetronomeChoice::Kind;
+    const auto firstChoice = myBeatUnitPerOrNoteRelationNoteChoice.kind();
 
     switch (firstChoice)
     {
-    case FirstChoice::beatUnitPer: {
+    case FirstChoice::group: {
         parseBeatUnitPer();
         break;
     }
-    case FirstChoice::noteRelationNote: {
+    case FirstChoice::group2: {
         parseNoteRelationNote();
         break;
     }
@@ -57,16 +54,16 @@ api::TempoData MetronomeReader::getTempoData() const
 
 void MetronomeReader::parseBeatUnitPer() const
 {
-    const auto beatUnitPer = *myBeatUnitPerOrNoteRelationNoteChoice.getBeatUnitPer();
-    const auto choice = beatUnitPer.getPerMinuteOrBeatUnitChoice()->getChoice();
+    const auto &beatUnitPer = myBeatUnitPerOrNoteRelationNoteChoice.asGroup();
+    const auto choice = beatUnitPer.choice().kind();
 
     switch (choice)
     {
-    case core::PerMinuteOrBeatUnitChoice::Choice::perMinute: {
+    case core::MetronomeChoiceGroupChoice::Kind::perMinute: {
         parseBeatsPerMinute();
         break;
     }
-    case core::PerMinuteOrBeatUnitChoice::Choice::beatUnitGroup: {
+    case core::MetronomeChoiceGroupChoice::Kind::group: {
         parseMetronomeModulation();
         break;
     }
@@ -83,12 +80,12 @@ void MetronomeReader::parseNoteRelationNote() const
 void MetronomeReader::parseBeatsPerMinute() const
 {
     myOutTempoData.tempoType = api::TempoType::beatsPerMinute;
-    const auto &beatUnitPer = *myBeatUnitPerOrNoteRelationNoteChoice.getBeatUnitPer();
-    const auto &grp = *beatUnitPer.getBeatUnitGroup();
+    const auto &beatUnitPer = myBeatUnitPerOrNoteRelationNoteChoice.asGroup();
+    const auto &grp = beatUnitPer.beatUnit();
     Converter converter;
-    myOutTempoData.beatsPerMinute.durationName = converter.convert(grp.getBeatUnit()->getValue());
-    myOutTempoData.beatsPerMinute.dots = static_cast<int>(grp.getBeatUnitDotSet().size());
-    const auto bpmStr = beatUnitPer.getPerMinuteOrBeatUnitChoice()->getPerMinute()->getValue().getValue();
+    myOutTempoData.beatsPerMinute.durationName = converter.convert(grp.beatUnit());
+    myOutTempoData.beatsPerMinute.dots = static_cast<int>(grp.beatUnitDot().size());
+    const auto bpmStr = beatUnitPer.choice().asPerMinute().value();
     int bpm = -1;
     bool isNumeric = utility::stringToInt(bpmStr, bpm);
     if (!isNumeric)

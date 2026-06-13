@@ -5,27 +5,18 @@
 #pragma once
 
 #include "mx/api/ScoreData.h"
+#include "mx/core/generated/PartGroup.h"
+#include "mx/core/generated/PartwisePart.h"
+#include "mx/core/generated/ScorePart.h"
+#include "mx/core/generated/ScorePartwise.h"
 #include "mx/impl/Cursor.h"
 
 #include <mutex>
 #include <optional>
+#include <vector>
 
 namespace mx
 {
-namespace core
-{
-class ScorePartwise;
-using ScorePartwisePtr = std::shared_ptr<ScorePartwise>;
-class PartGroup;
-using PartGroupPtr = std::shared_ptr<PartGroup>;
-class PartGroupOrScorePart;
-using PartGroupOrScorePartPtr = std::shared_ptr<PartGroupOrScorePart>;
-class ScorePart;
-using ScorePartPtr = std::shared_ptr<ScorePart>;
-class PartwisePart;
-using PartwisePartPtr = std::shared_ptr<PartwisePart>;
-} // namespace core
-
 namespace impl
 {
 class ScoreWriter
@@ -33,7 +24,7 @@ class ScoreWriter
   public:
     ScoreWriter(const api::ScoreData &inScoreData);
 
-    core::ScorePartwisePtr getScorePartwise() const;
+    core::ScorePartwise getScorePartwise() const;
 
     inline const api::ScoreData &getScoreData() const
     {
@@ -50,29 +41,17 @@ class ScoreWriter
   private:
     api::ScoreData myScoreData;
     mutable std::mutex myMutex;
-    mutable core::ScorePartwisePtr myOutScorePartwise;
+    mutable core::ScorePartwise myOutScorePartwise;
 
   private:
-    void addScorePart(int partIndex, const core::ScorePartPtr &scorePart) const;
-    void addPartwisePart(int partIndex, const core::PartwisePartPtr &partwisePart) const;
+    void addScorePart(int partIndex, core::ScorePart scorePart) const;
+    void addPartwisePart(int partIndex, core::PartwisePart partwisePart) const;
     bool partGroupStartExists(int partIndex) const;
     bool partGroupStopExists(int partIndex) const;
     std::vector<api::PartGroupData> findPartGroupsByStartIndex(int partIndex) const;
     std::vector<api::PartGroupData> findPartGroupsByStopIndex(int partIndex) const;
-    core::PartGroupPtr makePartGroupStart(const api::PartGroupData &apiGrp) const;
-    core::PartGroupPtr makePartGroupStop(const api::PartGroupData &apiGrp) const;
-    core::PartGroupOrScorePartPtr makePartGroupOrScorePart(const core::PartGroupPtr &grp) const;
-    core::PartGroupOrScorePartPtr makePartGroupOrScorePart(const core::ScorePartPtr &spr) const;
+    core::PartGroup makePartGroupStart(const api::PartGroupData &apiGrp) const;
+    core::PartGroup makePartGroupStop(const api::PartGroupData &apiGrp) const;
 };
 } // namespace impl
 } // namespace mx
-
-/*
- // TODO
- if( myScoreWriter.isSystemInfo( myCursor.measureIndex ) )
- {
- auto systemData = myScoreWriter.getSystemData( myCursor.measureIndex );
- // TODO - add it to the measure
- }
-
- */

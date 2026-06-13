@@ -3,7 +3,7 @@
 // Distributed under the MIT License
 
 #include "mx/impl/FermataFunctions.h"
-#include "mx/core/elements/Fermata.h"
+#include "mx/core/generated/Fermata.h"
 #include "mx/impl/MarkDataFunctions.h"
 
 namespace mx
@@ -18,77 +18,76 @@ FermataFunctions::FermataFunctions(const core::Fermata &inFermata, impl::Cursor 
 
 api::MarkData FermataFunctions::parseFermata() const
 {
-    const auto &attr = myFermata.getAttributes();
-    const auto shape = myFermata.getValue();
+    const auto shape = myFermata.value();
+    const bool hasType = myFermata.type().has_value();
+    const bool isUpright = hasType && *myFermata.type() == core::UprightInverted::upright();
+    const bool isInverted = hasType && *myFermata.type() == core::UprightInverted::inverted();
     auto markType = api::MarkType::fermata;
 
-    if (shape == core::FermataShape::emptystring)
+    if (shape == core::FermataShape::empty())
     {
-        if (!attr->hasType)
+        if (!hasType)
         {
             markType = api::MarkType::fermata;
         }
-        else if (attr->type == core::UprightInverted::upright)
+        else if (isUpright)
         {
             markType = api::MarkType::fermataUpright;
         }
-        else if (attr->type == core::UprightInverted::inverted)
+        else if (isInverted)
         {
             markType = api::MarkType::fermataInverted;
         }
     }
-    else if (shape == core::FermataShape::normal)
+    else if (shape == core::FermataShape::normal())
     {
-        if (!attr->hasType)
+        if (!hasType)
         {
             markType = api::MarkType::fermataNormal;
         }
-        else if (attr->type == core::UprightInverted::upright)
+        else if (isUpright)
         {
             markType = api::MarkType::fermataNormalUpright;
         }
-        else if (attr->type == core::UprightInverted::inverted)
+        else if (isInverted)
         {
             markType = api::MarkType::fermataNormalInverted;
         }
     }
-    else if (shape == core::FermataShape::angled)
+    else if (shape == core::FermataShape::angled())
     {
-        if (!attr->hasType)
+        if (!hasType)
         {
             markType = api::MarkType::fermataAngled;
         }
-        else if (attr->type == core::UprightInverted::upright)
+        else if (isUpright)
         {
             markType = api::MarkType::fermataAngledUpright;
         }
-        else if (attr->type == core::UprightInverted::inverted)
+        else if (isInverted)
         {
             markType = api::MarkType::fermataAngledInverted;
         }
     }
-    else if (shape == core::FermataShape::square)
+    else if (shape == core::FermataShape::square())
     {
-        if (!attr->hasType)
+        if (!hasType)
         {
             markType = api::MarkType::fermataSquare;
         }
-        else if (attr->type == core::UprightInverted::upright)
+        else if (isUpright)
         {
             markType = api::MarkType::fermataSquareUpright;
         }
-        else if (attr->type == core::UprightInverted::inverted)
+        else if (isInverted)
         {
             markType = api::MarkType::fermataSquareInverted;
         }
     }
 
-    // Unfortunately, without doing a lot of guess word, we can't
-    // know whether the correct glyph is "above" or "below"
     api::MarkData markData{markType};
-    impl::parseMarkDataAttributes(attr, markData);
+    impl::parseMarkDataAttributes(myFermata, markData);
     markData.tickTimePosition = myCursor.tickTimePosition;
-    impl::parseMarkDataAttributes(attr, markData);
 
     return markData;
 }

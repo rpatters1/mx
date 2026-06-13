@@ -4,26 +4,16 @@
 
 #pragma once
 
+#include "mx/core/generated/Articulations.h"
+#include "mx/core/generated/Notations.h"
+#include "mx/core/generated/NotationsChoice.h"
+#include "mx/core/generated/Ornaments.h"
+#include "mx/core/generated/Technical.h"
 #include "mx/impl/Converter.h"
 #include "mx/impl/MeasureCursor.h"
 
 namespace mx
 {
-namespace core
-{
-class Notations;
-using NotationsPtr = std::shared_ptr<Notations>;
-class NotationsChoice;
-using NotationsChoicePtr = std::shared_ptr<NotationsChoice>;
-class Articulations;
-using ArticulationsPtr = std::shared_ptr<Articulations>;
-class Ornaments;
-using OrnamentsPtr = std::shared_ptr<Ornaments>;
-class Technical;
-using TechnicalPtr = std::shared_ptr<Technical>;
-
-} // namespace core
-
 namespace impl
 {
 class ScoreWriter;
@@ -32,21 +22,20 @@ class NotationsWriter
 {
   public:
     NotationsWriter(const api::NoteData &inNoteData, const MeasureCursor &inCursor, const ScoreWriter &inScoreWriter);
-    core::NotationsPtr getNotations() const;
+    core::Notations getNotations() const;
 
   private:
     const api::NoteData &myNoteData;
     const MeasureCursor &myCursor;
     const Converter myConverter;
-    mutable core::NotationsPtr myOutNotations;
 
   private:
-    core::NotationsChoicePtr makeArticulationsNotationsChoice() const;
-    core::NotationsChoicePtr makeOrnamentsNotationsChoice() const;
-    core::NotationsChoicePtr makeTechnicalNotationsChoice() const;
-    void addArticulation(const api::MarkData &markData, const core::ArticulationsPtr &outArticulationsPtr) const;
-    void addOrnament(const api::MarkData &markData, const core::OrnamentsPtr &outOrnamentsPtr) const;
-    void addTechnical(const api::MarkData &markData, const core::TechnicalPtr &outOrnamentsPtr) const;
+    core::NotationsChoice makeArticulationsNotationsChoice() const;
+    core::NotationsChoice makeOrnamentsNotationsChoice() const;
+    core::NotationsChoice makeTechnicalNotationsChoice() const;
+    void addArticulation(const api::MarkData &markData, core::Articulations &outArticulations) const;
+    void addOrnament(const api::MarkData &markData, core::Ornaments &outOrnaments) const;
+    void addTechnical(const api::MarkData &markData, core::Technical &outTechnical) const;
 };
 } // namespace impl
 } // namespace mx

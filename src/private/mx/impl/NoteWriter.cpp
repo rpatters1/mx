@@ -3,47 +3,29 @@
 // Distributed under the MIT License
 
 #include "mx/impl/NoteWriter.h"
-#include "mx/core/XsString.h"
-#include "mx/core/elements/Accidental.h"
-#include "mx/core/elements/ActualNotes.h"
-#include "mx/core/elements/Alter.h"
-#include "mx/core/elements/Beam.h"
-#include "mx/core/elements/CueNoteGroup.h"
-#include "mx/core/elements/DisplayOctave.h"
-#include "mx/core/elements/DisplayStep.h"
-#include "mx/core/elements/DisplayStepOctaveGroup.h"
-#include "mx/core/elements/Dot.h"
-#include "mx/core/elements/Duration.h"
-#include "mx/core/elements/EditorialVoiceGroup.h"
-#include "mx/core/elements/Footnote.h"
-#include "mx/core/elements/FullNoteGroup.h"
-#include "mx/core/elements/FullNoteTypeChoice.h"
-#include "mx/core/elements/GraceNoteGroup.h"
-#include "mx/core/elements/NormalDot.h"
-#include "mx/core/elements/NormalNoteGroup.h"
-#include "mx/core/elements/NormalNotes.h"
-#include "mx/core/elements/NormalType.h"
-#include "mx/core/elements/NormalTypeNormalDotGroup.h"
-#include "mx/core/elements/Notations.h"
-#include "mx/core/elements/NotationsChoice.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/NoteChoice.h"
-#include "mx/core/elements/Notehead.h"
-#include "mx/core/elements/Octave.h"
-#include "mx/core/elements/Pitch.h"
-#include "mx/core/elements/Rest.h"
-#include "mx/core/elements/Staff.h"
-#include "mx/core/elements/Stem.h"
-#include "mx/core/elements/Step.h"
-#include "mx/core/elements/Tie.h"
-#include "mx/core/elements/Tied.h"
-#include "mx/core/elements/TimeModification.h"
-#include "mx/core/elements/Type.h"
-#include "mx/core/elements/Unpitched.h"
-#include "mx/core/elements/Voice.h"
+#include "mx/core/generated/Accidental.h"
+#include "mx/core/generated/BeamLevel.h"
+#include "mx/core/generated/CueNoteGroup.h"
+#include "mx/core/generated/DisplayStepOctaveGroup.h"
+#include "mx/core/generated/FormattedText.h"
+#include "mx/core/generated/FullNoteGroupChoice.h"
+#include "mx/core/generated/GraceNormalNoteGroup.h"
+#include "mx/core/generated/GraceNoteChoice.h"
+#include "mx/core/generated/GraceNoteGroup.h"
+#include "mx/core/generated/NormalNoteGroup.h"
+#include "mx/core/generated/Pitch.h"
+#include "mx/core/generated/Rest.h"
+#include "mx/core/generated/Tied.h"
+#include "mx/core/generated/TimeModification.h"
+#include "mx/core/generated/TimeModificationGroup.h"
+#include "mx/core/generated/Unpitched.h"
 #include "mx/impl/NotationsWriter.h"
 #include "mx/impl/PositionFunctions.h"
 #include "mx/impl/ScoreWriter.h"
+#include "mx/impl/WriteRefusal.h"
+#include "mx/utility/Throw.h"
+
+#include <cmath>
 
 namespace mx
 {
@@ -54,46 +36,67 @@ NoteWriter::NoteWriter(const api::NoteData &inNoteData, const MeasureCursor &inC
                        int inNoteIndex)
     : myNoteData{inNoteData}, myCursor{inCursor}, myScoreWriter{inScoreWriter}, myConverter{},
       myIsPreviousNoteAChordMember{isPreviousNoteAChordMember}, mySiblingNotes{inSiblingNotes},
-      myNoteIndex{inNoteIndex}, myOutNote{nullptr}, myOutNoteChoice(nullptr), myOutFullNoteGroup(nullptr),
-      myOutFullNoteTypeChoice{nullptr}
+      myNoteIndex{inNoteIndex}, myOutNote{}, myOutFullNoteGroup{}, myOutTies{}, myOutTieNotationsChoices{}
 {
 }
 
-core::NotePtr NoteWriter::getNote(bool isStartOfChord) const
+core::Note NoteWriter::getNote(bool isStartOfChord) const
 {
-    myOutNote = core::makeNote();
+    myOutNote = core::Note{};
+    myOutFullNoteGroup = core::FullNoteGroup{};
+    myOutTies.clear();
+    myOutTieNotationsChoices.clear();
+
     setNoteChoiceAndFullNoteGroup(isStartOfChord);
     setFullNoteTypeChoice();
+    assembleNoteChoice();
     setStaffAndVoice();
     setDurationNameAndDots();
     setNotehead();
     setStemDirection();
     setMiscData();
     NotationsWriter notationsWriter{myNoteData, myCursor, myScoreWriter};
-    auto &noteAttr = *myOutNote->getAttributes();
-    impl::setAttributesFromPositionData(myNoteData.positionData, noteAttr);
+    impl::setAttributesFromPositionData(myNoteData.positionData, myOutNote);
+
+    // The tie <notations> come first (as in the old writer, where they were
+    // created during setNoteChoiceAndFullNoteGroup).
+    if (!myOutTieNotationsChoices.empty())
+    {
+        core::Notations tieNotations;
+        for (auto &choice : myOutTieNotationsChoices)
+        {
+            tieNotations.addChoice(std::move(choice));
+        }
+        myOutNote.addNotations(std::move(tieNotations));
+    }
 
     auto notations = notationsWriter.getNotations();
-    if (notations->getNotationsChoiceSet().size() > 0)
+    if (notations.choice().size() > 0)
     {
-        myOutNote->addNotations(notations);
+        myOutNote.addNotations(std::move(notations));
     }
 
     if (myNoteData.pitchData.accidental != api::Accidental::none)
     {
-        myOutNote->setHasAccidental(true);
-        myOutNote->getAccidental()->setValue(myConverter.convert(myNoteData.pitchData.accidental));
+        core::Accidental accidental;
+        accidental.setValue(myConverter.convert(myNoteData.pitchData.accidental));
+        myOutNote.setAccidental(std::move(accidental));
     }
 
     auto beamIndex = 0;
     for (const auto &beam : myNoteData.beams)
     {
-        auto mxBeam = core::makeBeam();
-        auto attr = mxBeam->getAttributes();
-        attr->hasNumber = true;
-        attr->number = core::BeamLevel{beamIndex + 1};
-        mxBeam->setValue(myConverter.convert(beam));
-        myOutNote->addBeam(mxBeam);
+        core::Beam mxBeam;
+        mxBeam.setNumber(core::BeamLevel{beamIndex + 1});
+        mxBeam.setValue(myConverter.convert(beam));
+        const auto added = myOutNote.addBeam(std::move(mxBeam));
+        if (!added)
+        {
+            // Refuse, don't drop (mx-impl-port-plan.md §3): the core caps
+            // beams at 8; silently discarding the ninth would lose data.
+            throw WriteRefusal{api::ApiError{api::ResultCode::tooManyElements, added.error().path,
+                                             "NoteWriter: " + added.error().message}};
+        }
         ++beamIndex;
     }
 
@@ -102,12 +105,9 @@ core::NotePtr NoteWriter::getNote(bool isStartOfChord) const
         (myNoteData.durationData.timeModificationNormalNotes > 1 ||
          myNoteData.durationData.timeModificationActualNotes > 1))
     {
-        myOutNote->setHasTimeModification(true);
-        auto timeMod = myOutNote->getTimeModification();
-        timeMod->getActualNotes()->setValue(
-            core::NonNegativeInteger{myNoteData.durationData.timeModificationActualNotes});
-        timeMod->getNormalNotes()->setValue(
-            core::NonNegativeInteger{myNoteData.durationData.timeModificationNormalNotes});
+        core::TimeModification timeMod;
+        timeMod.setActualNotes(myNoteData.durationData.timeModificationActualNotes);
+        timeMod.setNormalNotes(myNoteData.durationData.timeModificationNormalNotes);
 
         // find the tuplet start note and TupletStart object
         bool isTupletStartFound = false;
@@ -176,13 +176,16 @@ core::NotePtr NoteWriter::getNote(bool isStartOfChord) const
                 const bool isNormalNameAndDotsFound = this->findNormalNameAndDots(normalName, normalDots, normalLength);
                 if (isNormalNameAndDotsFound)
                 {
-                    timeMod->setHasNormalTypeNormalDotGroup(true);
-                    timeMod->getNormalTypeNormalDotGroup()->getNormalType()->setValue(myConverter.convert(normalName));
+                    core::TimeModificationGroup group;
+                    group.setNormalType(myConverter.convert(normalName));
 
+                    std::vector<core::Empty> normalDotsVec;
                     for (int i = 0; i < normalDots; ++i)
                     {
-                        timeMod->getNormalTypeNormalDotGroup()->addNormalDot(mx::core::makeNormalDot());
+                        normalDotsVec.emplace_back();
                     }
+                    group.setNormalDot(std::move(normalDotsVec));
+                    timeMod.setGroup(std::move(group));
                 }
                 else
                 {
@@ -201,6 +204,8 @@ core::NotePtr NoteWriter::getNote(bool isStartOfChord) const
             MX_DEBUG_THROW("one of these things was not true ( isTupletStartFound && isTupletStopFound )");
         }
 
+        myOutNote.setTimeModification(std::move(timeMod));
+
         // TODO - decide what happens if the user entered specific tuplet type in the
         // duration data, possibly remove those fields from duration data.
     }
@@ -208,110 +213,51 @@ core::NotePtr NoteWriter::getNote(bool isStartOfChord) const
     return myOutNote;
 }
 
-template <typename CHOICE_OBJ_TYPE>
-static inline void addTie(bool isStart, CHOICE_OBJ_TYPE choiceObj, core::NotePtr outNote)
+// Records a tie (for the note choice) and the matching tied notation. Old
+// behavior preserved: a single <notations> element collects the tied
+// choices, stop before start when both are present.
+void NoteWriter::addTie(bool isStart) const
 {
-    auto tie = core::makeTie();
+    core::Tie tie;
+    tie.setType(isStart ? core::StartStop::start() : core::StartStop::stop());
+    myOutTies.push_back(std::move(tie));
 
-    if (isStart)
-    {
-        tie->getAttributes()->type = core::StartStop::start;
-    }
-    else
-    {
-        tie->getAttributes()->type = core::StartStop::stop;
-    }
-
-    choiceObj->addTie(tie);
-
-    core::NotationsPtr notations = nullptr;
-    core::NotationsChoicePtr notationsChoice = nullptr;
-
-    if (!outNote->getNotationsSet().empty())
-    {
-        notations = outNote->getNotationsSet().front();
-        notationsChoice = core::makeNotationsChoice();
-        notations->addNotationsChoice(notationsChoice);
-        outNote->addNotations(notations);
-    }
-    else
-    {
-        notations = core::makeNotations();
-
-        if (notations->getNotationsChoiceSet().empty())
-        {
-            notationsChoice = core::makeNotationsChoice();
-            notations->addNotationsChoice(notationsChoice);
-        }
-        else
-        {
-            notationsChoice = notations->getNotationsChoiceSet().front();
-        }
-
-        outNote->addNotations(notations);
-    }
-
-    notationsChoice->setChoice(core::NotationsChoice::Choice::tied);
-
-    if (isStart)
-    {
-        notationsChoice->getTied()->getAttributes()->type = core::StartStopContinue::start;
-    }
-    else
-    {
-        notationsChoice->getTied()->getAttributes()->type = core::StartStopContinue::stop;
-    }
+    core::Tied tied;
+    tied.setType(isStart ? core::TiedType::start() : core::TiedType::stop());
+    myOutTieNotationsChoices.push_back(core::NotationsChoice::tied(std::move(tied)));
 }
 
 void NoteWriter::setNoteChoiceAndFullNoteGroup(bool isStartOfChord) const
 {
-    MX_ASSERT(myOutNote != nullptr);
-    myOutNoteChoice = myOutNote->getNoteChoice();
+    myOutFullNoteGroup.setChord(myCursor.isChordActive && myIsPreviousNoteAChordMember && !isStartOfChord);
+
     switch (myNoteData.noteType)
     {
     case api::NoteType::cue: {
-        myOutNoteChoice->setChoice(core::NoteChoice::Choice::cue);
-        auto choiceObj = myOutNoteChoice->getCueNoteGroup();
-        choiceObj->getDuration()->setValue(
-            core::PositiveDivisionsValue{static_cast<core::DecimalType>(myNoteData.durationData.durationTimeTicks)});
-        myOutFullNoteGroup = choiceObj->getFullNoteGroup();
-        myOutFullNoteGroup->setHasChord(myCursor.isChordActive && myIsPreviousNoteAChordMember && !isStartOfChord);
         break;
     }
     case api::NoteType::grace: {
-        myOutNoteChoice->setChoice(core::NoteChoice::Choice::grace);
-        auto choiceObj = myOutNoteChoice->getGraceNoteGroup();
-        myOutFullNoteGroup = choiceObj->getFullNoteGroup();
-        myOutFullNoteGroup->setHasChord(myCursor.isChordActive && myIsPreviousNoteAChordMember && !isStartOfChord);
-
         if (myNoteData.isTieStop)
         {
-            addTie(false, choiceObj, myOutNote);
+            addTie(false);
         }
 
         if (myNoteData.isTieStart)
         {
-            addTie(true, choiceObj, myOutNote);
+            addTie(true);
         }
 
         break;
     }
     case api::NoteType::normal: {
-        myOutNoteChoice->setChoice(core::NoteChoice::Choice::normal);
-        auto choiceObj = myOutNoteChoice->getNormalNoteGroup();
-        myOutFullNoteGroup = choiceObj->getFullNoteGroup();
-        myOutFullNoteGroup->setHasChord(myCursor.isChordActive && myIsPreviousNoteAChordMember && !isStartOfChord);
-        choiceObj->getDuration()->setValue(
-            core::PositiveDivisionsValue{static_cast<core::DecimalType>(myNoteData.durationData.durationTimeTicks)});
-
         if (myNoteData.isTieStop)
         {
-            addTie(false, choiceObj, myOutNote);
+            addTie(false);
         }
 
         if (myNoteData.isTieStart)
         {
-            addTie(true, choiceObj, myOutNote);
+            addTie(true);
         }
 
         break;
@@ -319,57 +265,106 @@ void NoteWriter::setNoteChoiceAndFullNoteGroup(bool isStartOfChord) const
     default:
         break;
     }
-    MX_ASSERT(myOutFullNoteGroup != nullptr);
+}
+
+// Installs the assembled full-note group, duration, and ties into the note's
+// choice. (The old writer mutated co-allocated members through shared
+// pointers; under value semantics the alternative is built and installed.)
+void NoteWriter::assembleNoteChoice() const
+{
+    const auto duration =
+        core::PositiveDivisions{core::Decimal{static_cast<double>(myNoteData.durationData.durationTimeTicks)}};
+
+    switch (myNoteData.noteType)
+    {
+    case api::NoteType::cue: {
+        core::CueNoteGroup choiceObj;
+        choiceObj.setFullNote(myOutFullNoteGroup);
+        choiceObj.setDuration(duration);
+        myOutNote.setChoice(core::NoteChoice::cueNoteGroup(std::move(choiceObj)));
+        break;
+    }
+    case api::NoteType::grace: {
+        core::GraceNormalNoteGroup inner;
+        inner.setFullNote(myOutFullNoteGroup);
+        for (const auto &tie : myOutTies)
+        {
+            const auto added = inner.addTie(tie);
+            if (!added)
+            {
+                throw WriteRefusal{api::ApiError{api::ResultCode::tooManyElements, added.error().path,
+                                                 "NoteWriter: " + added.error().message}};
+            }
+        }
+        core::GraceNoteGroup choiceObj;
+        choiceObj.setGraceNoteChoice(core::GraceNoteChoice::graceNormalNoteGroup(std::move(inner)));
+        myOutNote.setChoice(core::NoteChoice::graceNoteGroup(std::move(choiceObj)));
+        break;
+    }
+    case api::NoteType::normal:
+    default: {
+        core::NormalNoteGroup choiceObj;
+        choiceObj.setFullNote(myOutFullNoteGroup);
+        choiceObj.setDuration(duration);
+        for (const auto &tie : myOutTies)
+        {
+            const auto added = choiceObj.addTie(tie);
+            if (!added)
+            {
+                throw WriteRefusal{api::ApiError{api::ResultCode::tooManyElements, added.error().path,
+                                                 "NoteWriter: " + added.error().message}};
+            }
+        }
+        myOutNote.setChoice(core::NoteChoice::normalNoteGroup(std::move(choiceObj)));
+        break;
+    }
+    }
 }
 
 void NoteWriter::setFullNoteTypeChoice() const
 {
-    MX_ASSERT(myOutFullNoteGroup != nullptr);
-    myOutFullNoteTypeChoice = myOutFullNoteGroup->getFullNoteTypeChoice();
-
     if (myNoteData.isRest)
     {
-        myOutFullNoteTypeChoice->setChoice(core::FullNoteTypeChoice::Choice::rest);
+        core::Rest rest;
         if (myNoteData.isDisplayStepOctaveSpecified)
         {
-            auto rest = myOutFullNoteTypeChoice->getRest();
-            rest->setHasDisplayStepOctaveGroup(true);
-            auto pitch = rest->getDisplayStepOctaveGroup();
-            pitch->getDisplayStep()->setValue(myConverter.convert(myNoteData.pitchData.step));
-            pitch->getDisplayOctave()->setValue(core::OctaveValue{myNoteData.pitchData.octave});
+            core::DisplayStepOctaveGroup pitch;
+            pitch.setDisplayStep(myConverter.convert(myNoteData.pitchData.step));
+            pitch.setDisplayOctave(core::Octave{myNoteData.pitchData.octave});
+            rest.setDisplayStepOctave(std::move(pitch));
         }
 
         if (myNoteData.isMeasureRest)
         {
-            myOutFullNoteTypeChoice->getRest()->getAttributes()->hasMeasure = true;
-            myOutFullNoteTypeChoice->getRest()->getAttributes()->measure = core::YesNo::yes;
-            myOutNote->setHasType(false);
+            rest.setMeasure(core::YesNo::yes());
         }
+
+        myOutFullNoteGroup.setChoice(core::FullNoteGroupChoice::rest(std::move(rest)));
     }
     else if (myNoteData.isUnpitched)
     {
-        myOutFullNoteTypeChoice->setChoice(core::FullNoteTypeChoice::Choice::unpitched);
+        core::Unpitched unpitched;
         if (myNoteData.isDisplayStepOctaveSpecified)
         {
-            auto unpitched = myOutFullNoteTypeChoice->getUnpitched();
-            unpitched->setHasDisplayStepOctaveGroup(true);
-            auto pitch = unpitched->getDisplayStepOctaveGroup();
-            pitch->getDisplayStep()->setValue(myConverter.convert(myNoteData.pitchData.step));
-            pitch->getDisplayOctave()->setValue(core::OctaveValue{myNoteData.pitchData.octave});
+            core::DisplayStepOctaveGroup pitch;
+            pitch.setDisplayStep(myConverter.convert(myNoteData.pitchData.step));
+            pitch.setDisplayOctave(core::Octave{myNoteData.pitchData.octave});
+            unpitched.setDisplayStepOctave(std::move(pitch));
         }
+
+        myOutFullNoteGroup.setChoice(core::FullNoteGroupChoice::unpitched(std::move(unpitched)));
     }
     else
     {
-        myOutFullNoteTypeChoice->setChoice(core::FullNoteTypeChoice::Choice::pitch);
-        auto pitch = myOutFullNoteTypeChoice->getPitch();
-        pitch->getStep()->setValue(myConverter.convert(myNoteData.pitchData.step));
+        core::Pitch pitch;
+        pitch.setStep(myConverter.convert(myNoteData.pitchData.step));
         if (myNoteData.pitchData.alter != 0 || myNoteData.pitchData.cents != 0.0)
         {
             const auto alter = Converter::convertToAlter(myNoteData.pitchData.alter, myNoteData.pitchData.cents);
-            pitch->setHasAlter(true);
-            pitch->getAlter()->setValue(core::Semitones{alter});
+            pitch.setAlter(core::Semitones{core::Decimal{alter}});
         }
-        pitch->getOctave()->setValue(core::OctaveValue{myNoteData.pitchData.octave});
+        pitch.setOctave(core::Octave{myNoteData.pitchData.octave});
+        myOutFullNoteGroup.setChoice(core::FullNoteGroupChoice::pitch(std::move(pitch)));
     }
 }
 
@@ -377,15 +372,14 @@ void NoteWriter::setStaffAndVoice() const
 {
     if (myCursor.getNumStaves() > 1 && myCursor.staffIndex >= 0)
     {
-        myOutNote->setHasStaff(true);
-        myOutNote->getStaff()->setValue(core::PositiveInteger{myCursor.staffIndex + 1});
+        myOutNote.setStaff(myCursor.staffIndex + 1);
     }
 
     if (myCursor.voiceIndex >= 0)
     {
-        myOutNote->getEditorialVoiceGroup()->setHasVoice(true);
-        myOutNote->getEditorialVoiceGroup()->getVoice()->setValue(
-            core::XsString{std::to_string(myCursor.voiceIndex + 1)});
+        auto editorialVoice = myOutNote.editorialVoice();
+        editorialVoice.setVoice(std::to_string(myCursor.voiceIndex + 1));
+        myOutNote.setEditorialVoice(std::move(editorialVoice));
     }
     // TODO - only show voice number if it is needed i.e. only show if != 0 or voiceCount > 1
 }
@@ -394,13 +388,14 @@ void NoteWriter::setDurationNameAndDots() const
 {
     if (!myNoteData.isRest || !myNoteData.isMeasureRest)
     {
-        myOutNote->setHasType(true);
-        myOutNote->getType()->setValue(myConverter.convert(myNoteData.durationData.durationName));
+        core::NoteType noteType;
+        noteType.setValue(myConverter.convert(myNoteData.durationData.durationName));
+        myOutNote.setType(std::move(noteType));
     }
 
     for (int d = 0; d < static_cast<int>(myNoteData.durationData.durationDots); ++d)
     {
-        myOutNote->addDot(core::makeDot());
+        myOutNote.addDot(core::EmptyPlacement{});
     }
 }
 
@@ -408,8 +403,9 @@ void NoteWriter::setNotehead() const
 {
     if (myNoteData.notehead != mx::api::Notehead::normal)
     {
-        myOutNote->setHasNotehead(true);
-        myOutNote->getNotehead()->setValue(myConverter.convert(myNoteData.notehead));
+        core::Notehead notehead;
+        notehead.setValue(myConverter.convert(myNoteData.notehead));
+        myOutNote.setNotehead(std::move(notehead));
     }
 }
 
@@ -420,8 +416,9 @@ void NoteWriter::setStemDirection() const
         return;
     }
 
-    myOutNote->setHasStem(true);
-    myOutNote->getStem()->setValue(myConverter.convert(myNoteData.stem));
+    core::Stem stem;
+    stem.setValue(myConverter.convert(myNoteData.stem));
+    myOutNote.setStem(std::move(stem));
 }
 
 void NoteWriter::setMiscData() const
@@ -434,15 +431,10 @@ void NoteWriter::setMiscData() const
     const std::string comma = ",";
     const std::string underscore = "_";
 
+    std::vector<std::string> miscItems;
     bool isFirst = true;
     for (auto s : myNoteData.miscData)
     {
-
-        myOutNote->getEditorialVoiceGroup()->setHasFootnote(true);
-        auto footnote = myOutNote->getEditorialVoiceGroup()->getFootnote();
-        footnote->getAttributes()->hasFontFamily = true;
-        auto &miscField = footnote->getAttributes()->fontFamily;
-
         std::string::size_type position = 0;
         while ((position = s.find(comma, position)) != std::string::npos)
         {
@@ -453,13 +445,20 @@ void NoteWriter::setMiscData() const
         if (isFirst)
         {
             isFirst = false;
-            miscField.addValue(core::XsToken{std::string{"##misc-data##"} + s});
+            miscItems.push_back(std::string{"##misc-data##"} + s);
         }
         else
         {
-            miscField.addValue(core::XsToken{s});
+            miscItems.push_back(s);
         }
     }
+
+    core::FormattedText footnote;
+    footnote.setFontFamily(core::FontFamily{std::move(miscItems)});
+
+    auto editorialVoice = myOutNote.editorialVoice();
+    editorialVoice.setFootnote(std::move(footnote));
+    myOutNote.setEditorialVoice(std::move(editorialVoice));
 }
 
 bool NoteWriter::findNormalNameAndDots(mx::api::DurationName &ioName, int &ioDots, long double inTickLength) const

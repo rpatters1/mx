@@ -5,19 +5,13 @@
 #pragma once
 
 #include "mx/api/LyricData.h"
-#include "mx/core/Enums.h"
-#include "mx/core/elements/Tie.h"
+#include "mx/core/generated/Note.h"
+
+#include <span>
 #include <vector>
 
 namespace mx
 {
-namespace core
-{
-class Note;
-class NoteChoice;
-class FullNoteGroup;
-} // namespace core
-
 namespace impl
 {
 
@@ -98,7 +92,7 @@ class NoteReader
         return myDurationValue;
     }
 
-    inline core::StepEnum getStep() const
+    inline core::Step getStep() const
     {
         return myStep;
     }
@@ -242,7 +236,7 @@ class NoteReader
     bool myIsPitch;
     bool myIsDisplayStepOctaveSpecified;
     long double myDurationValue;
-    core::StepEnum myStep;
+    core::Step myStep;
     int myAlter;
     double myCents;
     int myOctave;
@@ -284,7 +278,7 @@ class NoteReader
     void setTimeModification();
     void setAccidental();
     void setStem();
-    void setTie(const core::TieSet &tieSet);
+    void setTie(std::span<const core::Tie> tieSet);
     void setLyric();
 };
 } // namespace impl

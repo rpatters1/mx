@@ -3,54 +3,31 @@
 // Distributed under the MIT License
 
 #include "mx/impl/ScoreReader.h"
-#include "mx/core/elements/BottomMargin.h"
-#include "mx/core/elements/Creator.h"
-#include "mx/core/elements/Divisions.h"
-#include "mx/core/elements/Encoding.h"
-#include "mx/core/elements/EncodingChoice.h"
-#include "mx/core/elements/GroupAbbreviation.h"
-#include "mx/core/elements/GroupAbbreviationDisplay.h"
-#include "mx/core/elements/GroupName.h"
-#include "mx/core/elements/GroupNameDisplay.h"
-#include "mx/core/elements/GroupSymbol.h"
-#include "mx/core/elements/Identification.h"
-#include "mx/core/elements/LayoutGroup.h"
-#include "mx/core/elements/LeftMargin.h"
-#include "mx/core/elements/MeasureLayout.h"
-#include "mx/core/elements/MeasureNumbering.h"
-#include "mx/core/elements/Miscellaneous.h"
-#include "mx/core/elements/MiscellaneousField.h"
-#include "mx/core/elements/MovementNumber.h"
-#include "mx/core/elements/MovementTitle.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/MusicDataGroup.h"
-#include "mx/core/elements/Opus.h"
-#include "mx/core/elements/PageHeight.h"
-#include "mx/core/elements/PageMargins.h"
-#include "mx/core/elements/PageWidth.h"
-#include "mx/core/elements/PartGroup.h"
-#include "mx/core/elements/PartGroupOrScorePart.h"
-#include "mx/core/elements/PartList.h"
-#include "mx/core/elements/PartwiseMeasure.h"
-#include "mx/core/elements/PartwisePart.h"
-#include "mx/core/elements/Print.h"
-#include "mx/core/elements/Properties.h"
-#include "mx/core/elements/Relation.h"
-#include "mx/core/elements/RightMargin.h"
-#include "mx/core/elements/Rights.h"
-#include "mx/core/elements/ScoreHeaderGroup.h"
-#include "mx/core/elements/ScorePart.h"
-#include "mx/core/elements/ScorePartwise.h"
-#include "mx/core/elements/Source.h"
-#include "mx/core/elements/SystemDistance.h"
-#include "mx/core/elements/SystemDividers.h"
-#include "mx/core/elements/SystemLayout.h"
-#include "mx/core/elements/SystemMargins.h"
-#include "mx/core/elements/TopMargin.h"
-#include "mx/core/elements/TopSystemDistance.h"
-#include "mx/core/elements/Work.h"
-#include "mx/core/elements/WorkNumber.h"
-#include "mx/core/elements/WorkTitle.h"
+#include "mx/core/generated/AllMarginsGroup.h"
+#include "mx/core/generated/Attributes.h"
+#include "mx/core/generated/Identification.h"
+#include "mx/core/generated/LayoutGroup.h"
+#include "mx/core/generated/MarginType.h"
+#include "mx/core/generated/Miscellaneous.h"
+#include "mx/core/generated/MiscellaneousField.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/PageLayout.h"
+#include "mx/core/generated/PageLayoutGroup.h"
+#include "mx/core/generated/PageMargins.h"
+#include "mx/core/generated/PartGroup.h"
+#include "mx/core/generated/PartList.h"
+#include "mx/core/generated/PartListChoice.h"
+#include "mx/core/generated/PartwiseMeasure.h"
+#include "mx/core/generated/PartwisePart.h"
+#include "mx/core/generated/Print.h"
+#include "mx/core/generated/ScoreHeaderGroup.h"
+#include "mx/core/generated/ScorePart.h"
+#include "mx/core/generated/ScorePartwise.h"
+#include "mx/core/generated/SystemLayout.h"
+#include "mx/core/generated/SystemMargins.h"
+#include "mx/core/generated/TypedText.h"
+#include "mx/core/generated/Work.h"
+#include "mx/core/generated/YesNo.h"
 #include "mx/impl/Converter.h"
 #include "mx/impl/EncodingFunctions.h"
 #include "mx/impl/LayoutFunctions.h"
@@ -59,36 +36,32 @@
 #include "mx/impl/PartReader.h"
 #include "mx/impl/TimeReader.h"
 #include "mx/utility/StringToInt.h"
+#include "mx/utility/Throw.h"
 
 namespace mx
 {
 namespace impl
 {
 ScoreReader::ScoreReader(const core::ScorePartwise &inScorePartwise)
-    : myScorePartwise{inScorePartwise}, myPartSet{inScorePartwise.getPartwisePartSet()},
-      myHeaderGroup{*inScorePartwise.getScoreHeaderGroup()}, myMutex{}, myOutScoreData{}, myPartGroupStack{}
+    : myScorePartwise{inScorePartwise}, myPartSet{inScorePartwise.part()}, myHeaderGroup{inScorePartwise.scoreHeader()},
+      myMutex{}, myOutScoreData{}, myPartGroupStack{}
 {
 }
 
-const core::PartwisePartPtr ScoreReader::findPartwisePart(const core::ScorePartPtr &scorePartPtr,
-                                                          const core::PartwisePartSet &partwiseParts) const
+const core::PartwisePart *ScoreReader::findPartwisePart(const core::ScorePart &scorePart,
+                                                        std::span<const core::PartwisePart> partwiseParts) const
 {
-    mx::core::PartwisePartPtr outPartwisePartPtr = nullptr;
+    const auto spId = scorePart.id().value();
 
-    auto lambda = [&](const mx::core::PartwisePartPtr &partwisePartPtr) {
-        const auto ppId = partwisePartPtr->getAttributes()->id.getValue();
-        const auto spId = scorePartPtr->getAttributes()->id.getValue();
-        return ppId == spId;
-    };
-
-    auto iter = std::find_if(partwiseParts.cbegin(), partwiseParts.cend(), lambda);
-
-    if (iter != partwiseParts.cend())
+    for (const auto &pp : partwiseParts)
     {
-        outPartwisePartPtr = *iter;
+        if (pp.id().value() == spId)
+        {
+            return &pp;
+        }
     }
 
-    return outPartwisePartPtr;
+    return nullptr;
 }
 
 ScoreReader::ReconciledParts ScoreReader::reconcileParts(const core::ScorePartwise &inScorePartwise) const
@@ -96,16 +69,16 @@ ScoreReader::ReconciledParts ScoreReader::reconcileParts(const core::ScorePartwi
     ReconciledParts outParts;
     int partIndex = 0;
 
-    const auto &partList = *inScorePartwise.getScoreHeaderGroup()->getPartList();
-    const auto &partwiseParts = inScorePartwise.getPartwisePartSet();
+    const auto &partList = inScorePartwise.scoreHeader().partList();
+    const auto partwiseParts = inScorePartwise.part();
 
-    for (const auto &preliminaryGroup : partList.getPartGroupSet())
+    for (const auto &preliminaryGroup : partList.partGroup())
     {
         handlePartGroup(partIndex, preliminaryGroup);
     }
 
-    auto scorePart = partList.getScorePart();
-    auto partwisePart = findPartwisePart(scorePart, partwiseParts);
+    const auto *scorePart = &partList.scorePart();
+    const auto *partwisePart = findPartwisePart(*scorePart, partwiseParts);
     if (scorePart && partwisePart)
     {
         outParts.emplace_back(ReconciledPart{scorePart, partwisePart});
@@ -113,12 +86,12 @@ ScoreReader::ReconciledParts ScoreReader::reconcileParts(const core::ScorePartwi
 
     ++partIndex;
 
-    for (const auto &pgosp : partList.getPartGroupOrScorePartSet())
+    for (const auto &pgosp : partList.choice())
     {
-        if (pgosp->getChoice() == mx::core::PartGroupOrScorePart::Choice::scorePart)
+        if (pgosp.isScorePart())
         {
-            scorePart = pgosp->getScorePart();
-            partwisePart = findPartwisePart(scorePart, partwiseParts);
+            scorePart = &pgosp.asScorePart();
+            partwisePart = findPartwisePart(*scorePart, partwiseParts);
 
             if (scorePart && partwisePart)
             {
@@ -126,9 +99,9 @@ ScoreReader::ReconciledParts ScoreReader::reconcileParts(const core::ScorePartwi
             }
             ++partIndex;
         }
-        else if (pgosp->getChoice() == mx::core::PartGroupOrScorePart::Choice::partGroup)
+        else if (pgosp.isPartGroup())
         {
-            handlePartGroup(partIndex, pgosp->getPartGroup());
+            handlePartGroup(partIndex, pgosp.asPartGroup());
         }
     }
 
@@ -165,109 +138,113 @@ api::ScoreData ScoreReader::getScoreData() const
 
     myOutScoreData.ticksPerQuarter = findMaxDivisionsPerQuarter();
 
-    if (myScorePartwise.getAttributes()->hasVersion)
+    if (myScorePartwise.version().has_value())
     {
-        if (myScorePartwise.getAttributes()->version.getValue() == "3.0")
+        myOutScoreData.declaredMusicXmlVersion = *myScorePartwise.version();
+        // Map any recognized MusicXML version to ThreePointZero (the only non-unspecified enum value).
+        // The model supports MusicXML 4.0; 3.0 documents are backward compatible.
+        if (*myScorePartwise.version() == "3.0" || *myScorePartwise.version() == "4.0")
         {
             myOutScoreData.musicXmlVersion = api::MusicXmlVersion::ThreePointZero;
         }
     }
 
-    if (myHeaderGroup.getHasWork() && myHeaderGroup.getWork()->getHasWorkTitle())
+    if (myHeaderGroup.work().has_value() && myHeaderGroup.work()->workTitle().has_value())
     {
-        myOutScoreData.workTitle = myHeaderGroup.getWork()->getWorkTitle()->getValue().getValue();
+        myOutScoreData.workTitle = *myHeaderGroup.work()->workTitle();
     }
 
-    if (myHeaderGroup.getHasWork() && myHeaderGroup.getWork()->getHasWorkNumber())
+    if (myHeaderGroup.work().has_value() && myHeaderGroup.work()->workNumber().has_value())
     {
-        myOutScoreData.workNumber = myHeaderGroup.getWork()->getWorkNumber()->getValue().getValue();
+        myOutScoreData.workNumber = *myHeaderGroup.work()->workNumber();
     }
 
-    if (myHeaderGroup.getHasMovementTitle())
+    if (myHeaderGroup.movementTitle().has_value())
     {
-        myOutScoreData.movementTitle = myHeaderGroup.getMovementTitle()->getValue().getValue();
+        myOutScoreData.movementTitle = *myHeaderGroup.movementTitle();
     }
 
-    if (myHeaderGroup.getHasMovementNumber())
+    if (myHeaderGroup.movementNumber().has_value())
     {
-        myOutScoreData.movementNumber = myHeaderGroup.getMovementNumber()->getValue().getValue();
+        myOutScoreData.movementNumber = *myHeaderGroup.movementNumber();
     }
 
     bool isComposerFound = false;
     bool isCopyrightFound = false;
 
-    if (myHeaderGroup.getHasIdentification())
+    if (myHeaderGroup.identification().has_value())
     {
+        const auto &ident = *myHeaderGroup.identification();
 
-        for (auto i : myHeaderGroup.getIdentification()->getCreatorSet())
+        for (const auto &i : ident.creator())
         {
-            auto a = i->getAttributes();
-            if (a->type.getValue() == "composer" && !isComposerFound)
+            const bool hasType = i.type().has_value();
+            const std::string typeStr = hasType ? *i.type() : std::string{};
+
+            if (typeStr == "composer" && !isComposerFound)
             {
-                myOutScoreData.composer = i->getValue().getValue();
+                myOutScoreData.composer = i.value();
                 isComposerFound = true;
             }
 
-            if (!isComposerFound && !a->hasType)
+            if (!isComposerFound && !hasType)
             {
-                myOutScoreData.composer = i->getValue().getValue();
+                myOutScoreData.composer = i.value();
             }
 
-            if (a->type.getValue() == "lyricist")
+            if (typeStr == "lyricist")
             {
-                myOutScoreData.lyricist = i->getValue().getValue();
+                myOutScoreData.lyricist = i.value();
             }
 
-            if (a->type.getValue() == "arranger")
+            if (typeStr == "arranger")
             {
-                myOutScoreData.lyricist = i->getValue().getValue();
+                myOutScoreData.lyricist = i.value();
             }
 
-            if (a->type.getValue() == "publisher")
+            if (typeStr == "publisher")
             {
-                myOutScoreData.lyricist = i->getValue().getValue();
+                myOutScoreData.lyricist = i.value();
             }
         }
 
-        for (auto r : myHeaderGroup.getIdentification()->getRightsSet())
+        for (const auto &r : ident.rights())
         {
-            auto a = r->getAttributes();
-            if (a->hasType && a->type.getValue() == "copyright" && !isCopyrightFound)
+            const bool hasType = r.type().has_value();
+            const std::string typeStr = hasType ? *r.type() : std::string{};
+
+            if (hasType && typeStr == "copyright" && !isCopyrightFound)
             {
-                myOutScoreData.copyright = r->getValue().getValue();
+                myOutScoreData.copyright = r.value();
                 isCopyrightFound = true;
             }
 
-            if (!isCopyrightFound && !a->hasType)
+            if (!isCopyrightFound && !hasType)
             {
-                myOutScoreData.copyright = r->getValue().getValue();
+                myOutScoreData.copyright = r.value();
             }
         }
         api::EncodingData encodingData;
 
-        if (myHeaderGroup.getHasIdentification() && myHeaderGroup.getIdentification()->getHasEncoding())
+        if (ident.encoding().has_value())
         {
-            encodingData = createEncoding(*myHeaderGroup.getIdentification()->getEncoding());
+            encodingData = createEncoding(*ident.encoding());
         }
 
-        if (myHeaderGroup.getIdentification()->getHasMiscellaneous())
+        if (ident.miscellaneous().has_value())
         {
-            for (const auto &m : myHeaderGroup.getIdentification()->getMiscellaneous()->getMiscellaneousFieldSet())
+            for (const auto &m : ident.miscellaneous()->miscellaneousField())
             {
                 std::string key;
-                if (m->getAttributes()->hasName)
-                {
-                    key = m->getAttributes()->name.getValue();
-                }
-                encodingData.miscelaneousFields.emplace_back(m->getAttributes()->name.getValue(),
-                                                             m->getValue().getValue());
+                key = m.name();
+                encodingData.miscelaneousFields.emplace_back(m.name(), m.value());
             }
         }
 
         myOutScoreData.encoding = std::move(encodingData);
     }
 
-    if (myHeaderGroup.getHasDefaults())
+    if (myHeaderGroup.defaults().has_value())
     {
         myOutScoreData.defaults = createDefaults(myHeaderGroup);
     }
@@ -293,10 +270,10 @@ api::ScoreData ScoreReader::getScoreData() const
     return temp;
 }
 
-void ScoreReader::handlePartGroup(int partIndex, const core::PartGroupPtr &inPartGroup) const
+void ScoreReader::handlePartGroup(int partIndex, const core::PartGroup &inPartGroup) const
 {
-    const auto startStop = inPartGroup->getAttributes()->type;
-    if (startStop == mx::core::StartStop::start)
+    const auto &startStop = inPartGroup.type();
+    if (startStop.tag() == core::StartStop::Tag::start)
     {
         startPartGroup(partIndex, inPartGroup);
     }
@@ -306,25 +283,25 @@ void ScoreReader::handlePartGroup(int partIndex, const core::PartGroupPtr &inPar
     }
 }
 
-void ScoreReader::startPartGroup(int partIndex, const core::PartGroupPtr &inPartGroup) const
+void ScoreReader::startPartGroup(int partIndex, const core::PartGroup &inPartGroup) const
 {
     api::PartGroupData grpData;
     grpData.number = parsePartGroupNumber(inPartGroup);
 
-    if (inPartGroup->getHasGroupName())
+    if (inPartGroup.groupName().has_value())
     {
-        grpData.name = inPartGroup->getGroupName()->getValue().getValue();
+        grpData.name = inPartGroup.groupName()->value();
     }
 
-    if (inPartGroup->getHasGroupAbbreviation())
+    if (inPartGroup.groupAbbreviation().has_value())
     {
-        grpData.abbreviation = inPartGroup->getGroupAbbreviation()->getValue().getValue();
+        grpData.abbreviation = inPartGroup.groupAbbreviation()->value();
     }
 
-    if (inPartGroup->getHasGroupSymbol())
+    if (inPartGroup.groupSymbol().has_value())
     {
         Converter c;
-        grpData.bracketType = c.convert(inPartGroup->getGroupSymbol()->getValue());
+        grpData.bracketType = c.convert(inPartGroup.groupSymbol()->value());
     }
 
     grpData.firstPartIndex = partIndex;
@@ -336,7 +313,7 @@ void ScoreReader::startPartGroup(int partIndex, const core::PartGroupPtr &inPart
     myPartGroupStack.push_front(grpData);
 }
 
-void ScoreReader::stopPartGroup(int partIndex, const core::PartGroupPtr &inPartGroup) const
+void ScoreReader::stopPartGroup(int partIndex, const core::PartGroup &inPartGroup) const
 {
     if (myPartGroupStack.empty())
     {
@@ -400,14 +377,13 @@ api::PartGroupData ScoreReader::popMostRecentGroupFromStack() const
     return outGroup;
 }
 
-int ScoreReader::parsePartGroupNumber(const core::PartGroupPtr &inPartGroup) const
+int ScoreReader::parsePartGroupNumber(const core::PartGroup &inPartGroup) const
 {
     int num = -1;
 
-    if (inPartGroup->getAttributes()->hasNumber)
+    if (inPartGroup.number().has_value())
     {
-
-        const auto str = inPartGroup->getAttributes()->number.getValue();
+        const auto str = *inPartGroup.number();
         bool isGroupNumberValid = utility::stringToInt(str, num);
 
         // TODO - support non-numeric group numbers if someone complains
@@ -420,49 +396,48 @@ int ScoreReader::parsePartGroupNumber(const core::PartGroupPtr &inPartGroup) con
 void ScoreReader::scanForSystemInfo() const
 {
     // scan only the top part looking for system layout information
-    if (myScorePartwise.getPartwisePartSet().size() == 0)
+    if (myScorePartwise.part().empty())
     {
         return;
     }
 
-    const auto &topPart = *myScorePartwise.getPartwisePartSet().front();
+    const auto &topPart = myScorePartwise.part().front();
 
     int measureIndex = 0;
-    for (const auto &m : topPart.getPartwiseMeasureSet())
+    for (const auto &m : topPart.measure())
     {
-        const auto &measure = *m;
-        for (const auto &mdc : measure.getMusicDataGroup()->getMusicDataChoiceSet())
+        for (const auto &mdc : m.musicData())
         {
-            if (!(mdc->getChoice() == core::MusicDataChoice::Choice::print))
+            if (!mdc.isPrint())
             {
                 continue;
             }
-            const auto &print = *mdc->getPrint();
+            const auto &print = mdc.asPrint();
             auto systemData = api::SystemData{};
-            if (print.getAttributes()->hasNewSystem)
+            if (print.newSystem().has_value())
             {
-                const auto newSystem = print.getAttributes()->newSystem == core::YesNo::yes;
+                const auto newSystem = print.newSystem()->tag() == core::YesNo::Tag::yes;
                 systemData.newSystem = api::fromBool(newSystem);
             }
-            const auto &layoutGroup = *print.getLayoutGroup();
-            if (layoutGroup.getHasSystemLayout())
+            const auto &layoutGroup = print.layout();
+            if (layoutGroup.systemLayout().has_value())
             {
-                const auto &systemLayout = *layoutGroup.getSystemLayout();
-                if (systemLayout.getHasSystemMargins())
+                const auto &systemLayout = *layoutGroup.systemLayout();
+                if (systemLayout.systemMargins().has_value())
                 {
-                    const auto &margins = *systemLayout.getSystemMargins();
-                    systemData.layout.margins = api::LeftRight{margins.getLeftMargin()->getValue().getValue(),
-                                                               margins.getRightMargin()->getValue().getValue()};
+                    const auto &margins = systemLayout.systemMargins()->leftRightMargins();
+                    systemData.layout.margins =
+                        api::LeftRight{margins.leftMargin().value().value(), margins.rightMargin().value().value()};
                 }
 
-                if (systemLayout.getHasSystemDistance())
+                if (systemLayout.systemDistance().has_value())
                 {
-                    systemData.layout.systemDistance = systemLayout.getSystemDistance()->getValue().getValue();
+                    systemData.layout.systemDistance = systemLayout.systemDistance()->value().value();
                 }
 
-                if (systemLayout.getHasTopSystemDistance())
+                if (systemLayout.topSystemDistance().has_value())
                 {
-                    systemData.layout.topSystemDistance = systemLayout.getTopSystemDistance()->getValue().getValue();
+                    systemData.layout.topSystemDistance = systemLayout.topSystemDistance()->value().value();
                 }
             }
             if (systemData.isUsed())
@@ -477,47 +452,48 @@ void ScoreReader::scanForSystemInfo() const
 
 void ScoreReader::scanForPageInfo() const
 {
-    if (myScorePartwise.getPartwisePartSet().size() == 0)
+    if (myScorePartwise.part().empty())
     {
         return;
     }
 
     // scan only the top part looking for system layout information
-    const auto &topPart = *myScorePartwise.getPartwisePartSet().front();
+    const auto &topPart = myScorePartwise.part().front();
 
     int measureIndex = 0;
-    for (const auto &m : topPart.getPartwiseMeasureSet())
+    for (const auto &m : topPart.measure())
     {
-        const auto &measure = *m;
-        for (const auto &mdc : measure.getMusicDataGroup()->getMusicDataChoiceSet())
+        for (const auto &mdc : m.musicData())
         {
-            if (!(mdc->getChoice() == core::MusicDataChoice::Choice::print))
+            if (!mdc.isPrint())
             {
                 continue;
             }
-            const auto &print = *mdc->getPrint();
+            const auto &print = mdc.asPrint();
             api::PageData outPageData{};
-            if (print.getAttributes()->hasNewPage)
+            if (print.newPage().has_value())
             {
-                outPageData.newPage =
-                    print.getAttributes()->newPage == core::YesNo::yes ? api::Bool::yes : api::Bool::no;
+                outPageData.newPage = print.newPage()->tag() == core::YesNo::Tag::yes ? api::Bool::yes : api::Bool::no;
             }
             else
             {
                 outPageData.newPage = api::Bool::unspecified;
             }
-            if (print.getAttributes()->hasPageNumber)
+            if (print.pageNumber().has_value())
             {
-                outPageData.pageNumber = print.getAttributes()->pageNumber.getValue();
+                outPageData.pageNumber = *print.pageNumber();
             }
-            const auto &layoutGroup = print.getLayoutGroup();
-            if (layoutGroup->getHasPageLayout())
+            const auto &layoutGroup = print.layout();
+            if (layoutGroup.pageLayout().has_value())
             {
-                const auto &pageLayout = *layoutGroup->getPageLayout();
-                outPageData.pageLayoutData.size =
-                    api::SizeData{static_cast<long double>(pageLayout.getPageHeight()->getValue().getValue()),
-                                  static_cast<long double>(pageLayout.getPageWidth()->getValue().getValue())};
-                for (const auto &pageMargins : pageLayout.getPageMarginsSet())
+                const auto &pageLayout = *layoutGroup.pageLayout();
+                if (pageLayout.group().has_value())
+                {
+                    outPageData.pageLayoutData.size =
+                        api::SizeData{static_cast<long double>(pageLayout.group()->pageHeight().value().value()),
+                                      static_cast<long double>(pageLayout.group()->pageWidth().value().value())};
+                }
+                for (const auto &pageMargins : pageLayout.pageMargins())
                 {
                     // Warning - this implementation may not be exactly correct.
                     // musicxml.xsd says: "Page margins are specified either for both even and odd pages, or via
@@ -527,18 +503,21 @@ void ScoreReader::scanForPageInfo() const
                     // This might mean that a print element can only affect the page layout of even pages (by
                     // appearing on an even page) or odd pages (by appearing on an odd page). I'm not sure, either
                     // way it seems doubtful that notation applications will agree.
-                    auto t = core::MarginType::both;
-                    if (pageMargins->getAttributes()->hasType)
+                    auto t = core::MarginType::both();
+                    if (pageMargins.type().has_value())
                     {
-                        t = pageMargins->getAttributes()->type;
+                        t = *pageMargins.type();
                     }
-                    const long double left = pageMargins->getLeftMargin()->getValue().getValue();
-                    const long double right = pageMargins->getRightMargin()->getValue().getValue();
-                    const long double top = pageMargins->getTopMargin()->getValue().getValue();
-                    const long double bottom = pageMargins->getBottomMargin()->getValue().getValue();
+                    const auto &allMargins = pageMargins.allMargins();
+                    const long double left = allMargins.leftRightMargins().leftMargin().value().value();
+                    const long double right = allMargins.leftRightMargins().rightMargin().value().value();
+                    const long double top = allMargins.topMargin().value().value();
+                    const long double bottom = allMargins.bottomMargin().value().value();
                     const api::MarginsData margins{left, right, top, bottom};
-                    const bool writeOdd = t == core::MarginType::both || t == core::MarginType::odd;
-                    const bool writeEven = t == core::MarginType::both || t == core::MarginType::even;
+                    const bool writeOdd =
+                        t.tag() == core::MarginType::Tag::both || t.tag() == core::MarginType::Tag::odd;
+                    const bool writeEven =
+                        t.tag() == core::MarginType::Tag::both || t.tag() == core::MarginType::Tag::even;
                     if (writeOdd)
                     {
                         outPageData.pageLayoutData.margins.odd = margins;
@@ -564,26 +543,25 @@ int ScoreReader::findMaxDivisionsPerQuarter() const
 {
     std::set<int> foundDivisions;
 
-    for (const auto &pp : myScorePartwise.getPartwisePartSet())
+    for (const auto &pp : myScorePartwise.part())
     {
-        for (const auto &m : pp->getPartwiseMeasureSet())
+        for (const auto &m : pp.measure())
         {
-            for (const auto &mdc : m->getMusicDataGroup()->getMusicDataChoiceSet())
+            for (const auto &mdc : m.musicData())
             {
-                if (mdc->getChoice() != core::MusicDataChoice::Choice::properties)
+                if (!mdc.isAttributes())
                 {
                     continue;
                 }
 
-                const auto &props = *mdc->getProperties();
+                const auto &attrs = mdc.asAttributes();
 
-                if (!props.getHasDivisions())
+                if (!attrs.divisions().has_value())
                 {
                     continue;
                 }
 
-                const auto &divisions = *props.getDivisions();
-                const auto tempDiv = divisions.getValue().getValue();
+                const auto tempDiv = attrs.divisions()->value().value();
                 const int tempDivInt = static_cast<int>(std::ceil(tempDiv - 0.5));
                 if (tempDivInt > 0)
                 {

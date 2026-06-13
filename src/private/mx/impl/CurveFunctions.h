@@ -5,37 +5,52 @@
 #pragma once
 
 #include "mx/api/CurveData.h"
+#include "mx/core/generated/Slur.h"
+#include "mx/core/generated/Tied.h"
 #include "mx/impl/LineFunctions.h"
 #include "mx/impl/PositionFunctions.h"
 #include "mx/impl/PrintFunctions.h"
 #include "mx/impl/SpannerFunctions.h"
+
+#include <cmath>
+#include <type_traits>
 
 namespace mx
 {
 namespace impl
 {
 
+// In the new core the curve element's type attribute is element-specific
+// (Slur: StartStopContinue, Tied: TiedType); deduce it from the element.
+// The old code asked getElementName() == "slur"; the element's static type
+// answers the same question.
+template <typename SLUR_OR_TIE_ELEMENT_TYPE> constexpr api::CurveType curveTypeOf()
+{
+    return std::is_same_v<std::decay_t<SLUR_OR_TIE_ELEMENT_TYPE>, core::Slur> ? api::CurveType::slur
+                                                                              : api::CurveType::tie;
+}
+
 template <typename ATTRIBUTES_TYPE> api::CurvePoints parseCurvePoints(const ATTRIBUTES_TYPE &inAttributes)
 {
     api::CurvePoints p;
     p.positionData = impl::getPositionData(inAttributes);
 
-    if (inAttributes.hasBezierX)
+    if (inAttributes.bezierX().has_value())
     {
         p.isBezierXSpecified = true;
-        p.bezierX = inAttributes.bezierX.getValue();
+        p.bezierX = inAttributes.bezierX()->value().value();
     }
 
-    if (inAttributes.hasBezierY)
+    if (inAttributes.bezierY().has_value())
     {
         p.isBezierYSpecified = true;
-        p.bezierY = inAttributes.bezierY.getValue();
+        p.bezierY = inAttributes.bezierY()->value().value();
     }
 
-    if (inAttributes.hasBezierOffset)
+    if (inAttributes.bezierOffset().has_value())
     {
         p.isBezierOffsetSpecified = true;
-        p.bezierOffset = static_cast<int>(std::ceil(inAttributes.bezierOffset.getValue() - 0.5));
+        p.bezierOffset = static_cast<int>(std::ceil(inAttributes.bezierOffset()->value().value() - 0.5));
     }
 
     return p;
@@ -48,31 +63,28 @@ void writeAttributesFromCurvePoints(const api::CurvePoints &curvePoints, ATTRIBU
 
     if (curvePoints.isBezierXSpecified)
     {
-        outAttributes.hasBezierX = true;
-        outAttributes.bezierX.setValue(curvePoints.bezierX);
+        outAttributes.setBezierX(core::Tenths{core::Decimal{static_cast<double>(curvePoints.bezierX)}});
     }
 
     if (curvePoints.isBezierYSpecified)
     {
-        outAttributes.hasBezierY = true;
-        outAttributes.bezierY.setValue(curvePoints.bezierY);
+        outAttributes.setBezierY(core::Tenths{core::Decimal{static_cast<double>(curvePoints.bezierY)}});
     }
 
     if (curvePoints.isBezierOffsetSpecified)
     {
-        outAttributes.hasBezierOffset = true;
-        outAttributes.bezierOffset.setValue(curvePoints.bezierOffset);
+        outAttributes.setBezierOffset(core::Divisions{core::Decimal{static_cast<double>(curvePoints.bezierOffset)}});
     }
 }
 
 template <typename SLUR_OR_TIE_ELEMENT_TYPE>
 api::CurveStart parseCurveStart(const SLUR_OR_TIE_ELEMENT_TYPE &inSlurOrTie)
 {
-    const auto &inAttributes = *inSlurOrTie.getAttributes();
-    const auto curveType = inSlurOrTie.getElementName() == "slur" ? api::CurveType::slur : api::CurveType::tie;
+    const auto &inAttributes = inSlurOrTie;
+    const auto curveType = curveTypeOf<SLUR_OR_TIE_ELEMENT_TYPE>();
     api::CurveStart c{curveType};
 
-    if (inAttributes.hasNumber)
+    if (inAttributes.number().has_value())
     {
         c.numberLevel = impl::checkNumber(&inAttributes);
     }
@@ -90,10 +102,10 @@ api::CurveStart parseCurveStart(const SLUR_OR_TIE_ELEMENT_TYPE &inSlurOrTie)
         c.colorData = impl::getColor(inAttributes);
     }
 
-    if (inAttributes.hasOrientation)
+    if (inAttributes.orientation().has_value())
     {
-        c.curveOrientation = inAttributes.orientation == core::OverUnder::over ? api::CurveOrientation::overhand
-                                                                               : api::CurveOrientation::underhand;
+        c.curveOrientation = *inAttributes.orientation() == core::OverUnder::over() ? api::CurveOrientation::overhand
+                                                                                    : api::CurveOrientation::underhand;
     }
     return c;
 }
@@ -101,11 +113,11 @@ api::CurveStart parseCurveStart(const SLUR_OR_TIE_ELEMENT_TYPE &inSlurOrTie)
 template <typename SLUR_OR_TIE_ELEMENT_TYPE>
 api::CurveContinue parseCurveContinue(const SLUR_OR_TIE_ELEMENT_TYPE &inSlurOrTie)
 {
-    const auto &inAttributes = *inSlurOrTie.getAttributes();
-    const auto curveType = inSlurOrTie.getElementName() == "slur" ? api::CurveType::slur : api::CurveType::tie;
+    const auto &inAttributes = inSlurOrTie;
+    const auto curveType = curveTypeOf<SLUR_OR_TIE_ELEMENT_TYPE>();
     api::CurveContinue c{curveType};
 
-    if (inAttributes.hasNumber)
+    if (inAttributes.number().has_value())
     {
         c.numberLevel = impl::checkNumber(&inAttributes);
     }
@@ -114,22 +126,22 @@ api::CurveContinue parseCurveContinue(const SLUR_OR_TIE_ELEMENT_TYPE &inSlurOrTi
         c.numberLevel = -1;
     }
 
-    if (inAttributes.hasBezierX2)
+    if (inAttributes.bezierX2().has_value())
     {
         c.isBezierX2Specified = true;
-        c.bezierX2 = inAttributes.bezierX2.getValue();
+        c.bezierX2 = inAttributes.bezierX2()->value().value();
     }
 
-    if (inAttributes.hasBezierY2)
+    if (inAttributes.bezierY2().has_value())
     {
         c.isBezierY2Specified = true;
-        c.bezierY2 = inAttributes.bezierY2.getValue();
+        c.bezierY2 = inAttributes.bezierY2()->value().value();
     }
 
-    if (inAttributes.hasBezierOffset2)
+    if (inAttributes.bezierOffset2().has_value())
     {
         c.isBezierOffset2Specified = true;
-        c.bezierOffset2 = inAttributes.bezierOffset2.getValue();
+        c.bezierOffset2 = inAttributes.bezierOffset2()->value().value();
     }
 
     c.curvePoints = parseCurvePoints(inAttributes);
@@ -138,11 +150,11 @@ api::CurveContinue parseCurveContinue(const SLUR_OR_TIE_ELEMENT_TYPE &inSlurOrTi
 
 template <typename SLUR_OR_TIE_ELEMENT_TYPE> api::CurveStop parseCurveStop(const SLUR_OR_TIE_ELEMENT_TYPE &inSlurOrTie)
 {
-    const auto &inAttributes = *inSlurOrTie.getAttributes();
-    const auto curveType = inSlurOrTie.getElementName() == "slur" ? api::CurveType::slur : api::CurveType::tie;
+    const auto &inAttributes = inSlurOrTie;
+    const auto curveType = curveTypeOf<SLUR_OR_TIE_ELEMENT_TYPE>();
     api::CurveStop c{curveType};
 
-    if (inAttributes.hasNumber)
+    if (inAttributes.number().has_value())
     {
         c.numberLevel = impl::checkNumber(&inAttributes);
     }
@@ -158,146 +170,139 @@ template <typename SLUR_OR_TIE_ELEMENT_TYPE> api::CurveStop parseCurveStop(const
 template <typename ATTRIBUTES_TYPE>
 void writeAttributesFromCurveStart(const api::CurveStart inCurve, ATTRIBUTES_TYPE &outAttributes)
 {
-    outAttributes.type = core::StartStopContinue::start;
+    using CurveTypeAttribute = std::decay_t<decltype(outAttributes.type())>;
+    outAttributes.setType(CurveTypeAttribute::start());
     impl::setAttributesFromPositionData(inCurve.curvePoints.positionData, outAttributes);
     impl::setAttributesFromLineData(inCurve.lineData, outAttributes);
 
     if (inCurve.isColorSpecified)
     {
-        outAttributes.hasColor = true;
         setAttributesFromColorData(inCurve.colorData, outAttributes);
     }
 
     if (inCurve.numberLevel > 0)
     {
-        outAttributes.hasNumber = true;
-        impl::lookForAndSetNumber(inCurve.numberLevel, &outAttributes);
+        outAttributes.setNumber(core::NumberLevel{inCurve.numberLevel});
     }
 
     if (inCurve.curvePoints.isBezierOffsetSpecified)
     {
-        outAttributes.hasBezierOffset = true;
-        outAttributes.bezierOffset.setValue(static_cast<long double>(inCurve.curvePoints.bezierOffset));
+        outAttributes.setBezierOffset(
+            core::Divisions{core::Decimal{static_cast<double>(inCurve.curvePoints.bezierOffset)}});
     }
 
     if (inCurve.curvePoints.isBezierXSpecified)
     {
-        outAttributes.hasBezierX = true;
-        outAttributes.bezierX.setValue(inCurve.curvePoints.bezierX);
+        outAttributes.setBezierX(core::Tenths{core::Decimal{static_cast<double>(inCurve.curvePoints.bezierX)}});
     }
 
     if (inCurve.curvePoints.isBezierYSpecified)
     {
-        outAttributes.hasBezierY = true;
-        outAttributes.bezierY.setValue(inCurve.curvePoints.bezierY);
+        outAttributes.setBezierY(core::Tenths{core::Decimal{static_cast<double>(inCurve.curvePoints.bezierY)}});
     }
 
     if (inCurve.curveOrientation != api::CurveOrientation::unspecified)
     {
-        outAttributes.hasOrientation = true;
-        outAttributes.orientation = inCurve.curveOrientation == api::CurveOrientation::overhand
-                                        ? core::OverUnder::over
-                                        : core::OverUnder::under;
+        outAttributes.setOrientation(inCurve.curveOrientation == api::CurveOrientation::overhand
+                                         ? core::OverUnder::over()
+                                         : core::OverUnder::under());
     }
 }
 
 template <typename ATTRIBUTES_TYPE>
 void writeAttributesFromCurveContinue(const api::CurveContinue inCurve, ATTRIBUTES_TYPE &outAttributes)
 {
-    outAttributes.type = core::StartStopContinue::continue_;
+    using CurveTypeAttribute = std::decay_t<decltype(outAttributes.type())>;
+    outAttributes.setType(CurveTypeAttribute::continue_());
     impl::setAttributesFromPositionData(inCurve.curvePoints.positionData, outAttributes);
 
     if (inCurve.numberLevel > 0)
     {
-        outAttributes.hasNumber = true;
-        impl::lookForAndSetNumber(inCurve.numberLevel, &outAttributes);
+        outAttributes.setNumber(core::NumberLevel{inCurve.numberLevel});
     }
 
     if (inCurve.curvePoints.isBezierOffsetSpecified)
     {
-        outAttributes.hasBezierOffset = true;
-        outAttributes.bezierOffset.setValue(static_cast<long double>(inCurve.curvePoints.bezierOffset));
+        outAttributes.setBezierOffset(
+            core::Divisions{core::Decimal{static_cast<double>(inCurve.curvePoints.bezierOffset)}});
     }
 
     if (inCurve.curvePoints.isBezierXSpecified)
     {
-        outAttributes.hasBezierX = true;
-        outAttributes.bezierX.setValue(inCurve.curvePoints.bezierX);
+        outAttributes.setBezierX(core::Tenths{core::Decimal{static_cast<double>(inCurve.curvePoints.bezierX)}});
     }
 
     if (inCurve.curvePoints.isBezierYSpecified)
     {
-        outAttributes.hasBezierY = true;
-        outAttributes.bezierY.setValue(inCurve.curvePoints.bezierY);
+        outAttributes.setBezierY(core::Tenths{core::Decimal{static_cast<double>(inCurve.curvePoints.bezierY)}});
     }
 
     if (inCurve.isBezierX2Specified)
     {
-        outAttributes.hasBezierX2 = true;
-        outAttributes.bezierX2.setValue(inCurve.bezierX2);
+        outAttributes.setBezierX2(core::Tenths{core::Decimal{static_cast<double>(inCurve.bezierX2)}});
     }
 
     if (inCurve.isBezierY2Specified)
     {
-        outAttributes.hasBezierY2 = true;
-        outAttributes.bezierY2.setValue(inCurve.bezierY2);
+        outAttributes.setBezierY2(core::Tenths{core::Decimal{static_cast<double>(inCurve.bezierY2)}});
     }
 
     if (inCurve.isBezierOffset2Specified)
     {
-        outAttributes.hasBezierOffset2 = true;
-        outAttributes.bezierOffset2.setValue(inCurve.bezierOffset2);
+        outAttributes.setBezierOffset2(core::Divisions{core::Decimal{static_cast<double>(inCurve.bezierOffset2)}});
     }
 }
 
 template <typename ATTRIBUTES_TYPE>
 void writeAttributesFromCurveStop(const api::CurveStop inCurve, ATTRIBUTES_TYPE &outAttributes)
 {
-    outAttributes.type = core::StartStopContinue::stop;
+    using CurveTypeAttribute = std::decay_t<decltype(outAttributes.type())>;
+    outAttributes.setType(CurveTypeAttribute::stop());
     impl::setAttributesFromPositionData(inCurve.curvePoints.positionData, outAttributes);
 
     if (inCurve.numberLevel > 0)
     {
-        outAttributes.hasNumber = true;
-        impl::lookForAndSetNumber(inCurve.numberLevel, &outAttributes);
+        outAttributes.setNumber(core::NumberLevel{inCurve.numberLevel});
     }
 
     if (inCurve.curvePoints.isBezierOffsetSpecified)
     {
-        outAttributes.hasBezierOffset = true;
-        outAttributes.bezierOffset.setValue(static_cast<long double>(inCurve.curvePoints.bezierOffset));
+        outAttributes.setBezierOffset(
+            core::Divisions{core::Decimal{static_cast<double>(inCurve.curvePoints.bezierOffset)}});
     }
 
     if (inCurve.curvePoints.isBezierXSpecified)
     {
-        outAttributes.hasBezierX = true;
-        outAttributes.bezierX.setValue(inCurve.curvePoints.bezierX);
+        outAttributes.setBezierX(core::Tenths{core::Decimal{static_cast<double>(inCurve.curvePoints.bezierX)}});
     }
 
     if (inCurve.curvePoints.isBezierYSpecified)
     {
-        outAttributes.hasBezierY = true;
-        outAttributes.bezierY.setValue(inCurve.curvePoints.bezierY);
+        outAttributes.setBezierY(core::Tenths{core::Decimal{static_cast<double>(inCurve.curvePoints.bezierY)}});
     }
 }
 
-// takes either an mx::core::Tie or an mx::core::Slur
+// takes either an mx::core::Tied or an mx::core::Slur
 // populates the outNoteData.curveStart, cureContinuations
 // or curveStop vector with the result
 template <typename SLUR_OR_TIE_ELEMENT_TYPE>
 void parseCurve(const SLUR_OR_TIE_ELEMENT_TYPE &slurOrTie, api::NoteData &outNoteData)
 {
-    const auto outputType = slurOrTie.getAttributes()->type;
+    // Slur's type is StartStopContinue; Tied's is TiedType (whose let-ring
+    // alternative the old core could not represent; it falls through all
+    // branches and is ignored here).
+    const auto outputType = slurOrTie.type();
+    using CurveTypeAttribute = std::decay_t<decltype(outputType)>;
 
-    if (core::StartStopContinue::start == outputType)
+    if (CurveTypeAttribute::start() == outputType)
     {
         outNoteData.noteAttachmentData.curveStarts.emplace_back(parseCurveStart(slurOrTie));
     }
-    else if (core::StartStopContinue::continue_ == outputType)
+    else if (CurveTypeAttribute::continue_() == outputType)
     {
         outNoteData.noteAttachmentData.curveContinuations.emplace_back(parseCurveContinue(slurOrTie));
     }
-    else if (core::StartStopContinue::stop == outputType)
+    else if (CurveTypeAttribute::stop() == outputType)
     {
         outNoteData.noteAttachmentData.curveStops.emplace_back(parseCurveStop(slurOrTie));
     }

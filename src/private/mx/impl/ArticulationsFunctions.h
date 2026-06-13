@@ -5,23 +5,19 @@
 #pragma once
 
 #include "mx/api/MarkData.h"
+#include "mx/core/generated/ArticulationsChoice.h"
 #include "mx/impl/Cursor.h"
+
+#include <span>
 
 namespace mx
 {
-namespace core
-{
-class ArticulationsChoice;
-using ArticulationsChoicePtr = std::shared_ptr<ArticulationsChoice>;
-using ArticulationsChoiceSet = std::vector<ArticulationsChoicePtr>;
-} // namespace core
-
 namespace impl
 {
 class ArticulationsFunctions
 {
   public:
-    ArticulationsFunctions(const core::ArticulationsChoiceSet &inArticulations, impl::Cursor inCursor);
+    ArticulationsFunctions(std::span<const core::ArticulationsChoice> inArticulations, impl::Cursor inCursor);
     ~ArticulationsFunctions() = default;
     ArticulationsFunctions(const ArticulationsFunctions &) = delete;
     ArticulationsFunctions(ArticulationsFunctions &&) = delete;
@@ -31,7 +27,7 @@ class ArticulationsFunctions
     void parseArticulations(std::vector<api::MarkData> &outMarks) const;
 
   private:
-    const core::ArticulationsChoiceSet &myArticulations;
+    std::span<const core::ArticulationsChoice> myArticulations;
     const impl::Cursor myCursor;
 
   private:

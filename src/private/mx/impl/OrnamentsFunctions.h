@@ -5,19 +5,15 @@
 #pragma once
 
 #include "mx/api/MarkData.h"
-#include "mx/core/Enums.h"
 #include "mx/impl/Converter.h"
 #include "mx/impl/Cursor.h"
-
-#pragma once
 
 namespace mx
 {
 namespace core
 {
 class Ornaments;
-class OrnamentsChoice;
-class AccidentalMark;
+class OrnamentsGroupChoice;
 } // namespace core
 
 namespace impl
@@ -38,7 +34,7 @@ class OrnamentsFunctions
   private:
     void parseOrnamentsSet(std::vector<api::MarkData> &outMarks) const;
     void parseAccidentalMarkSet(std::vector<api::MarkData> &outMarks) const;
-    void parseOrnament(const core::OrnamentsChoice &choiceObj, api::MarkData &outMark) const;
+    void parseOrnament(const core::OrnamentsGroupChoice &choiceObj, api::MarkData &outMark) const;
 };
 } // namespace impl
 } // namespace mx

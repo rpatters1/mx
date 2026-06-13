@@ -13,9 +13,8 @@ namespace mx
 {
 namespace core
 {
-class Note;
 class Metronome;
-class BeatUnitPerOrNoteRelationNoteChoice;
+class MetronomeChoice;
 } // namespace core
 
 namespace impl
@@ -50,7 +49,8 @@ class MetronomeReader
     const core::Metronome &myMetronome;
     const api::TempoData myPreviousTempoData;
     const Cursor myCursor;
-    const core::BeatUnitPerOrNoteRelationNoteChoice &myBeatUnitPerOrNoteRelationNoteChoice;
+    // the old core's BeatUnitPerOrNoteRelationNoteChoice
+    const core::MetronomeChoice &myBeatUnitPerOrNoteRelationNoteChoice;
 
   private:
     void parseBeatUnitPer() const;
