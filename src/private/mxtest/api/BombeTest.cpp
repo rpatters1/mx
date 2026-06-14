@@ -21,10 +21,15 @@ inline ScoreData getBombe()
     const std::string fileName{fname};
     const std::string path{MxFileRepository::getFullPath(fileName)};
     auto &docMgr = mx::api::DocumentManager::getInstance();
-    auto docId = docMgr.createFromFile(path);
-    auto scoreData = docMgr.getData(docId);
+    const auto docIdResult = docMgr.createFromFile(path);
+    if (!docIdResult.ok())
+        return {};
+    const int docId = docIdResult.value();
+    const auto scoreDataResult = docMgr.getData(docId);
     docMgr.destroyDocument(docId);
-    return scoreData;
+    if (!scoreDataResult.ok())
+        return {};
+    return scoreDataResult.value();
 }
 
 inline NoteData getBombeNote(int measureIndex, int partIndex, int staffIndex, int voiceIndex, int noteIndex)

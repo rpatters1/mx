@@ -1,0 +1,51 @@
+// {{generated_banner}}
+
+#pragma once
+
+#include <string>
+#include <string_view>
+
+namespace {{vars.namespace}}
+{
+
+{{#doc_lines}}
+/// {{value}}
+{{/doc_lines}}
+/// Open vocabulary over xs:NMTOKEN: construction repairs the value to name
+/// characters and to non-empty (placeholder "X"), so a lexically invalid
+/// token cannot exist.
+class {{ident}} final
+{
+public:
+    /// The natural zero: the placeholder "X".
+    {{ident}}();
+
+    explicit {{ident}}(std::string value);
+
+    const std::string &value() const noexcept
+    {
+        return m_value;
+    }
+
+    void setValue(std::string value);
+
+    std::string toString() const
+    {
+        return m_value;
+    }
+
+    /// Strict: a non-empty all-name-character token.
+    static bool tryParse(std::string_view text, {{ident}} &out);
+
+    /// Lenient: repairs into the nearest valid token.
+    static {{ident}} parse(std::string_view text);
+
+    bool operator==(const {{ident}} &other) const noexcept = default;
+
+private:
+    void repair();
+
+    std::string m_value;
+};
+
+} // namespace {{vars.namespace}}

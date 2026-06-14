@@ -3,7 +3,7 @@
 // Distributed under the MIT License
 
 #include "mx/api/SoundID.h"
-#include "mx/core/Enums.h"
+#include "mx/core/generated/SoundID.h"
 #include "mx/impl/Converter.h"
 
 namespace mx
@@ -22,25 +22,20 @@ std::string SoundIDToString(SoundID inSoundID)
     }
 
     impl::Converter c;
-    return core::PlaybackSoundToString(c.convert(inSoundID));
+    return std::string{c.convert(inSoundID).toString()};
 }
 
 SoundID SoundIDFromString(const std::string &inString)
 {
-    SoundID result = SoundID::keyboardPiano;
-
-    try
+    core::SoundID parsed;
+    if (!core::SoundID::tryParse(inString, parsed))
     {
-        const auto p = core::PlaybackSoundFromString(inString);
-        impl::Converter c;
-        result = c.convert(p);
-    }
-    catch (...)
-    {
-        result = SoundID::errorBadString;
+        // the old core's FromString threw on an unrecognized string
+        return SoundID::errorBadString;
     }
 
-    return result;
+    impl::Converter c;
+    return c.convert(parsed);
 }
 } // namespace api
 } // namespace mx

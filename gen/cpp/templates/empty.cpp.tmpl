@@ -1,0 +1,47 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include "mx/core/Xml.h"
+
+namespace {{vars.namespace}}
+{
+
+{{ident}} parse{{ident}}(pugi::xml_node el)
+{
+    {{ident}} out;
+    for (pugi::xml_attribute a : el.attributes())
+    {
+        const std::string_view aname{a.name()};
+        if (isNamespaceDecl(aname))
+        {
+            continue;
+        }
+        throwUnknownAttribute(el, a.name());
+    }
+    parse{{ident}}Content(out, el);
+    return out;
+}
+
+void parse{{ident}}Content({{ident}} &out, pugi::xml_node el)
+{
+    (void)out;
+    if (firstElement(el))
+    {
+        throwUnknownElement(firstElement(el));
+    }
+}
+
+void serialize{{ident}}(const {{ident}} &v, pugi::xml_node parent, const char *tag)
+{
+    pugi::xml_node el = parent.append_child(tag);
+    serialize{{ident}}Content(v, el);
+}
+
+void serialize{{ident}}Content(const {{ident}} &v, pugi::xml_node el)
+{
+    (void)v;
+    (void)el;
+}
+
+} // namespace {{vars.namespace}}

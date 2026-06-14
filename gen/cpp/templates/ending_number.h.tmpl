@@ -1,0 +1,63 @@
+// {{generated_banner}}
+
+#pragma once
+
+#include <span>
+#include <string>
+#include <string_view>
+#include <vector>
+
+namespace {{vars.namespace}}
+{
+
+{{#doc_lines}}
+/// {{value}}
+{{/doc_lines}}
+/// Structural representation (plan §2.2): the ending numbers as a list of
+/// positive integers, possibly empty (the schema's blank-ending case, used
+/// when the number is not printed). Construction clamps each value to >= 1.
+/// A value parsed from the wire keeps its exact spelling (blank endings may
+/// be spaces); an empty mutated list serializes "".
+class {{ident}} final
+{
+public:
+    /// The natural zero: no numbers (a blank ending).
+    {{ident}}() = default;
+
+    explicit {{ident}}(std::vector<int> values);
+
+    std::span<const int> values() const noexcept
+    {
+        return m_values;
+    }
+
+    void setValues(std::vector<int> values);
+
+    void addValue(int value);
+
+    std::string toString() const;
+
+    /// Strict: spaces only, or one or more comma-separated positive integers.
+    static bool tryParse(std::string_view text, {{ident}} &out);
+
+    /// Lenient: repairs into the nearest valid value.
+    static {{ident}} parse(std::string_view text);
+
+    bool operator==(const {{ident}} &other) const noexcept
+    {
+        return m_values == other.m_values;
+    }
+
+    bool operator!=(const {{ident}} &other) const noexcept
+    {
+        return !(*this == other);
+    }
+
+private:
+    void repair();
+
+    std::vector<int> m_values;
+    std::string m_text; // preserved wire spelling; empty = none
+};
+
+} // namespace {{vars.namespace}}

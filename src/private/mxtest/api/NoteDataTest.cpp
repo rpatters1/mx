@@ -8,25 +8,9 @@
 
 #include "cpul/cpulTestHarness.h"
 #include "mx/api/DocumentManager.h"
-#include "mx/core/Document.h"
-#include "mx/core/elements/Direction.h"
-#include "mx/core/elements/DirectionType.h"
-#include "mx/core/elements/FullNoteGroup.h"
-#include "mx/core/elements/FullNoteTypeChoice.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/MusicDataGroup.h"
-#include "mx/core/elements/NormalNoteGroup.h"
-#include "mx/core/elements/Notations.h"
-#include "mx/core/elements/NotationsChoice.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/NoteChoice.h"
-#include "mx/core/elements/Offset.h"
-#include "mx/core/elements/PartwiseMeasure.h"
-#include "mx/core/elements/PartwisePart.h"
-#include "mx/core/elements/Pedal.h"
-#include "mx/core/elements/Pitch.h"
-#include "mx/core/elements/ScorePartwise.h"
-#include "mx/core/elements/Tied.h"
+#include "mx/core/generated/Direction.h"
+#include "mx/core/generated/Document.h"
+#include "mx/core/generated/MusicDataChoice.h"
 #include "mxtest/api/RoundTrip.h"
 #include "mxtest/file/Path.h"
 
@@ -54,14 +38,20 @@ TEST(otherArticulation, NoteData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    auto docId = r1.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    docId = r2.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    auto oscore = rd.value();
 
     // get the data after the round trip
     auto &opart = oscore.parts.back();
@@ -106,7 +96,9 @@ TEST(pitchedRestDisplayStepOctave, NoteData)
     voice.notes.push_back(rest);
 
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    auto docId = r1.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
@@ -115,8 +107,12 @@ TEST(pitchedRestDisplayStepOctave, NoteData)
     CHECK(xml.find("<display-octave>4</display-octave>") != std::string::npos);
 
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    const auto outScore = mgr.getData(docId);
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    docId = r2.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    const auto outScore = rd.value();
     mgr.destroyDocument(docId);
 
     const auto &outRest = outScore.parts.back().measures.back().staves.back().voices.begin()->second.notes.back();
@@ -158,14 +154,20 @@ TEST(customArticulation, NoteData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    auto docId = r1.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    docId = r2.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    auto oscore = rd.value();
 
     // get the data after the round trip
     auto &opart = oscore.parts.back();
@@ -208,14 +210,20 @@ TEST(otherOrnament, NoteData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    auto docId = r1.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    docId = r2.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    auto oscore = rd.value();
 
     // get the data after the round trip
     auto &opart = oscore.parts.back();
@@ -262,14 +270,20 @@ TEST(technical, NoteData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    auto docId = r1.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    docId = r2.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    auto oscore = rd.value();
 
     // get the data after the round trip
     auto &opart = oscore.parts.back();
@@ -302,8 +316,12 @@ TEST(technical_import_file, NoteData)
 {
     auto &mgr = DocumentManager::getInstance();
     const auto path = std::string{mxtest::getResourcesDirectoryPath()} + std::string{"/ksuite/k004a_Technical.xml"};
-    const auto docId = mgr.createFromFile(path);
-    const auto score = mgr.getData(docId);
+    const auto r = mgr.createFromFile(path);
+    REQUIRE(r.ok());
+    const int docId = r.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    const auto score = rd.value();
     mgr.destroyDocument(docId);
 
     const auto &part = score.parts.at(0);
@@ -356,14 +374,20 @@ TEST(technical_hole_arrow_handbell_roundtrip, NoteData)
 
     for (const auto markType : {MarkType::hole, MarkType::arrow, MarkType::handbell})
     {
-        auto docId = mgr.createFromScore(makeScore(markType));
+        const auto r1 = mgr.createFromScore(makeScore(markType));
+        REQUIRE(r1.ok());
+        auto docId = r1.value();
         std::stringstream ss;
         mgr.writeToStream(docId, ss);
         mgr.destroyDocument(docId);
 
         std::istringstream iss{ss.str()};
-        docId = mgr.createFromStream(iss);
-        const auto outScore = mgr.getData(docId);
+        const auto r2 = mgr.createFromStream(iss);
+        REQUIRE(r2.ok());
+        docId = r2.value();
+        const auto rd = mgr.getData(docId);
+        REQUIRE(rd.ok());
+        const auto outScore = rd.value();
         mgr.destroyDocument(docId);
 
         const auto &outMarks = outScore.parts.back()
@@ -411,14 +435,20 @@ TEST(words, NoteData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    auto docId = r1.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    docId = r2.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    auto oscore = rd.value();
 
     // get the data after the round trip
     const auto &opart = oscore.parts.back();
@@ -478,14 +508,20 @@ TEST(tremolos, NoteData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    auto docId = r1.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    docId = r2.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    auto oscore = rd.value();
 
     // get the data after the round trip
     const auto &opart = oscore.parts.back();
@@ -522,14 +558,20 @@ TEST(miscFields, NoteData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    auto docId = r1.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    docId = r2.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    auto oscore = rd.value();
 
     // get the data after the round trip
     auto &opart = oscore.parts.back();
@@ -559,131 +601,131 @@ TEST(miscFields, NoteData)
 
 T_END;
 
+// SlurTieNumberLevel tests: build a score with a note that has a tie/slur using
+// mx::api directly, round-trip it, then check that numberLevel == -1 (absent).
+
 TEST(SlurTieNumberLevelA, NoteData)
 {
-    using namespace mx::core;
-    Document doc;
-    auto sp = doc.getScorePartwise();
-    const auto &parts = sp->getPartwisePartSet();
-    const auto &part = parts.front();
-    const auto &measure = part->getPartwiseMeasureSet().front();
-    const auto mdg = measure->getMusicDataGroup();
-    const auto mdc = makeMusicDataChoice();
-    mdg->addMusicDataChoice(mdc);
-    mdc->setChoice(MusicDataChoice::Choice::note);
-    const auto note = mdc->getNote();
-    note->setHasType(true);
-    note->getType()->setValue(NoteTypeValue::quarter);
-    note->getNoteChoice()->setChoice(NoteChoice::Choice::normal);
-    auto nng = note->getNoteChoice()->getNormalNoteGroup();
-    nng->getFullNoteGroup()->getFullNoteTypeChoice()->setChoice(FullNoteTypeChoice::Choice::pitch);
-    auto pitch = nng->getFullNoteGroup()->getFullNoteTypeChoice()->getPitch();
-    const auto notations = makeNotations();
-    note->addNotations(notations);
-    const auto nc = makeNotationsChoice();
-    notations->addNotationsChoice(nc);
-    nc->setChoice(NotationsChoice::Choice::tied);
-    const auto tied = nc->getTied();
-    tied->getAttributes()->type = StartStopContinue::start;
+    // Build a score with a note that has a tie start (no number level specified)
+    ScoreData score;
+    score.parts.emplace_back();
+    auto &part = score.parts.back();
+    part.measures.emplace_back();
+    auto &measure = part.measures.back();
+    measure.staves.emplace_back();
+    auto &staff = measure.staves.back();
+    auto &voice = staff.voices[0];
+    NoteData note;
+    note.durationData.durationName = DurationName::quarter;
+    note.durationData.durationTimeTicks = 1;
+    CurveStart curveStart{CurveType::tie};
+    note.noteAttachmentData.curveStarts.push_back(curveStart);
+    voice.notes.push_back(note);
 
     auto &mgr = DocumentManager::getInstance();
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    const int id = r1.value();
     std::stringstream ss;
-    doc.toStream(ss);
-    std::stringstream iss{ss.str()};
-    auto id = mgr.createFromStream(iss);
-    const auto scoreData = mgr.getData(id);
+    mgr.writeToStream(id, ss);
     mgr.destroyDocument(id);
+    std::istringstream iss{ss.str()};
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    const int id2 = r2.value();
+    const auto rd = mgr.getData(id2);
+    REQUIRE(rd.ok());
+    const auto scoreData = rd.value();
+    mgr.destroyDocument(id2);
 
     const auto &noteData = scoreData.parts.at(0).measures.at(0).staves.at(0).voices.at(0).notes.front();
-    const auto &curveStart = noteData.noteAttachmentData.curveStarts.front();
-    CHECK_EQUAL(-1, curveStart.numberLevel);
-    CHECK(curveStart.curveType == mx::api::CurveType::tie);
+    const auto &cs = noteData.noteAttachmentData.curveStarts.front();
+    CHECK_EQUAL(-1, cs.numberLevel);
+    CHECK(cs.curveType == mx::api::CurveType::tie);
 }
 
 T_END;
 
 TEST(SlurTieNumberLevelB, NoteData)
 {
-    using namespace mx::core;
-    Document doc;
-    auto sp = doc.getScorePartwise();
-    const auto &parts = sp->getPartwisePartSet();
-    const auto &part = parts.front();
-    const auto &measure = part->getPartwiseMeasureSet().front();
-    const auto mdg = measure->getMusicDataGroup();
-    const auto mdc = makeMusicDataChoice();
-    mdg->addMusicDataChoice(mdc);
-    mdc->setChoice(MusicDataChoice::Choice::note);
-    const auto note = mdc->getNote();
-    note->setHasType(true);
-    note->getType()->setValue(NoteTypeValue::quarter);
-    note->getNoteChoice()->setChoice(NoteChoice::Choice::normal);
-    auto nng = note->getNoteChoice()->getNormalNoteGroup();
-    nng->getFullNoteGroup()->getFullNoteTypeChoice()->setChoice(FullNoteTypeChoice::Choice::pitch);
-    auto pitch = nng->getFullNoteGroup()->getFullNoteTypeChoice()->getPitch();
-    const auto notations = makeNotations();
-    note->addNotations(notations);
-    const auto nc = makeNotationsChoice();
-    notations->addNotationsChoice(nc);
-    nc->setChoice(NotationsChoice::Choice::tied);
-    const auto tied = nc->getTied();
-    tied->getAttributes()->type = StartStopContinue::continue_;
+    // Build a score with a note that has a tie continuation (no number level specified)
+    ScoreData score;
+    score.parts.emplace_back();
+    auto &part = score.parts.back();
+    part.measures.emplace_back();
+    auto &measure = part.measures.back();
+    measure.staves.emplace_back();
+    auto &staff = measure.staves.back();
+    auto &voice = staff.voices[0];
+    NoteData note;
+    note.durationData.durationName = DurationName::quarter;
+    note.durationData.durationTimeTicks = 1;
+    CurveContinue curveContinue{CurveType::tie};
+    note.noteAttachmentData.curveContinuations.push_back(curveContinue);
+    voice.notes.push_back(note);
 
     auto &mgr = DocumentManager::getInstance();
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    const int id = r1.value();
     std::stringstream ss;
-    doc.toStream(ss);
-    std::stringstream iss{ss.str()};
-    auto id = mgr.createFromStream(iss);
-    const auto scoreData = mgr.getData(id);
+    mgr.writeToStream(id, ss);
     mgr.destroyDocument(id);
+    std::istringstream iss{ss.str()};
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    const int id2 = r2.value();
+    const auto rd = mgr.getData(id2);
+    REQUIRE(rd.ok());
+    const auto scoreData = rd.value();
+    mgr.destroyDocument(id2);
 
     const auto &noteData = scoreData.parts.at(0).measures.at(0).staves.at(0).voices.at(0).notes.front();
-    const auto &curveContinue = noteData.noteAttachmentData.curveContinuations.front();
-    CHECK_EQUAL(-1, curveContinue.numberLevel);
-    CHECK(curveContinue.curveType == mx::api::CurveType::tie);
+    const auto &cc = noteData.noteAttachmentData.curveContinuations.front();
+    CHECK_EQUAL(-1, cc.numberLevel);
+    CHECK(cc.curveType == mx::api::CurveType::tie);
 }
 
 T_END;
 
 TEST(SlurTieNumberLevelC, NoteData)
 {
-    using namespace mx::core;
-    Document doc;
-    auto sp = doc.getScorePartwise();
-    const auto &parts = sp->getPartwisePartSet();
-    const auto &part = parts.front();
-    const auto &measure = part->getPartwiseMeasureSet().front();
-    const auto mdg = measure->getMusicDataGroup();
-    const auto mdc = makeMusicDataChoice();
-    mdg->addMusicDataChoice(mdc);
-    mdc->setChoice(MusicDataChoice::Choice::note);
-    const auto note = mdc->getNote();
-    note->setHasType(true);
-    note->getType()->setValue(NoteTypeValue::quarter);
-    note->getNoteChoice()->setChoice(NoteChoice::Choice::normal);
-    auto nng = note->getNoteChoice()->getNormalNoteGroup();
-    nng->getFullNoteGroup()->getFullNoteTypeChoice()->setChoice(FullNoteTypeChoice::Choice::pitch);
-    auto pitch = nng->getFullNoteGroup()->getFullNoteTypeChoice()->getPitch();
-    const auto notations = makeNotations();
-    note->addNotations(notations);
-    const auto nc = makeNotationsChoice();
-    notations->addNotationsChoice(nc);
-    nc->setChoice(NotationsChoice::Choice::tied);
-    const auto tied = nc->getTied();
-    tied->getAttributes()->type = StartStopContinue::stop;
+    // Build a score with a note that has a tie stop (no number level specified)
+    ScoreData score;
+    score.parts.emplace_back();
+    auto &part = score.parts.back();
+    part.measures.emplace_back();
+    auto &measure = part.measures.back();
+    measure.staves.emplace_back();
+    auto &staff = measure.staves.back();
+    auto &voice = staff.voices[0];
+    NoteData note;
+    note.durationData.durationName = DurationName::quarter;
+    note.durationData.durationTimeTicks = 1;
+    CurveStop curveStop{CurveType::tie};
+    note.noteAttachmentData.curveStops.push_back(curveStop);
+    voice.notes.push_back(note);
 
     auto &mgr = DocumentManager::getInstance();
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    const int id = r1.value();
     std::stringstream ss;
-    doc.toStream(ss);
-    std::stringstream iss{ss.str()};
-    auto id = mgr.createFromStream(iss);
-    const auto scoreData = mgr.getData(id);
+    mgr.writeToStream(id, ss);
     mgr.destroyDocument(id);
+    std::istringstream iss{ss.str()};
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    const int id2 = r2.value();
+    const auto rd = mgr.getData(id2);
+    REQUIRE(rd.ok());
+    const auto scoreData = rd.value();
+    mgr.destroyDocument(id2);
 
     const auto &noteData = scoreData.parts.at(0).measures.at(0).staves.at(0).voices.at(0).notes.front();
-    const auto &curveStop = noteData.noteAttachmentData.curveStops.front();
-    CHECK_EQUAL(-1, curveStop.numberLevel);
-    CHECK(curveStop.curveType == mx::api::CurveType::tie);
+    const auto &cs = noteData.noteAttachmentData.curveStops.front();
+    CHECK_EQUAL(-1, cs.numberLevel);
+    CHECK(cs.curveType == mx::api::CurveType::tie);
 }
 
 T_END;
@@ -711,14 +753,20 @@ TEST(ornaments, NoteData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    auto docId = r1.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    docId = r2.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    auto oscore = rd.value();
 
     // get the data after the round trip
     auto &opart = oscore.parts.back();
@@ -765,14 +813,20 @@ TEST(pedalStart, NoteData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    auto docId = r1.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    docId = r2.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    auto oscore = rd.value();
 
     // get the data after the round trip
     auto &opart = oscore.parts.back();
@@ -807,14 +861,20 @@ TEST(pedalStop, NoteData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    auto docId = r1.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    docId = r2.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    auto oscore = rd.value();
 
     // get the data after the round trip
     auto &opart = oscore.parts.back();
@@ -885,77 +945,69 @@ TEST(directionOrder, NoteData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    const int docId = r1.value();
     auto docPtr = mgr.getDocument(docId);
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
 
-    const auto &partwise = docPtr->getScorePartwise();
-    const auto &partwisePartSet = partwise->getPartwisePartSet();
-    const auto &partwisePart = partwisePartSet.front();
-    const auto &partwiseMeasure = partwisePart->getPartwiseMeasureSet().front();
-    const auto &mdcSet = partwiseMeasure->getMusicDataGroup()->getMusicDataChoiceSet();
+    REQUIRE(docPtr != nullptr);
+    REQUIRE(docPtr->isScorePartwise());
+    const auto &partwise = docPtr->asScorePartwise();
+    const auto partwiseParts = partwise.part();
+    REQUIRE(!partwiseParts.empty());
+    const auto &partwisePart = partwiseParts[0];
+    const auto partwiseMeasures = partwisePart.measure();
+    REQUIRE(!partwiseMeasures.empty());
+    const auto &partwiseMeasure = partwiseMeasures[0];
+    const auto mdcSpan = partwiseMeasure.musicData();
 
-    auto iter = mdcSet.cbegin();
-    auto mdc = *iter;
-    auto elementType = mdc->getChoice();
-    CHECK(mx::core::MusicDataChoice::Choice::properties == elementType);
+    size_t idx = 0;
+    REQUIRE(mdcSpan.size() > idx);
+    CHECK(mdcSpan[idx].isAttributes());
 
-    ++iter;
-    mdc = *iter;
-    elementType = mdc->getChoice();
-    CHECK(mx::core::MusicDataChoice::Choice::direction == elementType);
-    auto dirElement = mdc->getDirection();
-    CHECK(!dirElement->getHasOffset());
+    ++idx;
+    REQUIRE(mdcSpan.size() > idx);
+    CHECK(mdcSpan[idx].isDirection());
+    CHECK(!mdcSpan[idx].asDirection().offset().has_value());
 
-    ++iter;
-    mdc = *iter;
-    elementType = mdc->getChoice();
-    CHECK(mx::core::MusicDataChoice::Choice::note == elementType);
+    ++idx;
+    REQUIRE(mdcSpan.size() > idx);
+    CHECK(mdcSpan[idx].isNote());
 
-    ++iter;
-    mdc = *iter;
-    elementType = mdc->getChoice();
-    CHECK(mx::core::MusicDataChoice::Choice::direction == elementType);
-    dirElement = mdc->getDirection();
-    CHECK(!dirElement->getHasOffset());
+    ++idx;
+    REQUIRE(mdcSpan.size() > idx);
+    CHECK(mdcSpan[idx].isDirection());
+    CHECK(!mdcSpan[idx].asDirection().offset().has_value());
 
-    ++iter;
-    mdc = *iter;
-    elementType = mdc->getChoice();
-    CHECK(mx::core::MusicDataChoice::Choice::note == elementType);
+    ++idx;
+    REQUIRE(mdcSpan.size() > idx);
+    CHECK(mdcSpan[idx].isNote());
 
-    ++iter;
-    mdc = *iter;
-    elementType = mdc->getChoice();
-    CHECK(mx::core::MusicDataChoice::Choice::direction == elementType);
-    dirElement = mdc->getDirection();
-    CHECK(!dirElement->getHasOffset());
+    ++idx;
+    REQUIRE(mdcSpan.size() > idx);
+    CHECK(mdcSpan[idx].isDirection());
+    CHECK(!mdcSpan[idx].asDirection().offset().has_value());
 
-    ++iter;
-    mdc = *iter;
-    elementType = mdc->getChoice();
-    CHECK(mx::core::MusicDataChoice::Choice::note == elementType);
+    ++idx;
+    REQUIRE(mdcSpan.size() > idx);
+    CHECK(mdcSpan[idx].isNote());
 
-    ++iter;
-    mdc = *iter;
-    elementType = mdc->getChoice();
-    CHECK(mx::core::MusicDataChoice::Choice::direction == elementType);
-    dirElement = mdc->getDirection();
-    CHECK(!dirElement->getHasOffset());
+    ++idx;
+    REQUIRE(mdcSpan.size() > idx);
+    CHECK(mdcSpan[idx].isDirection());
+    CHECK(!mdcSpan[idx].asDirection().offset().has_value());
 
-    ++iter;
-    mdc = *iter;
-    elementType = mdc->getChoice();
-    CHECK(mx::core::MusicDataChoice::Choice::note == elementType);
+    ++idx;
+    REQUIRE(mdcSpan.size() > idx);
+    CHECK(mdcSpan[idx].isNote());
 
-    ++iter;
-    mdc = *iter;
-    elementType = mdc->getChoice();
-    CHECK(mx::core::MusicDataChoice::Choice::direction == elementType);
-    dirElement = mdc->getDirection();
-    CHECK(!dirElement->getHasOffset());
+    ++idx;
+    REQUIRE(mdcSpan.size() > idx);
+    CHECK(mdcSpan[idx].isDirection());
+    CHECK(!mdcSpan[idx].asDirection().offset().has_value());
 }
 
 T_END;
@@ -1048,15 +1100,24 @@ TEST(directionOrderRoundTrip, NoteData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
-    auto docPtr = mgr.getDocument(docId);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    auto docId = r1.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    docId = r2.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    auto oscore = rd.value();
+    // The write side always emits version="4.0"; normalize so version fields
+    // do not cause a false mismatch when the original score was built from scratch.
+    score.musicXmlVersion = oscore.musicXmlVersion;
+    score.declaredMusicXmlVersion = oscore.declaredMusicXmlVersion;
     CHECK(score == oscore);
 }
 
@@ -1088,15 +1149,24 @@ TEST(notePositionRoundTrip, NoteData)
 
     // round trip it through xml
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
-    auto docPtr = mgr.getDocument(docId);
+    const auto r1 = mgr.createFromScore(score);
+    REQUIRE(r1.ok());
+    auto docId = r1.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     mgr.destroyDocument(docId);
     const std::string xml = ss.str();
     std::istringstream iss{xml};
-    docId = mgr.createFromStream(iss);
-    auto oscore = mgr.getData(docId);
+    const auto r2 = mgr.createFromStream(iss);
+    REQUIRE(r2.ok());
+    docId = r2.value();
+    const auto rd = mgr.getData(docId);
+    REQUIRE(rd.ok());
+    auto oscore = rd.value();
+    // The write side always emits version="4.0"; normalize so version fields
+    // do not cause a false mismatch when the original score was built from scratch.
+    score.musicXmlVersion = oscore.musicXmlVersion;
+    score.declaredMusicXmlVersion = oscore.declaredMusicXmlVersion;
     CHECK(score == oscore);
 }
 

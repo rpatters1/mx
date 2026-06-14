@@ -1,0 +1,43 @@
+{{#merged_attributes}}
+{{#is_required}}
+    bool seen_{{ident}} = false;
+{{/is_required}}
+{{/merged_attributes}}
+    for (pugi::xml_attribute a : el.attributes())
+    {
+        const std::string_view aname{a.name()};
+        if (isNamespaceDecl(aname))
+        {
+            continue;
+        }
+{{#merged_attributes}}
+        {{#is_first}}if{{/is_first}}{{^is_first}}else if{{/is_first}} (aname == {{name.wire_q}})
+        {
+            {{#is_required}}seen_{{ident}} = true;
+            {{/is_required}}out.set{{name.pascal}}({{>attr_parse_expr}});
+        }
+{{/merged_attributes}}
+{{#has_merged_attributes}}
+        else
+        {
+            throwUnknownAttribute(el, a.name());
+        }
+{{/has_merged_attributes}}
+{{^has_merged_attributes}}
+        throwUnknownAttribute(el, a.name());
+{{/has_merged_attributes}}
+    }
+{{#merged_attributes}}
+{{#is_required}}
+    if (!seen_{{ident}})
+    {
+{{#import_default}}
+        // Configured import repair (plan §2.4): inject the default.
+        out.set{{name.pascal}}({{>attr_default_expr}});
+{{/import_default}}
+{{^import_default}}
+        throwMissingAttribute(el, {{name.wire_q}});
+{{/import_default}}
+    }
+{{/is_required}}
+{{/merged_attributes}}

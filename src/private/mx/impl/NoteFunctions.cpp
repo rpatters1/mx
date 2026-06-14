@@ -5,45 +5,6 @@
 #include "mx/impl/NoteFunctions.h"
 #include "mx/api/MarkData.h"
 #include "mx/api/SpannerData.h"
-#include "mx/core/FromXElement.h"
-#include "mx/core/elements/Accent.h"
-#include "mx/core/elements/AccidentalMark.h"
-#include "mx/core/elements/Arpeggiate.h"
-#include "mx/core/elements/Articulations.h"
-#include "mx/core/elements/ArticulationsChoice.h"
-#include "mx/core/elements/BreathMark.h"
-#include "mx/core/elements/Caesura.h"
-#include "mx/core/elements/DetachedLegato.h"
-#include "mx/core/elements/Doit.h"
-#include "mx/core/elements/Dynamics.h"
-#include "mx/core/elements/EditorialGroup.h"
-#include "mx/core/elements/EditorialVoiceGroup.h"
-#include "mx/core/elements/Falloff.h"
-#include "mx/core/elements/Fermata.h"
-#include "mx/core/elements/Footnote.h"
-#include "mx/core/elements/Glissando.h"
-#include "mx/core/elements/Level.h"
-#include "mx/core/elements/NonArpeggiate.h"
-#include "mx/core/elements/Notations.h"
-#include "mx/core/elements/NotationsChoice.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/Ornaments.h"
-#include "mx/core/elements/OtherArticulation.h"
-#include "mx/core/elements/OtherNotation.h"
-#include "mx/core/elements/Plop.h"
-#include "mx/core/elements/Scoop.h"
-#include "mx/core/elements/Slide.h"
-#include "mx/core/elements/Slur.h"
-#include "mx/core/elements/Spiccato.h"
-#include "mx/core/elements/Staccatissimo.h"
-#include "mx/core/elements/Staccato.h"
-#include "mx/core/elements/Stress.h"
-#include "mx/core/elements/StrongAccent.h"
-#include "mx/core/elements/Technical.h"
-#include "mx/core/elements/Tenuto.h"
-#include "mx/core/elements/Tied.h"
-#include "mx/core/elements/Tuplet.h"
-#include "mx/core/elements/Unstress.h"
 #include "mx/impl/AccidentalMarkFunctions.h"
 #include "mx/impl/ArpeggiateFunctions.h"
 #include "mx/impl/ArticulationsFunctions.h"
@@ -166,8 +127,8 @@ api::NoteData NoteFunctions::parseNote() const
         myOutNoteData.durationData.timeModificationNormalTypeDots = 0;
     }
     parseNotations();
-    myOutNoteData.positionData = impl::getPositionData(*myNote.getAttributes());
-    myOutNoteData.printData = impl::getPrintData(*myNote.getAttributes());
+    myOutNoteData.positionData = impl::getPositionData(myNote);
+    myOutNoteData.printData = impl::getPrintData(myNote);
 
     if (reader.getIsStemSpecified())
     {
@@ -178,8 +139,7 @@ api::NoteData NoteFunctions::parseNote() const
     myOutNoteData.lyrics = reader.getLyrics();
 
     parseMiscData();
-    const auto &incomingNoteAttributes = *(myNote.getAttributes());
-    myOutNoteData.positionData = impl::getPositionData(incomingNoteAttributes);
+    myOutNoteData.positionData = impl::getPositionData(myNote);
 
     return myOutNoteData;
 }
@@ -187,8 +147,8 @@ api::NoteData NoteFunctions::parseNote() const
 // TODO - make this work even if notes are dotted and if they are tupleted
 api::DurationName NoteFunctions::deriveNoteTypeFromDurationValue(const NoteReader &reader) const
 {
-    const long double durationValue = reader.getDurationValue();
-    const long double ticksPerQuarter = static_cast<long double>(myCursor.getGlobalTicksPerQuarter());
+    const double durationValue = reader.getDurationValue();
+    const double ticksPerQuarter = static_cast<double>(myCursor.getGlobalTicksPerQuarter());
 
     if (api::areSame(durationValue, api::DUR_QUARTERS_VALUE_QUARTER * ticksPerQuarter))
     {
@@ -245,80 +205,79 @@ api::DurationName NoteFunctions::deriveNoteTypeFromDurationValue(const NoteReade
 
 void NoteFunctions::parseNotations() const
 {
-    for (const auto &notationsPtr : myNote.getNotationsSet())
+    for (const auto &notations : myNote.notations())
     {
-        for (const auto &notationsChoicePtr : notationsPtr->getNotationsChoiceSet())
+        for (const auto &notationsChoice : notations.choice())
         {
-            const auto &notationsChoice = *notationsChoicePtr;
-            const auto choice = notationsChoice.getChoice();
+            const auto choice = notationsChoice.kind();
 
             switch (choice)
             {
-            case core::NotationsChoice::Choice::tied: {
-                parseCurve(*notationsChoice.getTied(), myOutNoteData);
+            case core::NotationsChoice::Kind::tied: {
+                parseCurve(notationsChoice.asTied(), myOutNoteData);
                 break;
             }
-            case core::NotationsChoice::Choice::slur: {
-                parseCurve(*notationsChoice.getSlur(), myOutNoteData);
+            case core::NotationsChoice::Kind::slur: {
+                parseCurve(notationsChoice.asSlur(), myOutNoteData);
                 break;
             }
-            case core::NotationsChoice::Choice::tuplet: {
-                TupletReader reader{*notationsChoice.getTuplet(), myCursor, myNote};
+            case core::NotationsChoice::Kind::tuplet: {
+                TupletReader reader{notationsChoice.asTuplet(), myCursor, myNote};
                 reader.parseTuplet(myOutNoteData.noteAttachmentData.tupletStarts,
                                    myOutNoteData.noteAttachmentData.tupletStops);
                 break;
             }
-            case core::NotationsChoice::Choice::slide: {
+            case core::NotationsChoice::Kind::slide: {
                 // TODO - import slide
-                // SlideFunctions funcs{ *notationsChoice.getSlide(), myCursor };
+                // SlideFunctions funcs{ notationsChoice.asSlide(), myCursor };
                 // myOutNoteData.noteAttachmentData.marks.emplace_back( funcs.parseSlide() );
                 break;
             }
-            case core::NotationsChoice::Choice::glissando: {
+            case core::NotationsChoice::Kind::glissando: {
                 break;
             }
-            case core::NotationsChoice::Choice::ornaments: {
+            case core::NotationsChoice::Kind::ornaments: {
                 // TODO - some ornaments should be treated as spanners instead of marks
-                OrnamentsFunctions funcs{*notationsChoice.getOrnaments(), myCursor};
+                OrnamentsFunctions funcs{notationsChoice.asOrnaments(), myCursor};
                 funcs.parseOrnaments(myOutNoteData.noteAttachmentData.marks);
                 break;
             }
-            case core::NotationsChoice::Choice::technical: {
-                TechnicalFunctions funcs{notationsChoice.getTechnical()->getTechnicalChoiceSet(), myCursor};
+            case core::NotationsChoice::Kind::technical: {
+                TechnicalFunctions funcs{notationsChoice.asTechnical().choice(), myCursor};
                 funcs.parseTechnicalMarks(myOutNoteData.noteAttachmentData.marks);
                 break;
             }
-            case core::NotationsChoice::Choice::articulations: {
-                ArticulationsFunctions funcs{notationsChoice.getArticulations()->getArticulationsChoiceSet(), myCursor};
+            case core::NotationsChoice::Kind::articulations: {
+                ArticulationsFunctions funcs{notationsChoice.asArticulations().choice(), myCursor};
                 funcs.parseArticulations(myOutNoteData.noteAttachmentData.marks);
                 break;
             }
-            case core::NotationsChoice::Choice::dynamics: {
-                DynamicsReader funcs{*notationsChoice.getDynamics(), myCursor};
+            case core::NotationsChoice::Kind::dynamics: {
+                DynamicsReader funcs{notationsChoice.asDynamics(), myCursor};
                 funcs.parseDynamics(myOutNoteData.noteAttachmentData.marks);
                 break;
             }
-            case core::NotationsChoice::Choice::fermata: {
-                FermataFunctions funcs{*notationsChoice.getFermata(), myCursor};
+            case core::NotationsChoice::Kind::fermata: {
+                FermataFunctions funcs{notationsChoice.asFermata(), myCursor};
                 myOutNoteData.noteAttachmentData.marks.emplace_back(funcs.parseFermata());
                 break;
             }
-            case core::NotationsChoice::Choice::arpeggiate: {
-                ArpeggiateFunctions funcs{*notationsChoice.getArpeggiate(), myCursor};
+            case core::NotationsChoice::Kind::arpeggiate: {
+                ArpeggiateFunctions funcs{notationsChoice.asArpeggiate(), myCursor};
                 myOutNoteData.noteAttachmentData.marks.emplace_back(funcs.parseArpeggiate());
                 break;
             }
-            case core::NotationsChoice::Choice::nonArpeggiate: {
-                NonArpeggiateFunctions funcs{*notationsChoice.getNonArpeggiate(), myCursor};
+            case core::NotationsChoice::Kind::nonArpeggiate: {
+                NonArpeggiateFunctions funcs{notationsChoice.asNonArpeggiate(), myCursor};
                 myOutNoteData.noteAttachmentData.marks.emplace_back(funcs.parseNonArpeggiate());
                 break;
             }
-            case core::NotationsChoice::Choice::accidentalMark: {
-                AccidentalMarkFunctions funcs{*notationsChoice.getAccidentalMark(), myCursor};
+            case core::NotationsChoice::Kind::accidentalMark: {
+                AccidentalMarkFunctions funcs{notationsChoice.asAccidentalMark(), myCursor};
                 myOutNoteData.noteAttachmentData.marks.emplace_back(funcs.parseAccidentalMark());
                 break;
             }
-            case core::NotationsChoice::Choice::otherNotation: {
+            case core::NotationsChoice::Kind::otherNotation: {
                 // TODO - import otherNotation
                 break;
             }
@@ -331,37 +290,34 @@ void NoteFunctions::parseNotations() const
 
 void NoteFunctions::parseMiscData() const
 {
-    if (!myNote.getEditorialVoiceGroup()->getHasFootnote())
+    if (!myNote.editorialVoice().footnote().has_value())
     {
         return;
     }
 
-    auto footnote = myNote.getEditorialVoiceGroup()->getFootnote();
+    const auto &footnote = myNote.editorialVoice().footnote().value();
 
-    if (footnote->getValue().getValue().size() > 0)
+    if (!footnote.value().empty())
     {
         // we expect this element to be unused if it is
         // stuffed with ##misc-data## in the font-family
         return;
     }
 
-    auto attr = footnote->getAttributes();
-
-    if (!attr->hasFontFamily)
+    if (!footnote.fontFamily().has_value())
     {
         return;
     }
 
-    auto &miscData = attr->fontFamily;
-    auto iter = miscData.getValuesBeginConst();
-    const auto end = miscData.getValuesEndConst();
+    const auto &miscData = footnote.fontFamily().value();
+    const auto items = miscData.items();
 
-    if (iter == end)
+    if (items.empty())
     {
         return;
     }
 
-    const auto firstString = iter->getValue();
+    const auto &firstString = items[0];
 
     if (firstString.substr(0, 13) != "##misc-data##")
     {
@@ -369,11 +325,10 @@ void NoteFunctions::parseMiscData() const
     }
 
     myOutNoteData.miscData.push_back(firstString.substr(13));
-    ++iter;
 
-    for (; iter != end; ++iter)
+    for (size_t i = 1; i < items.size(); ++i)
     {
-        myOutNoteData.miscData.push_back(iter->getValue());
+        myOutNoteData.miscData.push_back(items[i]);
     }
 }
 } // namespace impl

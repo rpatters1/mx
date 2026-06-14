@@ -5,7 +5,6 @@
 #pragma once
 
 #include "mx/api/LineData.h"
-#include "mx/core/Enums.h"
 #include "mx/impl/Converter.h"
 #include "mx/utility/OptionalMembers.h"
 
@@ -13,22 +12,24 @@ namespace mx
 {
 namespace impl
 {
-using LongDouble = long double;
+// Note: no element has ever had a member spelled `lineStop` (the wire
+// attribute is line-end, a required member where present), so the LineStop
+// functions below are universal no-ops -- exactly as they were in the old
+// SFINAE machinery. Preserved for call-site fidelity.
+MX_OPTIONAL_HAS_FUNC(lineType, LineType);
+MX_OPTIONAL_GET_VALUE_FUNC(lineType, LineType, core::LineType, core::LineType::solid());
 
-MX_ATTR_FUNC_OPTIONAL(hasLineType, HasLineType, bool, false);
-MX_ATTR_FUNC_OPTIONAL(lineType, LineType, core::LineType, core::LineType::solid);
+MX_OPTIONAL_HAS_FUNC(lineStop, LineStop);
+MX_OPTIONAL_GET_VALUE_FUNC(lineStop, LineStop, core::LineEnd, core::LineEnd::none());
 
-MX_ATTR_FUNC_OPTIONAL(hasLineStop, HasLineStop, bool, false);
-MX_ATTR_FUNC_OPTIONAL(lineStop, LineStop, core::LineEnd, core::LineEnd::none);
+MX_OPTIONAL_HAS_FUNC(dashLength, DashLength);
+MX_OPTIONAL_GET_DECIMAL_FUNC(dashLength, DashLength, 0.0);
 
-MX_ATTR_FUNC_OPTIONAL(hasDashLength, HasDashLength, bool, false);
-MX_ATTR_FUNC_OPTIONAL_WITH_GETTER(dashLength, DashLength, long double, 0.0L);
+MX_OPTIONAL_HAS_FUNC(spaceLength, SpaceLength);
+MX_OPTIONAL_GET_DECIMAL_FUNC(spaceLength, SpaceLength, 0.0);
 
-MX_ATTR_FUNC_OPTIONAL(hasSpaceLength, HasSpaceLength, bool, false);
-MX_ATTR_FUNC_OPTIONAL_WITH_GETTER(spaceLength, SpaceLength, long double, 0.0L);
-
-MX_ATTR_FUNC_OPTIONAL(hasStopLength, HasStopLength, bool, false);
-MX_ATTR_FUNC_OPTIONAL_WITH_GETTER(endLength, StopLength, long double, 0.0L);
+MX_OPTIONAL_HAS_FUNC(endLength, StopLength);
+MX_OPTIONAL_GET_DECIMAL_FUNC(endLength, StopLength, 0.0);
 
 template <typename ATTRIBUTES_TYPE> api::LineData getLineData(const ATTRIBUTES_TYPE &inAttributes)
 {
@@ -66,20 +67,20 @@ template <typename ATTRIBUTES_TYPE> api::LineData getLineData(const ATTRIBUTES_T
     return lineData;
 }
 
-MX_ATTR_SETFUNC_OPTIONAL(hasLineType, HasLineType, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL(lineType, LineType, core::LineType, core::LineType::solid);
+MX_OPTIONAL_SET_HAS_FUNC(lineType, setLineType, LineType);
+MX_OPTIONAL_SET_VALUE_FUNC(lineType, setLineType, LineType);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasLineStop, HasLineStop, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL(lineStop, LineStop, core::LineEnd, core::LineEnd::none);
+MX_OPTIONAL_SET_HAS_FUNC(lineStop, setLineStop, LineStop);
+MX_OPTIONAL_SET_VALUE_FUNC(lineStop, setLineStop, LineStop);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasSpaceLength, HasSpaceLength, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL_WITH_SETTER(spaceLength, SpaceLength, long double, 0.0L);
+MX_OPTIONAL_SET_HAS_FUNC(spaceLength, setSpaceLength, SpaceLength);
+MX_OPTIONAL_SET_DECIMAL_FUNC(spaceLength, setSpaceLength, SpaceLength);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasDashLength, HasDashLength, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL_WITH_SETTER(dashLength, DashLength, long double, 0.0L);
+MX_OPTIONAL_SET_HAS_FUNC(dashLength, setDashLength, DashLength);
+MX_OPTIONAL_SET_DECIMAL_FUNC(dashLength, setDashLength, DashLength);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasStopLength, HasStopLength, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL_WITH_SETTER(endLength, StopLength, long double, 0.0L);
+MX_OPTIONAL_SET_HAS_FUNC(endLength, setEndLength, StopLength);
+MX_OPTIONAL_SET_DECIMAL_FUNC(endLength, setEndLength, StopLength);
 
 template <typename ATTRIBUTES_TYPE>
 void setAttributesFromLineData(const api::LineData &inLineData, ATTRIBUTES_TYPE &outAttributes)

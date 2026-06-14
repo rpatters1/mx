@@ -1,84 +1,39 @@
-# mx build/test driver
+# mx build/check driver.
 # ============================================================================
 #
-# This Makefile is a thin, portable convenience wrapper around CMake. It does
-# not replace CMake but rather encodes the commands to drive it.
+# The generated mx::core C++ model lives in src/private/mx/core/generated
+# (emitted by `make gen-cpp`, committed). Every gate runs through the pinned
+# `mx-sdk` Docker toolchain: outside a container a target builds the image
+# once and re-invokes itself inside it; inside (MX_RUNNING_IN_DOCKER, set by
+# the image) it drives the tools directly. Setting MX_RUNNING_IN_DOCKER=1 on
+# a dev machine runs natively with the host toolchain instead (used by the
+# macOS CI job, which has no Docker). Requires CMake >= 3.13.
 #
-# It assumes a POSIX shell and that `cmake` is on PATH. On Windows it is
-# best-effort: install CMake plus GNU make and a POSIX shell (Git Bash, MSYS2,
-# or WSL) and it works there too. The underlying compiler/generator can still
-# be MSVC -- builds go through `cmake --build`, which is generator-agnostic.
-#
-# Requires CMake >= 3.13 (for `cmake -S/-B` and `--build --parallel`).
-#
-# ----------------------------------------------------------------------------
-# Quality gates run in Docker
-# ----------------------------------------------------------------------------
-#
-# `make fmt`, `make check`, `make check-core-dev`, and `make coverage-core-dev`
-# run inside a Docker container. The Makefile builds it once (`mx-sdk`) and
-# rebuilds if the Dockerfile changes
-#
-# `docker run` uses an `mx-build` volume mounted so source edits and
-# incremental build state (objects + ccache) persist between runs.
-#
-# ----------------------------------------------------------------------------
-# Build modes
-# ----------------------------------------------------------------------------
-#
-# MX_BUILD_TESTS, MX_BUILD_CORE_TESTS, and MX_BUILD_EXAMPLES.:
-#
-#   lib   TESTS=off  CORE=off  EXAMPLES=off
-#
-#   dev   TESTS=on   CORE=off  EXAMPLES=on
-#         The README's "recommended configuration for development"
-#
-#   core  TESTS=on   CORE=on   EXAMPLES=on
-#         "if you make changes in the mx::core namespace" --
-#         e.g. regenerating mx::core for a new MusicXML version. Slow compile.
-#
-# ----------------------------------------------------------------------------
-# Build directory layout
-# ----------------------------------------------------------------------------
-#
-# Each mode builds into build/<mode>/<BUILD_TYPE> with its own CMake cache.
-# The Docker-run gates build into the mx-build volume (mounted at build/) with
-# ccache, keeping the pinned-GCC artifacts separate from the native ones.
-#
-# ----------------------------------------------------------------------------
-# Knobs (environment / make variables -- these are overrides, not modes)
-# ----------------------------------------------------------------------------
-#
-#   JOBS        Parallel compile jobs. Auto-detected; override: JOBS=8 make dev
-#   BUILD_TYPE  CMake build type, default Debug. Passed as -DCMAKE_BUILD_TYPE
-#               (single-config generators) AND --config (multi-config: MSVC,
-#               Xcode), so it is correct on every generator.
-#   GENERATOR   CMake generator. Unset = CMake's platform default.
-#   ARGS        Forwarded to the mxtest (Catch2) binary, e.g.
-#               make test ARGS='[core]'  or  make test ARGS='--list-tests'
-#   DOCKER      Docker executable (default: docker).
-#
+# The restored mx::api/mx::impl product stack is parked behind the CMake
+# option MX_API=OFF until the Phase-2 port (newgen-integration-plan.md §8);
+# no Makefile target builds it yet, so no advertised target is broken.
 # ============================================================================
 
 CMAKE      ?= cmake
 DOCKER     ?= docker
 BUILD_TYPE ?= Debug
 BUILD_ROOT := build
+JOBS       ?= $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 
-# Coverage report output. gcov-14 matches the pinned g++-14 toolchain
+# Coverage report output. gcov-14 matches the pinned g++-14 toolchain.
 COV_DIR := data/testOutput/coverage
 GCOV    ?= gcov-14
 
 # gen-quality / gen-lint: static analysis of the gen/ generator. The floors are
 # the CI gate -- a build fails below them; ratchet them upward as the generator
-# improves (see docs/ai/projects/gen). gen-quality scores design (size +
-# complexity); gen-lint enforces genuine lint defects. Pinned analyzers live in
-# the mx-sdk venv (see Dockerfile). GEN_PY is every gen/*.py except the measurer.
+# improves. gen-quality scores design (size + complexity); gen-lint enforces
+# genuine lint defects. Pinned analyzers live in the mx-sdk venv (see
+# Dockerfile). GEN_PY is every .py under gen/ except the measurer itself.
 QUALITY_VENV      := /opt/quality-venv
 QUALITY_DIR       := data/testOutput/gen-quality
-GEN_PY            := $(filter-out gen/quality.py,$(wildcard gen/*.py))
-GEN_QUALITY_FLOOR ?= 37.7
-GEN_LINT_FLOOR    ?= 9.4
+GEN_PY            := $(shell find gen -name '*.py' ! -name quality.py | sort)
+GEN_QUALITY_FLOOR ?= 84.5
+GEN_LINT_FLOOR    ?= 9.29
 
 # For GitHub Actions. When present, push/pull the Docker layer cache to the
 # GitHub Actions cache.
@@ -86,8 +41,7 @@ ifneq ($(ACTIONS_RUNTIME_TOKEN),)
 DOCKER_CACHE := --cache-from type=gha --cache-to type=gha,mode=max
 endif
 
-# Docker SDK image + build volume. Incremental state (objects + ccache)
-# persists across runs.
+# Docker SDK image + build volume. Incremental state persists across runs.
 DOCKER_IMAGE  := mx-sdk
 DOCKER_VOLUME := mx-build
 DOCKER_STAMP  := $(BUILD_ROOT)/.docker-image-stamp
@@ -98,168 +52,13 @@ ifeq ($(UNAME_S),Linux)
 DOCKER_USER := --user $(shell id -u):$(shell id -g)
 endif
 
-# Run a container.
 DOCKER_RUN := $(DOCKER) run --rm \
 	-v $(CURDIR):/workspace \
 	-v $(DOCKER_VOLUME):/workspace/build \
 	$(DOCKER_USER) \
 	$(DOCKER_IMAGE)
 
-# Portable CPU-count detection.
-JOBS ?= $(shell nproc 2>/dev/null \
-          || sysctl -n hw.ncpu 2>/dev/null \
-          || getconf _NPROCESSORS_ONLN 2>/dev/null \
-          || echo "$${NUMBER_OF_PROCESSORS:-4}")
-
-# Optional generator flag.
-ifneq ($(strip $(GENERATOR)),)
-GEN_ARG := -G "$(GENERATOR)"
-endif
-
-# build/<mode>/<BUILD_TYPE> for the given mode ($1).
-mode_dir = $(BUILD_ROOT)/$(1)/$(BUILD_TYPE)
-
-# Define the Cmake build flags and arguments.
-define cmake_build
-	$(CMAKE) -S . -B $(call mode_dir,$(1)) \
-		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
-		-DMX_BUILD_TESTS=$(2) \
-		-DMX_BUILD_CORE_TESTS=$(3) \
-		-DMX_BUILD_EXAMPLES=$(4) \
-		-DMX_CORE_DEV=$(5) \
-		$(GEN_ARG)
-	$(CMAKE) --build $(call mode_dir,$(1)) --parallel $(JOBS) --config $(BUILD_TYPE)
-endef
-
-# Locate and run a built binary.
-define run_bin
-	@d='$(1)'; b='$(2)'; found=''; \
-	for p in "$$d/$$b" "$$d/$$b.exe" "$$d/$(BUILD_TYPE)/$$b" "$$d/$(BUILD_TYPE)/$$b.exe"; do \
-		if [ -x "$$p" ]; then found="$$p"; break; fi; \
-	done; \
-	if [ -z "$$found" ]; then echo "error: $$b not found under $$d" >&2; exit 1; fi; \
-	echo ">> $$found $(3)"; \
-	"$$found" $(3)
-endef
-
-# Run the three example programs from the given mode dir ($1).
-define run_examples
-	@mkdir -p data/testOutput
-	$(call run_bin,$(1),mxread,)
-	$(call run_bin,$(1),mxwrite,./data/testOutput/example.musicxml)
-	$(call run_bin,$(1),mxhide,)
-endef
-
-.DEFAULT_GOAL := help
-.PHONY: help lib dev core test test-all examples-run all clean clean-docker \
-        check-docker docker-volume fmt check core-dev check-core-dev \
-        test-core-dev coverage-core-dev gen-quality gen-lint \
-        xcode-gen xcode-build xcode-test
-
-help:
-	@echo 'mx build/test targets:'
-	@echo ''
-	@echo 'Quality gates (run in docker):'
-	@echo '  make fmt            Format all C++ files under src/.'
-	@echo '  make check          fmt-check + warning-free build.'
-	@echo '  make gen-quality    Score gen/ design quality; fail below the floor.'
-	@echo '  make gen-lint       Lint gen/ with pylint; fail below the floor.'
-	@echo ''
-	@echo 'Build (native):'
-	@echo '  make lib            Build just the static library (no tests/examples).'
-	@echo '  make dev            Build tests (no slow core tests) + examples.'
-	@echo '  make core           Build the full suite incl. slow mx::core tests.'
-	@echo ''
-	@echo 'Run (native):'
-	@echo '  make test           Build dev, run examples + mxtest. ARGS= forwarded.'
-	@echo '  make test-all       Build core, run examples + full mxtest. ARGS= fwd.'
-	@echo '  make examples-run   Build dev, then run mxread/mxwrite/mxhide.'
-	@echo '  make all            Build core, run examples + full mxtest.'
-	@echo ''
-	@echo 'Housekeeping:'
-	@echo '  make clean          Remove the entire $(BUILD_ROOT)/ tree.'
-	@echo '  make clean-docker   Remove the sdk image, build volume, and cache.'
-	@echo ''
-	@echo 'Xcode:'
-	@echo '  make xcode-gen      Generate Xcode project in build/xcode/.'
-	@echo '  make xcode-build    Build the Xcode project.'
-	@echo '  make xcode-test     Run tests via xcodebuild.'
-	@echo ''
-	@echo 'Core development (codegen):'
-	@echo '  make core-dev           Build trimmed library (mx/core + ezxml + utility) and'
-	@echo '                          mxtest-core-dev. No mx/api or mx/impl compiled.'
-	@echo '  make check-core-dev     fmt-check + warning-free build for core-dev (Docker).'
-	@echo '  make test-core-dev      Build core-dev then run the core roundtrip suite.'
-	@echo '                          Each file under data/ is a separate Catch2 test case.'
-	@echo "                          Filter: make test-core-dev ARGS='[core-roundtrip] lysuite/*'"
-	@echo '  make coverage-core-dev  Instrumented core-dev build (Docker), runs the core'
-	@echo '                          roundtrip suite and gcovr. Report -> $(COV_DIR)/.'
-	@echo ''
-	@echo 'Knobs:  JOBS (=$(JOBS))  BUILD_TYPE (=$(BUILD_TYPE))  GENERATOR  ARGS  DOCKER'
-	@echo 'Layout: $(BUILD_ROOT)/<mode>/$(BUILD_TYPE)/'
-
-# --- Compile-only targets ---------------------------------------------------
-
-lib:
-	$(call cmake_build,lib,off,off,off,off)
-
-dev:
-	$(call cmake_build,dev,on,off,on,off)
-
-core:
-	$(call cmake_build,core,on,on,on,off)
-
-# Core-dev mode: trimmed build (mx/core + ezxml + utility) plus the core
-# roundtrip test binary. mx/api and mx/impl are not compiled. Intended for
-# codegen iteration on mx/core. See AGENTS.md and docs/ai/projects/core-dev/.
-core-dev:
-	$(call cmake_build,core-dev,off,off,off,on)
-
-# --- Run targets ------------------------------------------------------------
-
-test: dev
-	$(call run_examples,$(call mode_dir,dev))
-	$(call run_bin,$(call mode_dir,dev),mxtest,$(ARGS))
-
-test-all: core
-	$(call run_examples,$(call mode_dir,core))
-	$(call run_bin,$(call mode_dir,core),mxtest,$(ARGS))
-
-# Run the core roundtrip suite from the trimmed build. ARGS is forwarded to
-# the binary (e.g., make test-core-dev ARGS='[core-roundtrip] lysuite/').
-# --allow-running-no-tests keeps the target green when ARGS filters to an
-# empty set, and also during Phase A before any test cases are registered.
-test-core-dev: core-dev
-	$(call run_bin,$(call mode_dir,core-dev),mxtest-core-dev,--allow-running-no-tests $(ARGS))
-
-examples-run: dev
-	$(call run_examples,$(call mode_dir,dev))
-
-# Behavioral replacement for the old build.sh: full build + run everything.
-all: core
-	$(call run_examples,$(call mode_dir,core))
-	$(call run_bin,$(call mode_dir,core),mxtest,$(ARGS))
-
-# --- Housekeeping -----------------------------------------------------------
-
-clean:
-	rm -rf $(BUILD_ROOT)
-
-clean-docker:
-	-rm -f $(DOCKER_STAMP)
-	-$(DOCKER) rmi $(DOCKER_IMAGE) 2>/dev/null || true
-	-$(DOCKER) volume rm $(DOCKER_VOLUME) 2>/dev/null || true
-	-$(DOCKER) buildx prune -af
-	@echo "Removed mx-sdk image, mx-build volume, and Docker build cache."
-
-# --- Quality targets --------------------------------------------------------
-#
-# fmt/check run inside a pinned Docker toolchain. The Makefile detects
-# MX_RUNNING_IN_DOCKER (set by the Dockerfile): inside the container it runs
-# the tools directly; outside it builds the mx-sdk image once and runs the
-# target inside it via `docker run` with the workspace and build volume
-# mounted.
-
+# C++ to format. Skip vendored pugixml and the cpul/Catch test harness.
 FIND_CPP := find src \
 	-path 'src/private/cpul' -prune -o \
 	-name 'pugixml.cpp' -prune -o \
@@ -267,98 +66,223 @@ FIND_CPP := find src \
 	-name 'pugiconfig.hpp' -prune -o \
 	-type f \( -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) -print
 
+.DEFAULT_GOAL := help
+.PHONY: help sdk fmt check core-dev check-core-dev test-core-dev test-cpp-unit \
+        validate-cpp probe-cpp coverage-core-dev test-gen gen-check \
+        gen-quality gen-lint \
+        gen gen-cpp gen-go gen-c gen-schema \
+        build-go build-c test-go test-c \
+        lib dev test examples-run test-api-roundtrip discover-api-roundtrip coverage-api \
+        clean clean-docker check-docker docker-volume
+
+help:
+	@echo 'mx targets (see AGENTS.md). All run via the mx-sdk Docker toolchain;'
+	@echo 'set MX_RUNNING_IN_DOCKER=1 to run natively on the host instead.'
+	@echo ''
+	@echo '  mx::api/mx::impl (Phase 2):'
+	@echo '  make lib                Build the mx static library (MX_API=ON).'
+	@echo '  make dev                Build mx + mxtest + examples + api-roundtrip binary.'
+	@echo '  make test               Run the mxtest suite (api/impl/file/control).'
+	@echo '  make examples-run       Build and run all three api example programs.'
+	@echo '  make test-api-roundtrip Run the corpus api roundtrip in regression mode (CI gate).'
+	@echo '  make discover-api-roundtrip  Run discovery mode over the full corpus (manual only).'
+	@echo '  make coverage-api            Instrumented api/impl/utility build + gcovr report.'
+	@echo ''
+	@echo '  C++ core:'
+	@echo '  make core-dev           Build mx_core and the corert/unit/validate binaries.'
+	@echo "  make test-core-dev      Run the core roundtrip suite. Filter: ARGS='[core-roundtrip] lysuite/*'"
+	@echo '  make test-cpp-unit      Run the mx::core unit tests (values, shapes, rejection suite).'
+	@echo '  make validate-cpp       Gate 2: serialize every corpus file and xmllint-validate the OUTPUT.'
+	@echo '  make probe-cpp          Gate 4: must-NOT-compile probes (invalid construction).'
+	@echo '  make check-core-dev     fmt-check + warning-free core-dev build.'
+	@echo '  make coverage-core-dev  Instrumented build, corert + unit suites, gcovr -> $(COV_DIR)/.'
+	@echo ''
+	@echo '  Generator:'
+	@echo '  make test-gen       Run the generator (parser + IR + plates + press) Python tests.'
+	@echo '  make gen-check      plates --check for every target (renames, collisions).'
+	@echo '  make gen            Run the generator for every target (cpp/go/c/schema).'
+	@echo '  make gen-cpp        Run the generator for the C++ target (src/private/mx/core/generated).'
+	@echo '  make gen-go         Run the generator for the Go target.'
+	@echo '  make gen-c          Run the generator for the C target.'
+	@echo '  make gen-schema     Run the generator for the JSON Schema target.'
+	@echo '  make gen-quality    Score gen/ design quality; fail below the floor.'
+	@echo '  make gen-lint       Lint gen/ with pylint; fail below the floor.'
+	@echo ''
+	@echo '  Go test target:'
+	@echo '  make build-go       Build Go corert tests.'
+	@echo '  make test-go        Run Go corert tests.'
+	@echo ''
+	@echo '  C test target:'
+	@echo '  make build-c        Build C corert test binary.'
+	@echo '  make test-c         Run C corert tests.'
+	@echo ''
+	@echo '  Housekeeping:'
+	@echo '  make fmt            Format C++ under src/ via mx-sdk.'
+	@echo '  make check          fmt-check via mx-sdk.'
+	@echo '  make sdk            Build the mx-sdk Docker toolchain image.'
+	@echo '  make clean          Remove the build/ tree and gen build artifacts.'
+	@echo '  make clean-docker   Remove the sdk image and build volume.'
+
+# --- Housekeeping -----------------------------------------------------------
+
+clean:
+	rm -rf $(BUILD_ROOT)
+	rm -rf gen/test/c/build
+	rm -rf gen/test/go/build
+
+clean-docker:
+	-rm -f $(DOCKER_STAMP)
+	-$(DOCKER) rmi $(DOCKER_IMAGE) 2>/dev/null || true
+	-$(DOCKER) volume rm $(DOCKER_VOLUME) 2>/dev/null || true
+	@echo "Removed mx-sdk image and mx-build volume."
+
 check-docker:
 	@command -v $(DOCKER) >/dev/null 2>&1 || \
-		{ echo "Docker not found. The quality gates (fmt/check/lint) run in"; \
-		  echo "Docker with a pinned toolchain. Install Docker to continue:"; \
-		  echo "  https://docs.docker.com/get-docker/"; \
-		  exit 1; }
+		{ echo "Docker not found. Install it to use the mx-sdk gates:"; \
+		  echo "  https://docs.docker.com/get-docker/"; exit 1; }
+
+# === Docker-gated targets ===================================================
 
 ifdef MX_RUNNING_IN_DOCKER
 
-# ===== Inside the container: run the pinned tools directly ==================
+# ----- Inside the container (or native via MX_RUNNING_IN_DOCKER=1) ----------
 
-fmt:
-	@$(FIND_CPP) | xargs clang-format -i
-	@echo "Formatted all C++ files under src/"
+lib:
+	$(CMAKE) -S . -B $(BUILD_ROOT)/api -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DMX_API=on
+	$(CMAKE) --build $(BUILD_ROOT)/api --target mx --parallel $(JOBS)
 
-check:
-	@echo "=== fmt-check ==="
-	@$(FIND_CPP) | xargs clang-format --dry-run --Werror
-	@echo "=== build (warning-free) ==="
-	@mkdir -p $(BUILD_ROOT)
-	@$(CMAKE) -S . -B $(call mode_dir,dev) \
+dev: lib
+	$(CMAKE) --build $(BUILD_ROOT)/api --parallel $(JOBS)
+
+test: dev
+	$(BUILD_ROOT)/api/mxtest $(ARGS)
+
+examples-run: dev
+	$(BUILD_ROOT)/api/mxread
+	$(BUILD_ROOT)/api/mxwrite $(BUILD_ROOT)/api/example.musicxml
+	$(BUILD_ROOT)/api/mxhide
+	@echo 'examples-run: all three examples ran successfully.'
+
+# Corpus api roundtrip -- regression mode (CI gate): every file in the
+# pinned baseline must pass; exit non-zero if any fails.
+test-api-roundtrip: dev
+	$(BUILD_ROOT)/api/mxtest-api-roundtrip regression \
+		$(CURDIR)/data \
+		$(CURDIR)/src/private/mxtest/api/roundtrip-baseline.txt
+
+# Discovery mode: walk the full corpus and report pass/fail.
+# Never a CI gate; use to grow the pinned list (manual commits only).
+discover-api-roundtrip: dev
+	$(BUILD_ROOT)/api/mxtest-api-roundtrip discovery $(CURDIR)/data
+
+# Instrumented api coverage: build mx+mxtest with --coverage, run all
+# suites, produce gcovr report for src/private/mx/{api,impl,utility}/.
+coverage-api:
+	@echo "=== build (api, instrumented) ==="
+	$(CMAKE) -S . -B $(BUILD_ROOT)/cov-api \
 		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
-		-DMX_BUILD_TESTS=on \
-		-DMX_BUILD_CORE_TESTS=off \
-		-DMX_BUILD_EXAMPLES=on \
-		-DMX_CORE_DEV=off \
-		$(GEN_ARG) > $(BUILD_ROOT)/build.log 2>&1 \
-		|| { cat $(BUILD_ROOT)/build.log; \
-		     echo "ERROR: cmake configure failed (see above)"; exit 1; }
-	@$(CMAKE) --build $(call mode_dir,dev) --parallel $(JOBS) --config $(BUILD_TYPE) \
-		>> $(BUILD_ROOT)/build.log 2>&1; status=$$?; \
-		cat $(BUILD_ROOT)/build.log; \
-		if [ $$status -ne 0 ]; then \
-			echo "ERROR: build failed (see above)"; exit $$status; \
-		fi; \
-		if grep -q 'warning:' $(BUILD_ROOT)/build.log; then \
-			echo "ERROR: build emitted warnings (see above)"; exit 1; \
-		fi
-	@echo "=== check passed ==="
+		-DCMAKE_C_COMPILER_LAUNCHER= \
+		-DCMAKE_CXX_COMPILER_LAUNCHER= \
+		-DMX_API=on \
+		-DMX_COVERAGE=on
+	$(CMAKE) --build $(BUILD_ROOT)/cov-api --parallel $(JOBS)
+	@echo "=== run mxtest + corpus roundtrip ==="
+	$(BUILD_ROOT)/cov-api/mxtest
+	$(BUILD_ROOT)/cov-api/mxtest-api-roundtrip regression \
+		$(CURDIR)/data \
+		$(CURDIR)/src/private/mxtest/api/roundtrip-baseline.txt
+	@echo "=== gcovr report (src/private/mx/{api,impl,utility}/) ==="
+	@mkdir -p $(COV_DIR)/api
+	gcovr --root . \
+		--gcov-executable '$(GCOV)' \
+		--filter 'src/private/mx/api/' \
+		--filter 'src/private/mx/impl/' \
+		--filter 'src/private/mx/utility/' \
+		--print-summary \
+		--txt $(COV_DIR)/api/coverage.txt \
+		--xml $(COV_DIR)/api/coverage.xml \
+		--html-self-contained --html $(COV_DIR)/api/index.html \
+		$(BUILD_ROOT)/cov-api | tee $(COV_DIR)/api/summary.txt
+	@echo "=== coverage-api written to $(COV_DIR)/api/ ==="
 
-# fmt-check + warning-free build for core-dev mode. Same shape as `check`
-# but configures with MX_CORE_DEV=on and the three MX_BUILD_* flags off.
+core-dev:
+	$(CMAKE) -S . -B $(BUILD_ROOT)/core-dev -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DMX_CORE_DEV=on
+	$(CMAKE) --build $(BUILD_ROOT)/core-dev --parallel $(JOBS)
+
+test-core-dev: core-dev
+	$(BUILD_ROOT)/core-dev/mxtest-core-dev --allow-running-no-tests $(ARGS)
+
+test-cpp-unit: core-dev
+	$(BUILD_ROOT)/core-dev/mxtest-core $(ARGS)
+
+# Gate 2 (docs/ai/design/mx-core-plan.md §5.2), a permanent gate: every
+# parsed corpus document is serialized and the OUTPUT is validated against
+# the MusicXML 4.0 XSD -- the mechanical proof that import leniency (value
+# clamping) still emits only schema-valid XML.
+validate-cpp: core-dev
+	rm -rf $(BUILD_ROOT)/validate-out
+	$(BUILD_ROOT)/core-dev/mxtest-validate $(BUILD_ROOT)/validate-out
+	cd $(BUILD_ROOT)/validate-out && xmllint --noout --nonet \
+		--schema $(CURDIR)/docs/musicxml-4.0-ed15c23.xsd *.xml 2>&1 \
+		| grep -v 'validates$$' | grep -v 'Skipping import' || true
+	@cd $(BUILD_ROOT)/validate-out && xmllint --noout --nonet \
+		--schema $(CURDIR)/docs/musicxml-4.0-ed15c23.xsd *.xml 2>/dev/null \
+		&& echo 'validate-cpp: all outputs are schema-valid.'
+
+# Gate 4's compile-time probes (mx-core-plan.md §5.4): PROBE=0 must
+# compile (the control); every numbered probe is an invalid-construction
+# attempt that must NOT compile.
+PROBE_COUNT := 7
+probe-cpp:
+	@$(CXX) -std=c++20 -fsyntax-only -I src/private -DPROBE=0 \
+		src/private/mxtest/probe/Probes.cpp \
+		|| { echo 'probe-cpp: control failed to compile'; exit 1; }
+	@for i in $$(seq 1 $(PROBE_COUNT)); do \
+		if $(CXX) -std=c++20 -fsyntax-only -I src/private -DPROBE=$$i \
+			src/private/mxtest/probe/Probes.cpp 2>/dev/null; then \
+			echo "probe-cpp: PROBE=$$i compiled but must not"; exit 1; \
+		fi; \
+	done
+	@echo 'probe-cpp: control compiles; all $(PROBE_COUNT) must-not-compile probes fail as required.'
+
+# fmt-check + warning-free core-dev build (a fresh tree so stale objects
+# cannot mask a warning; same shape as the old master gate, new subject).
 check-core-dev:
 	@echo "=== fmt-check ==="
-	@$(FIND_CPP) | xargs clang-format --dry-run --Werror
+	@$(FIND_CPP) | xargs -r clang-format --dry-run --Werror
 	@echo "=== build (warning-free, core-dev) ==="
-	@mkdir -p $(BUILD_ROOT)
-	@$(CMAKE) -S . -B $(call mode_dir,core-dev) \
-		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
-		-DMX_BUILD_TESTS=off \
-		-DMX_BUILD_CORE_TESTS=off \
-		-DMX_BUILD_EXAMPLES=off \
-		-DMX_CORE_DEV=on \
-		$(GEN_ARG) > $(BUILD_ROOT)/build.log 2>&1 \
-		|| { cat $(BUILD_ROOT)/build.log; \
+	@$(CMAKE) -S . -B $(BUILD_ROOT)/check-core-dev \
+		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DMX_CORE_DEV=on \
+		> $(BUILD_ROOT)/check-build.log 2>&1 \
+		|| { cat $(BUILD_ROOT)/check-build.log; \
 		     echo "ERROR: cmake configure failed (see above)"; exit 1; }
-	@$(CMAKE) --build $(call mode_dir,core-dev) --parallel $(JOBS) --config $(BUILD_TYPE) \
-		>> $(BUILD_ROOT)/build.log 2>&1; status=$$?; \
-		cat $(BUILD_ROOT)/build.log; \
+	@$(CMAKE) --build $(BUILD_ROOT)/check-core-dev --parallel $(JOBS) \
+		>> $(BUILD_ROOT)/check-build.log 2>&1; status=$$?; \
+		cat $(BUILD_ROOT)/check-build.log; \
 		if [ $$status -ne 0 ]; then \
 			echo "ERROR: build failed (see above)"; exit $$status; \
 		fi; \
-		if grep -q 'warning:' $(BUILD_ROOT)/build.log; then \
+		if grep -q 'warning:' $(BUILD_ROOT)/check-build.log; then \
 			echo "ERROR: build emitted warnings (see above)"; exit 1; \
 		fi
 	@echo "=== check-core-dev passed ==="
 
-# Instrumented core-dev coverage. Builds into the mx-build volume, runs the
-# core roundtrip suite to emit .gcda, then runs gcovr. The report lands in
-# data/testOutput/coverage, which is on the bind-mounted workspace, so it
-# appears on the host directly with no export stage. Compiler is the pinned
-# g++-14, so gcov-14 matches the .gcda format. Filtered strictly to
-# src/private/mx/core/ -- the codegen target -- excluding the ezxml/utility
-# deps and the test harness.
+# Instrumented core-dev coverage: build with --coverage (off ccache so the
+# notes/data stay exact), run the corert AND unit suites, then gcovr. The
+# report lands in $(COV_DIR) on the bind-mounted workspace. Filtered to
+# src/private/mx/core/ -- the generated model and its runtime.
 coverage-core-dev:
 	@echo "=== build (core-dev, instrumented) ==="
-	@# Empty *_COMPILER_LAUNCHER overrides the image's ccache default: keep the
-	@# instrumented build off ccache so coverage notes/data stay exact. This is
-	@# the small core-dev subset, so the lost caching is cheap.
-	$(CMAKE) -S . -B $(call mode_dir,cov-core-dev) \
+	$(CMAKE) -S . -B $(BUILD_ROOT)/cov-core-dev \
 		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-DCMAKE_C_COMPILER_LAUNCHER= \
 		-DCMAKE_CXX_COMPILER_LAUNCHER= \
-		-DMX_BUILD_TESTS=off \
-		-DMX_BUILD_CORE_TESTS=off \
-		-DMX_BUILD_EXAMPLES=off \
 		-DMX_CORE_DEV=on \
-		-DMX_COVERAGE=on \
-		$(GEN_ARG)
-	$(CMAKE) --build $(call mode_dir,cov-core-dev) --parallel $(JOBS) --config $(BUILD_TYPE)
-	@echo "=== run core roundtrip suite ==="
-	$(call run_bin,$(call mode_dir,cov-core-dev),mxtest-core-dev,--allow-running-no-tests $(ARGS))
+		-DMX_COVERAGE=on
+	$(CMAKE) --build $(BUILD_ROOT)/cov-core-dev --parallel $(JOBS)
+	@echo "=== run corert + unit suites ==="
+	$(BUILD_ROOT)/cov-core-dev/mxtest-core-dev --allow-running-no-tests $(ARGS)
+	$(BUILD_ROOT)/cov-core-dev/mxtest-core
 	@echo "=== gcovr report (src/private/mx/core/) ==="
 	@mkdir -p $(COV_DIR)
 	gcovr --root . \
@@ -368,12 +292,22 @@ coverage-core-dev:
 		--txt $(COV_DIR)/coverage.txt \
 		--xml $(COV_DIR)/coverage.xml \
 		--html-self-contained --html $(COV_DIR)/index.html \
-		$(call mode_dir,cov-core-dev) | tee $(COV_DIR)/summary.txt
+		$(BUILD_ROOT)/cov-core-dev | tee $(COV_DIR)/summary.txt
 	@echo "=== coverage written to $(COV_DIR)/ ==="
 
-# Static analysis of the gen/ generator (in-container branch). quality.py
-# measures and writes the report tree to the workspace mount; the floor check
-# below is the gate. See docs/ai/projects/gen.
+test-gen:
+	python3 -m unittest discover -s gen/tests -t . $(ARGS)
+
+# plates --check for every target: validates renames and detects identifier
+# collisions (a CI gate, like test-gen).
+gen-check:
+	python3 -m gen plates --config gen/cpp/config.toml --check
+	python3 -m gen plates --config gen/test/go/config.toml --check
+	python3 -m gen plates --config gen/test/c/config.toml --check
+	python3 -m gen plates --config gen/schema/config.toml --check
+
+# Static analysis of the gen/ generator. quality.py measures and writes the
+# report tree to the workspace mount; the floor check below is the gate.
 gen-quality:
 	@$(QUALITY_VENV)/bin/python gen/quality.py --floor $(GEN_QUALITY_FLOOR)
 	@score=$$(python3 -c "import json; print(json.load(open('$(QUALITY_DIR)/score.json'))['composite'])"); \
@@ -392,51 +326,111 @@ gen-lint:
 	   echo "ERROR: gen-lint rating $$rating is below floor $(GEN_LINT_FLOOR)"; exit 1; \
 	 else echo "=== gen-lint OK: $$rating >= floor $(GEN_LINT_FLOOR) ==="; fi
 
+fmt:
+	@$(FIND_CPP) | xargs -r clang-format -i
+	@echo "Formatted C++ under src/."
+
+check:
+	@$(FIND_CPP) | xargs -r clang-format --dry-run --Werror
+	@echo "fmt-check passed."
+
+gen: gen-cpp gen-go gen-c gen-schema
+
+gen-cpp:
+	python3 -m gen gen/cpp/config.toml
+
+gen-go:
+	python3 -m gen gen/test/go/config.toml
+
+gen-c:
+	python3 -m gen gen/test/c/config.toml
+
+gen-schema:
+	python3 -m gen gen/schema/config.toml
+
+build-go:
+	cd gen/test/go && MX_REPO_ROOT=$(CURDIR) go test -c -o build/corert-test ./corert/
+
+test-go:
+	cd gen/test/go && MX_REPO_ROOT=$(CURDIR) go test -count=1 -v ./corert/ $(ARGS)
+
+build-c:
+	$(CMAKE) -S gen/test/c -B gen/test/c/build \
+		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+		-DMX_REPO_ROOT=$(CURDIR)
+	$(CMAKE) --build gen/test/c/build --parallel $(JOBS)
+
+test-c: build-c
+	gen/test/c/build/corert-c
+
 else
 
-# ===== Outside the container: build the image once, then docker run ========
-#
-# The image is the pinned toolchain only -- no source. `docker run` bind-mounts
-# the workspace and the mx-build volume, so source edits and incremental build
-# state (objects + ccache) live outside the image. Inside the container
-# MX_RUNNING_IN_DOCKER (set by the image) flips the Makefile to its
-# in-container branch above. Every target is the same `docker run` locally and
-# in CI; CI just pre-creates the volume bind-backed and caches its ccache dir.
+# ----- Outside the container: build image, then docker run ------------------
 
 $(DOCKER_STAMP): Dockerfile | check-docker
 	@mkdir -p $(BUILD_ROOT)
-	$(DOCKER) buildx build $(DOCKER_CACHE) --load -t $(DOCKER_IMAGE) .
+	$(DOCKER) buildx build $(DOCKER_CACHE) --load -t $(DOCKER_IMAGE) . \
+		|| $(DOCKER) build -t $(DOCKER_IMAGE) .
 	@touch $@
 
-# Ensure the named build volume exists (idempotent). CI pre-creates it
-# bind-backed to a cacheable workspace path before invoking make, so this
-# inspect succeeds and leaves it alone; locally (or if absent) it creates a
-# plain named volume on first use.
+sdk: $(DOCKER_STAMP)
+
 docker-volume: | check-docker
 	@$(DOCKER) volume inspect $(DOCKER_VOLUME) >/dev/null 2>&1 \
 		|| $(DOCKER) volume create $(DOCKER_VOLUME) >/dev/null
 
-fmt: $(DOCKER_STAMP) docker-volume
-	$(DOCKER_RUN) make fmt
-	@echo "Formatted all C++ files under src/"
+lib: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make lib BUILD_TYPE=$(BUILD_TYPE)
 
-check: $(DOCKER_STAMP) docker-volume
-	$(DOCKER_RUN) make check
+dev: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make dev BUILD_TYPE=$(BUILD_TYPE)
+
+test: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make test BUILD_TYPE=$(BUILD_TYPE) ARGS='$(ARGS)'
+
+examples-run: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make examples-run BUILD_TYPE=$(BUILD_TYPE)
+
+test-api-roundtrip: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make test-api-roundtrip BUILD_TYPE=$(BUILD_TYPE)
+
+discover-api-roundtrip: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make discover-api-roundtrip BUILD_TYPE=$(BUILD_TYPE)
+
+coverage-api: $(DOCKER_STAMP) docker-volume
+	@rm -rf $(COV_DIR)/api
+	$(DOCKER_RUN) make coverage-api BUILD_TYPE=$(BUILD_TYPE) ARGS='$(ARGS)'
+	@echo "API coverage written to $(COV_DIR)/api/ (open $(COV_DIR)/api/index.html)"
+
+core-dev: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make core-dev BUILD_TYPE=$(BUILD_TYPE)
+
+test-core-dev: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make test-core-dev BUILD_TYPE=$(BUILD_TYPE) ARGS='$(ARGS)'
+
+test-cpp-unit: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make test-cpp-unit BUILD_TYPE=$(BUILD_TYPE) ARGS='$(ARGS)'
+
+validate-cpp: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make validate-cpp BUILD_TYPE=$(BUILD_TYPE)
+
+probe-cpp: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make probe-cpp
 
 check-core-dev: $(DOCKER_STAMP) docker-volume
-	$(DOCKER_RUN) make check-core-dev
+	$(DOCKER_RUN) make check-core-dev BUILD_TYPE=$(BUILD_TYPE)
 
-# Build instrumented core-dev in the pinned container, run the core roundtrip
-# suite, run gcovr; the report tree is written to ./data/testOutput/coverage
-# directly via the workspace mount. Same command runs identically in CI.
 coverage-core-dev: $(DOCKER_STAMP) docker-volume
 	@rm -rf $(COV_DIR)
-	$(DOCKER_RUN) make coverage-core-dev
+	$(DOCKER_RUN) make coverage-core-dev BUILD_TYPE=$(BUILD_TYPE) ARGS='$(ARGS)'
 	@echo "Coverage written to $(COV_DIR)/ (open $(COV_DIR)/index.html)"
 
-# Static analysis gates. Pure Python -- no C++ build -- so they only need the
-# image. The report tree is written through the workspace mount to
-# ./data/testOutput/gen-quality. Same commands run identically in CI.
+test-gen: $(DOCKER_STAMP)
+	$(DOCKER_RUN) make test-gen ARGS='$(ARGS)'
+
+gen-check: $(DOCKER_STAMP)
+	$(DOCKER_RUN) make gen-check
+
 gen-quality: $(DOCKER_STAMP)
 	@rm -rf $(QUALITY_DIR)
 	$(DOCKER_RUN) make gen-quality
@@ -444,26 +438,37 @@ gen-quality: $(DOCKER_STAMP)
 gen-lint: $(DOCKER_STAMP)
 	$(DOCKER_RUN) make gen-lint
 
+fmt: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make fmt
+
+check: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make check
+
+gen: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make gen
+
+gen-cpp: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make gen-cpp
+
+gen-go: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make gen-go
+
+gen-c: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make gen-c
+
+gen-schema: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make gen-schema
+
+build-go: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make build-go
+
+test-go: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make test-go ARGS='$(ARGS)'
+
+build-c: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make build-c BUILD_TYPE=$(BUILD_TYPE)
+
+test-c: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make test-c BUILD_TYPE=$(BUILD_TYPE)
+
 endif
-
-# --- Xcode targets ----------------------------------------------------------
-
-XCODE_DIR := $(BUILD_ROOT)/xcode
-
-xcode-gen:
-	$(CMAKE) -G Xcode -S . -B $(XCODE_DIR) \
-		-DMX_BUILD_TESTS=on \
-		-DMX_BUILD_CORE_TESTS=off \
-		-DMX_BUILD_EXAMPLES=on
-
-xcode-build: xcode-gen
-	$(CMAKE) --build $(XCODE_DIR) --config $(BUILD_TYPE)
-
-xcode-test: xcode-build
-	@found=''; \
-	for p in "$(XCODE_DIR)/$(BUILD_TYPE)/mxtest" "$(XCODE_DIR)/Debug/mxtest"; do \
-		if [ -x "$$p" ]; then found="$$p"; break; fi; \
-	done; \
-	if [ -z "$$found" ]; then echo "error: mxtest not found under $(XCODE_DIR)" >&2; exit 1; fi; \
-	echo ">> $$found"; \
-	"$$found"

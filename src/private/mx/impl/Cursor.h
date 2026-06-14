@@ -6,13 +6,12 @@
 
 #include "mx/api/MeasureData.h"
 #include "mx/api/TimeSignatureData.h"
-#include "mx/core/elements/PartwiseMeasure.h"
 
 namespace mx
 {
 namespace core
 {
-class Duration;
+class PositiveDivisions;
 }
 
 namespace impl
@@ -44,8 +43,8 @@ class Cursor
     // when starting a new measure
     void reset();
 
-    int convertDurationToGlobalTickScale(const core::Duration &duration) const;
-    int convertDurationToGlobalTickScale(long double durationValue) const;
+    int convertDurationToGlobalTickScale(const core::PositiveDivisions &duration) const;
+    int convertDurationToGlobalTickScale(double durationValue) const;
     int convertDurationToGlobalTickScale(int duration) const;
 
   private:

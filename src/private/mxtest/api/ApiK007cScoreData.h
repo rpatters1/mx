@@ -5,8 +5,8 @@
 #pragma once
 
 #include "mx/api/ScoreData.h"
-#include "mx/core/Enums.h"
 #include "mx/impl/Converter.h"
+#include "mx/impl/DynamicsReader.h"
 
 namespace
 {
@@ -34,7 +34,7 @@ inline void addNoteToMeasure(mx::api::MarkType markType, mx::api::MeasureData *m
     mark.markType = markType;
     mx::impl::Converter converter;
     const auto d = converter.convertDynamic(markType);
-    mark.name = mx::core::toString(d);
+    mark.name = mx::impl::dynamicsKindToName(d);
     direction.tickTimePosition = noteP->tickTimePosition;
     direction.isStaffValueSpecified = false;
     mark.positionData.placement = Placement::below;

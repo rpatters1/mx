@@ -1,0 +1,21 @@
+{{#fields}}
+{{#is_required}}
+    {{type_ref.ident}} m_{{ident}}{};
+{{/is_required}}
+{{#is_optional}}
+{{#presence}}
+    bool m_{{ident}}{false};
+{{/presence}}
+{{^presence}}
+    std::optional<{{type_ref.ident}}> m_{{ident}};
+{{/presence}}
+{{/is_optional}}
+{{#is_vector}}
+{{#min1}}
+    OneOrMore<{{type_ref.ident}}> m_{{ident}};
+{{/min1}}
+{{^min1}}
+    std::vector<{{type_ref.ident}}> m_{{ident}};
+{{/min1}}
+{{/is_vector}}
+{{/fields}}

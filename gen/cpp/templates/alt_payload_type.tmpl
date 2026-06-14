@@ -1,0 +1,1 @@
+{{#is_required}}{{type_ref.ident}}{{/is_required}}{{#is_vector}}{{#min1}}OneOrMore<{{type_ref.ident}}>{{/min1}}{{^min1}}std::vector<{{type_ref.ident}}>{{/min1}}{{/is_vector}}

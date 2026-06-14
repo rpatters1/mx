@@ -17,15 +17,11 @@ namespace core
 class ScorePartwise;
 class PartwisePart;
 class ScorePart;
-using ScorePartPtr = std::shared_ptr<ScorePart>;
-class Properties;
-class DisplayTextOrAccidentalText;
-using DisplayTextOrAccidentalTextPtr = std::shared_ptr<DisplayTextOrAccidentalText>;
-using DisplayTextOrAccidentalTextSet = std::vector<DisplayTextOrAccidentalTextPtr>;
 class ScoreInstrument;
 class VirtualInstrument;
-class MidiDeviceInstrumentGroup;
-class MidiInstrument;
+class ScorePartMIDIGroup;
+class MIDIInstrument;
+class NameDisplay;
 } // namespace core
 
 namespace impl
@@ -56,18 +52,18 @@ class PartReader
 
     int calculateNumStaves() const;
     void parseScorePart() const;
-    std::string extractDisplayText(const core::DisplayTextOrAccidentalTextSet &items) const;
+    std::string extractDisplayText(const core::NameDisplay &nameDisplay) const;
     void parseScoreInstrument(const core::ScoreInstrument &scoreInstrument) const;
     void parseVirtualInstrument(const core::VirtualInstrument &virtualInstrument) const;
-    void parseMidiDeviceInstrumentGroup(const core::MidiDeviceInstrumentGroup &grp) const;
-    void parseMidiInstrument(const core::MidiInstrument &inst) const;
+    void parseMidiDeviceInstrumentGroup(const core::ScorePartMIDIGroup &grp) const;
+    void parseMidiInstrument(const core::MIDIInstrument &inst) const;
     int findPartIndex(const std::string &inPartId) const;
 
     template <typename ELEMENT_TYPE> void updateNumStaves(const ELEMENT_TYPE &element, int &outNumStaves) const
     {
-        if (element.getHasStaff())
+        if (element.staff().has_value())
         {
-            int temp = element.getStaff()->getValue().getValue();
+            int temp = *element.staff();
             if (temp > outNumStaves)
             {
                 outNumStaves = temp;

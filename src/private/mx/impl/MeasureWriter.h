@@ -8,6 +8,7 @@
 #include "mx/api/MeasureData.h"
 #include "mx/api/PageData.h"
 #include "mx/api/SystemData.h"
+#include "mx/core/generated/PartwiseMeasure.h"
 #include "mx/impl/Converter.h"
 #include "mx/impl/MeasureCursor.h"
 #include "mx/impl/PropertiesWriter.h"
@@ -17,16 +18,6 @@
 
 namespace mx
 {
-namespace core
-{
-class PartwiseMeasure;
-using PartwiseMeasurePtr = std::shared_ptr<PartwiseMeasure>;
-class Properties;
-using PropertiesPtr = std::shared_ptr<Properties>;
-class Direction;
-using DirectionPtr = std::shared_ptr<Direction>;
-} // namespace core
-
 namespace impl
 {
 class ScoreWriter;
@@ -36,7 +27,7 @@ class MeasureWriter
   public:
     MeasureWriter(const api::MeasureData &inMeasureData, const MeasureCursor &inCursor,
                   const ScoreWriter &inScoreWriter);
-    core::PartwiseMeasurePtr getPartwiseMeasure();
+    core::PartwiseMeasure getPartwiseMeasure();
 
   public:
     class HistoryRecord
@@ -199,7 +190,7 @@ class MeasureWriter
   private:
     using NoteIter = std::vector<api::NoteData>::const_iterator;
     const api::MeasureData &myMeasureData;
-    core::PartwiseMeasurePtr myOutMeasure;
+    core::PartwiseMeasure myOutMeasure;
     MeasureCursor myPreviousCursor;
     const ScoreWriter &myScoreWriter;
     std::unique_ptr<PropertiesWriter> myPropertiesWriter;

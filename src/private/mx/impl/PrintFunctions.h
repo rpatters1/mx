@@ -5,8 +5,8 @@
 #pragma once
 
 #include "mx/api/PrintData.h"
-#include "mx/core/Color.h"
-#include "mx/core/Enums.h"
+#include "mx/core/generated/Color.h"
+#include "mx/core/generated/YesNo.h"
 #include "mx/impl/Converter.h"
 #include "mx/impl/FontFunctions.h"
 #include "mx/utility/OptionalMembers.h"
@@ -15,11 +15,11 @@ namespace mx
 {
 namespace impl
 {
-MX_ATTR_FUNC_OPTIONAL(hasPrintObject, HasPrintObject, bool, false);
-MX_ATTR_FUNC_OPTIONAL(printObject, PrintObject, core::YesNo, core::YesNo::yes);
+MX_OPTIONAL_HAS_FUNC(printObject, PrintObject);
+MX_OPTIONAL_GET_VALUE_FUNC(printObject, PrintObject, core::YesNo, core::YesNo::yes());
 
-MX_ATTR_FUNC_OPTIONAL(hasColor, HasColor, bool, false);
-MX_ATTR_FUNC_OPTIONAL(color, Color, core::Color, core::Color{});
+MX_OPTIONAL_HAS_FUNC(color, Color);
+MX_OPTIONAL_GET_VALUE_FUNC(color, Color, core::Color, core::Color{});
 
 template <typename ATTRIBUTES_TYPE> api::Bool getPrintObject(const ATTRIBUTES_TYPE &inAttributes)
 {
@@ -40,14 +40,14 @@ template <typename ATTRIBUTES_TYPE> api::ColorData getColor(const ATTRIBUTES_TYP
     }
     const auto coreColor = checkColor<ATTRIBUTES_TYPE>(&inAttributes);
     api::ColorData outApiColor;
-    outApiColor.red = static_cast<uint8_t>(coreColor.getRed());
-    outApiColor.green = static_cast<uint8_t>(coreColor.getGreen());
-    outApiColor.blue = static_cast<uint8_t>(coreColor.getBlue());
-    outApiColor.isAlphaSpecified = coreColor.getColorType() == core::Color::ColorType::ARGB;
+    outApiColor.red = static_cast<uint8_t>(coreColor.red());
+    outApiColor.green = static_cast<uint8_t>(coreColor.green());
+    outApiColor.blue = static_cast<uint8_t>(coreColor.blue());
+    outApiColor.isAlphaSpecified = coreColor.alpha().has_value();
 
     if (outApiColor.isAlphaSpecified)
     {
-        outApiColor.alpha = static_cast<uint8_t>(coreColor.getAlpha());
+        outApiColor.alpha = static_cast<uint8_t>(*coreColor.alpha());
     }
     else
     {
@@ -83,11 +83,11 @@ inline core::Color createCoreColor(const api::ColorData &inColor)
     return core::Color{inColor.red, inColor.green, inColor.blue};
 }
 
-MX_ATTR_SETFUNC_OPTIONAL(hasPrintObject, HasPrintObject, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL(printObject, PrintObject, core::YesNo, core::YesNo::yes);
+MX_OPTIONAL_SET_HAS_FUNC(printObject, setPrintObject, PrintObject);
+MX_OPTIONAL_SET_VALUE_FUNC(printObject, setPrintObject, PrintObject);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasColor, HasColor, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL(color, Color, core::Color, core::Color{});
+MX_OPTIONAL_SET_HAS_FUNC(color, setColor, Color);
+MX_OPTIONAL_SET_VALUE_FUNC(color, setColor, Color);
 
 template <typename ATTRIBUTES_TYPE> void setPrintObject(const api::Bool &inPrintObject, ATTRIBUTES_TYPE &outAttributes)
 {
@@ -101,6 +101,8 @@ template <typename ATTRIBUTES_TYPE>
 void setAttributesFromColorData(const api::ColorData &inColorData, ATTRIBUTES_TYPE &outAttributes)
 {
     const auto valueToSet = createCoreColor(inColorData);
+    // Ensure the optional color field is initialized before setting its value.
+    lookForAndSetHasColor(true, &outAttributes);
     lookForAndSetColor(valueToSet, &outAttributes);
 }
 

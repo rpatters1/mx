@@ -4,103 +4,87 @@
 
 #include "mx/impl/DirectionWriter.h"
 #include "mx/api/BarlineData.h"
-#include "mx/core/elements/AccordionRegistration.h"
-#include "mx/core/elements/Barre.h"
-#include "mx/core/elements/Bass.h"
-#include "mx/core/elements/BassAlter.h"
-#include "mx/core/elements/BassStep.h"
-#include "mx/core/elements/BeatUnit.h"
-#include "mx/core/elements/BeatUnitDot.h"
-#include "mx/core/elements/BeatUnitGroup.h"
-#include "mx/core/elements/BeatUnitPer.h"
-#include "mx/core/elements/BeatUnitPerOrNoteRelationNoteChoice.h"
-#include "mx/core/elements/Bracket.h"
-#include "mx/core/elements/BracketAttributes.h"
-#include "mx/core/elements/Coda.h"
-#include "mx/core/elements/Damp.h"
-#include "mx/core/elements/DampAll.h"
-#include "mx/core/elements/Dashes.h"
-#include "mx/core/elements/Degree.h"
-#include "mx/core/elements/DegreeAlter.h"
-#include "mx/core/elements/DegreeType.h"
-#include "mx/core/elements/DegreeValue.h"
-#include "mx/core/elements/Direction.h"
-#include "mx/core/elements/DirectionType.h"
-#include "mx/core/elements/Dynamics.h"
-#include "mx/core/elements/EditorialGroup.h"
-#include "mx/core/elements/EditorialVoiceDirectionGroup.h"
-#include "mx/core/elements/Eyeglasses.h"
-#include "mx/core/elements/Fingering.h"
-#include "mx/core/elements/FirstFret.h"
-#include "mx/core/elements/Footnote.h"
-#include "mx/core/elements/Frame.h"
-#include "mx/core/elements/FrameFrets.h"
-#include "mx/core/elements/FrameNote.h"
-#include "mx/core/elements/FrameStrings.h"
-#include "mx/core/elements/Fret.h"
-#include "mx/core/elements/Function.h"
-#include "mx/core/elements/Harmony.h"
-#include "mx/core/elements/HarmonyChordGroup.h"
-#include "mx/core/elements/HarpPedals.h"
-#include "mx/core/elements/Image.h"
-#include "mx/core/elements/Inversion.h"
-#include "mx/core/elements/Kind.h"
-#include "mx/core/elements/Level.h"
-#include "mx/core/elements/Metronome.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/OctaveShift.h"
-#include "mx/core/elements/Offset.h"
-#include "mx/core/elements/OtherDirection.h"
-#include "mx/core/elements/Pedal.h"
-#include "mx/core/elements/PerMinute.h"
-#include "mx/core/elements/PerMinuteOrBeatUnitChoice.h"
-#include "mx/core/elements/Percussion.h"
-#include "mx/core/elements/PrincipalVoice.h"
-#include "mx/core/elements/Rehearsal.h"
-#include "mx/core/elements/Root.h"
-#include "mx/core/elements/RootAlter.h"
-#include "mx/core/elements/RootStep.h"
-#include "mx/core/elements/Scordatura.h"
-#include "mx/core/elements/Segno.h"
-#include "mx/core/elements/Sound.h"
-#include "mx/core/elements/Staff.h"
-#include "mx/core/elements/String.h"
-#include "mx/core/elements/StringMute.h"
-#include "mx/core/elements/Voice.h"
-#include "mx/core/elements/Wedge.h"
-#include "mx/core/elements/Words.h"
+#include "mx/core/generated/Bass.h"
+#include "mx/core/generated/BassStep.h"
+#include "mx/core/generated/BeatUnitGroup.h"
+#include "mx/core/generated/Bracket.h"
+#include "mx/core/generated/Dashes.h"
+#include "mx/core/generated/Degree.h"
+#include "mx/core/generated/DegreeAlter.h"
+#include "mx/core/generated/DegreeType.h"
+#include "mx/core/generated/DegreeTypeValue.h"
+#include "mx/core/generated/DegreeValue.h"
+#include "mx/core/generated/Direction.h"
+#include "mx/core/generated/DirectionType.h"
+#include "mx/core/generated/DirectionTypeChoice.h"
+#include "mx/core/generated/DirectionTypeChoiceChoice.h"
+#include "mx/core/generated/Divisions.h"
+#include "mx/core/generated/Dynamics.h"
+#include "mx/core/generated/Empty.h"
+#include "mx/core/generated/FirstFret.h"
+#include "mx/core/generated/FormattedTextID.h"
+#include "mx/core/generated/Frame.h"
+#include "mx/core/generated/FrameNote.h"
+#include "mx/core/generated/Fret.h"
+#include "mx/core/generated/Harmony.h"
+#include "mx/core/generated/HarmonyAlter.h"
+#include "mx/core/generated/HarmonyChordGroup.h"
+#include "mx/core/generated/HarmonyChordGroupChoice.h"
+#include "mx/core/generated/Kind.h"
+#include "mx/core/generated/Metronome.h"
+#include "mx/core/generated/MetronomeChoice.h"
+#include "mx/core/generated/MetronomeChoiceGroup.h"
+#include "mx/core/generated/MetronomeChoiceGroupChoice.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/OctaveShift.h"
+#include "mx/core/generated/Offset.h"
+#include "mx/core/generated/Pedal.h"
+#include "mx/core/generated/PedalType.h"
+#include "mx/core/generated/PerMinute.h"
+#include "mx/core/generated/Root.h"
+#include "mx/core/generated/RootStep.h"
+#include "mx/core/generated/Semitones.h"
+#include "mx/core/generated/StartStop.h"
+#include "mx/core/generated/StartStopContinue.h"
+#include "mx/core/generated/String.h"
+#include "mx/core/generated/StringNumber.h"
+#include "mx/core/generated/Wedge.h"
+#include "mx/core/generated/WedgeType.h"
+#include "mx/core/generated/YesNo.h"
 #include "mx/impl/DynamicsWriter.h"
+#include "mx/impl/FontFunctions.h"
 #include "mx/impl/LineFunctions.h"
 #include "mx/impl/MarkDataFunctions.h"
+#include "mx/impl/PrintFunctions.h"
 #include "mx/impl/SpannerFunctions.h"
+#include "mx/utility/Throw.h"
+#include "mx/utility/Unused.h"
 
 namespace mx
 {
 namespace impl
 {
 DirectionWriter::DirectionWriter(const api::DirectionData &inDirectionData, const Cursor &inCursor)
-    : myDirectionData{inDirectionData}, myCursor{inCursor}, myConverter{}, myPlacements{}
+    : myDirectionData{inDirectionData}, myCursor{inCursor}, myConverter{}, myPlacements{},
+      myIsFirstDirectionTypeAdded{false}
 {
 }
 
-core::MusicDataChoiceSet DirectionWriter::getDirectionLikeThings()
+std::vector<core::MusicDataChoice> DirectionWriter::getDirectionLikeThings()
 {
-    core::MusicDataChoiceSet output{};
-    auto directionPtr = core::makeDirection();
+    std::vector<core::MusicDataChoice> output{};
+    core::Direction direction{};
     myPlacements.clear();
     myIsFirstDirectionTypeAdded = false;
-    auto &directionAttributes = *directionPtr->getAttributes();
 
     if (myDirectionData.placement != api::Placement::unspecified)
     {
-        directionAttributes.hasPlacement = true;
-        directionAttributes.placement = myConverter.convert(myDirectionData.placement);
+        direction.setPlacement(myConverter.convert(myDirectionData.placement));
     }
 
     if (myDirectionData.isStaffValueSpecified || myCursor.staffIndex != 0)
     {
-        directionPtr->setHasStaff(true);
-        directionPtr->getStaff()->setValue(core::PositiveInteger{myCursor.staffIndex + 1});
+        direction.setStaff(myCursor.staffIndex + 1);
     }
 
     int offset = 0;
@@ -108,10 +92,10 @@ core::MusicDataChoiceSet DirectionWriter::getDirectionLikeThings()
     if (myDirectionData.tickTimePosition != myCursor.tickTimePosition)
     {
         offset = myDirectionData.tickTimePosition - myCursor.tickTimePosition;
-        directionPtr->setHasOffset(true);
-        directionPtr->getOffset()->setValue(core::DivisionsValue{static_cast<core::DecimalType>(offset)});
-        directionPtr->getOffset()->getAttributes()->hasSound = true;
-        directionPtr->getOffset()->getAttributes()->sound = core::YesNo::yes;
+        core::Offset coreOffset{};
+        coreOffset.setValue(core::Divisions{core::Decimal{static_cast<double>(offset)}});
+        coreOffset.setSound(core::YesNo::yes());
+        direction.setOffset(coreOffset);
     }
 
     for (auto mark : myDirectionData.marks)
@@ -122,245 +106,215 @@ core::MusicDataChoiceSet DirectionWriter::getDirectionLikeThings()
         // if !isDirection( mark ) continue;
         if (isMarkDynamic(mark.markType))
         {
-            auto directionTypePtr = core::makeDirectionType();
-            this->addDirectionType(directionTypePtr, directionPtr);
-            directionTypePtr->setChoice(core::DirectionType::Choice::dynamics);
             DynamicsWriter dynamicsWriter{mark, myCursor};
-            MX_ASSERT(directionTypePtr->getDynamicsSet().size() == 1);
-            directionTypePtr->addDynamics(dynamicsWriter.getDynamics());
-            directionTypePtr->removeDynamics(directionTypePtr->getDynamicsSet().cbegin());
+            core::OneOrMore<core::Dynamics> dynamicsSet{dynamicsWriter.getDynamics()};
+            core::DirectionType dt{};
+            dt.setChoice(core::DirectionTypeChoice::dynamics(dynamicsSet));
+            addDirectionType(std::move(dt), direction);
         }
 
         if (isMarkPedal(mark.markType))
         {
-            auto directionTypePtr = core::makeDirectionType();
-            this->addDirectionType(directionTypePtr, directionPtr);
-            directionTypePtr->setChoice(core::DirectionType::Choice::pedal);
-            auto pedalPtr = directionTypePtr->getPedal();
-            auto attr = pedalPtr->getAttributes();
+            core::Pedal pedal{};
 
             if (mark.positionData.placement != api::Placement::unspecified)
             {
-                directionPtr->getAttributes()->hasPlacement = true;
                 Converter c;
-                directionPtr->getAttributes()->placement = c.convert(mark.positionData.placement);
+                direction.setPlacement(c.convert(mark.positionData.placement));
             }
 
             if (mark.markType == api::MarkType::pedal)
             {
-                attr->type = core::StartStopChangeContinue::start;
+                pedal.setType(core::PedalType::start());
             }
             else if (mark.markType == api::MarkType::damp)
             {
-                attr->type = core::StartStopChangeContinue::stop;
+                pedal.setType(core::PedalType::stop());
             }
 
-            attr->hasLine = true;
-            attr->line = core::YesNo::no;
-            attr->hasSign = true;
-            attr->sign = core::YesNo::yes;
-            setAttributesFromPositionData(mark.positionData, *attr);
+            pedal.setLine(core::YesNo::no());
+            pedal.setSign(core::YesNo::yes());
+            setAttributesFromPositionData(mark.positionData, pedal);
+            core::DirectionType dt{};
+            dt.setChoice(core::DirectionTypeChoice::pedal(pedal));
+            addDirectionType(std::move(dt), direction);
         }
     }
 
     for (const auto &pedalStart : myDirectionData.pedalStarts)
     {
-        auto directionTypePtr = core::makeDirectionType();
-        this->addDirectionType(directionTypePtr, directionPtr);
-        directionTypePtr->setChoice(core::DirectionType::Choice::pedal);
-        auto pedalPtr = directionTypePtr->getPedal();
-        auto attr = pedalPtr->getAttributes();
-        attr->type = core::StartStopChangeContinue::start;
-        attr->hasLine = true;
-        attr->line = core::YesNo::yes;
-        attr->hasSign = true;
-        attr->sign = core::YesNo::yes;
-        setAttributesFromPositionData(pedalStart.positionData, *attr);
+        core::Pedal pedal{};
+        pedal.setType(core::PedalType::start());
+        pedal.setLine(core::YesNo::yes());
+        pedal.setSign(core::YesNo::yes());
+        setAttributesFromPositionData(pedalStart.positionData, pedal);
+        core::DirectionType dt{};
+        dt.setChoice(core::DirectionTypeChoice::pedal(pedal));
+        addDirectionType(std::move(dt), direction);
     }
 
     for (const auto &pedalStop : myDirectionData.pedalStops)
     {
-        auto directionTypePtr = core::makeDirectionType();
-        this->addDirectionType(directionTypePtr, directionPtr);
-        directionTypePtr->setChoice(core::DirectionType::Choice::pedal);
-        auto pedalPtr = directionTypePtr->getPedal();
-        auto attr = pedalPtr->getAttributes();
-        attr->type = core::StartStopChangeContinue::stop;
-        attr->hasLine = true;
-        attr->line = core::YesNo::yes;
-        attr->hasSign = true;
-        attr->sign = core::YesNo::yes;
-        setAttributesFromPositionData(pedalStop.positionData, *attr);
+        core::Pedal pedal{};
+        pedal.setType(core::PedalType::stop());
+        pedal.setLine(core::YesNo::yes());
+        pedal.setSign(core::YesNo::yes());
+        setAttributesFromPositionData(pedalStop.positionData, pedal);
+        core::DirectionType dt{};
+        dt.setChoice(core::DirectionTypeChoice::pedal(pedal));
+        addDirectionType(std::move(dt), direction);
     }
 
     for (const auto &wedgeStop : myDirectionData.wedgeStops)
     {
-        auto wedgeStartDirectionTypePtr = core::makeDirectionType();
-        wedgeStartDirectionTypePtr->setChoice(core::DirectionType::Choice::wedge);
-        this->addDirectionType(wedgeStartDirectionTypePtr, directionPtr);
-        auto wedgePtr = wedgeStartDirectionTypePtr->getWedge();
-        auto &attr = *wedgePtr->getAttributes();
-        attr.type = core::WedgeType::stop;
+        core::Wedge wedge{};
+        wedge.setType(core::WedgeType::stop());
 
         if (wedgeStop.isSpreadSpecified)
         {
-            attr.hasSpread = true;
-            attr.spread = core::TenthsValue{static_cast<core::DecimalType>(wedgeStop.spread)};
+            wedge.setSpread(core::Tenths{core::Decimal{static_cast<double>(wedgeStop.spread)}});
         }
-        auto &attributes = *wedgePtr->getAttributes();
-        setAttributesFromPositionData(wedgeStop.positionData, attributes);
+        setAttributesFromPositionData(wedgeStop.positionData, wedge);
+        core::DirectionType dt{};
+        dt.setChoice(core::DirectionTypeChoice::wedge(wedge));
+        addDirectionType(std::move(dt), direction);
     }
 
     for (const auto &wedgeStart : myDirectionData.wedgeStarts)
     {
-        auto wedgeStartDirectionTypePtr = core::makeDirectionType();
-        wedgeStartDirectionTypePtr->setChoice(core::DirectionType::Choice::wedge);
-        this->addDirectionType(wedgeStartDirectionTypePtr, directionPtr);
-        auto wedgePtr = wedgeStartDirectionTypePtr->getWedge();
-        auto &attr = *wedgePtr->getAttributes();
+        core::Wedge wedge{};
 
         if (wedgeStart.wedgeType != api::WedgeType::unspecified)
         {
-            attr.type = myConverter.convert(wedgeStart.wedgeType);
+            wedge.setType(myConverter.convert(wedgeStart.wedgeType));
         }
 
         if (wedgeStart.isSpreadSpecified)
         {
-            attr.hasSpread = true;
-            attr.spread = core::TenthsValue{static_cast<core::DecimalType>(wedgeStart.spread)};
+            wedge.setSpread(core::Tenths{core::Decimal{static_cast<double>(wedgeStart.spread)}});
         }
 
-        auto &attributes = *wedgePtr->getAttributes();
-
-        setAttributesFromPositionData(wedgeStart.positionData, attributes);
-        setAttributesFromLineData(wedgeStart.lineData, attributes);
-        setAttributesFromColorData(wedgeStart.colorData, attributes);
+        setAttributesFromPositionData(wedgeStart.positionData, wedge);
+        setAttributesFromLineData(wedgeStart.lineData, wedge);
+        setAttributesFromColorData(wedgeStart.colorData, wedge);
+        core::DirectionType dt{};
+        dt.setChoice(core::DirectionTypeChoice::wedge(wedge));
+        addDirectionType(std::move(dt), direction);
     }
 
     for (const auto &ottavaStop : myDirectionData.ottavaStops)
     {
-        auto oStopDir = core::makeDirectionType();
-        this->addDirectionType(oStopDir, directionPtr);
-        oStopDir->setChoice(core::DirectionType::Choice::octaveShift);
-        auto oStart = oStopDir->getOctaveShift();
-        auto &attr = *oStart->getAttributes();
-        attr.type = core::UpDownStopContinue::stop;
+        core::OctaveShift os{};
+        os.setType(core::UpDownStopContinue::stop());
         MX_UNUSED(ottavaStop);
+        core::DirectionType dt{};
+        dt.setChoice(core::DirectionTypeChoice::octaveShift(os));
+        addDirectionType(std::move(dt), direction);
     }
 
     for (const auto &ottavaStart : myDirectionData.ottavaStarts)
     {
-        auto oStartDir = core::makeDirectionType();
-        this->addDirectionType(oStartDir, directionPtr);
-        oStartDir->setChoice(core::DirectionType::Choice::octaveShift);
-        auto oStart = oStartDir->getOctaveShift();
-        auto &attr = *oStart->getAttributes();
-        impl::setAttributesFromLineData(ottavaStart.spannerStart.lineData, attr);
-
-        attr.hasSize = true;
+        core::OctaveShift os{};
+        impl::setAttributesFromLineData(ottavaStart.spannerStart.lineData, os);
 
         switch (ottavaStart.ottavaType)
         {
         case api::OttavaType::o15ma: {
-            attr.type = core::UpDownStopContinue::up;
-            attr.size = core::PositiveInteger{15};
+            os.setType(core::UpDownStopContinue::up());
+            os.setSize(15);
             break;
         }
         case api::OttavaType::o15mb: {
-            attr.type = core::UpDownStopContinue::down;
-            attr.size = core::PositiveInteger{15};
+            os.setType(core::UpDownStopContinue::down());
+            os.setSize(15);
             break;
         }
         case api::OttavaType::o8va: {
-            attr.type = core::UpDownStopContinue::up;
-            attr.size = core::PositiveInteger{8};
+            os.setType(core::UpDownStopContinue::up());
+            os.setSize(8);
             break;
         }
         case api::OttavaType::o8vb: {
-            attr.type = core::UpDownStopContinue::down;
-            attr.size = core::PositiveInteger{8};
+            os.setType(core::UpDownStopContinue::down());
+            os.setSize(8);
             break;
         }
         default:
             break;
         }
+
+        core::DirectionType dt{};
+        dt.setChoice(core::DirectionTypeChoice::octaveShift(os));
+        addDirectionType(std::move(dt), direction);
     }
 
-    const auto setBracketLineData = [&](const api::LineData &lineData, core::BracketAttributes &attr) {
-        attr.lineEnd = lineData.lineHook == api::LineHook::unspecified ? core::LineEnd::none
-                                                                       : myConverter.convert(lineData.lineHook);
+    const auto setBracketLineData = [&](const api::LineData &lineData, core::Bracket &bracket) {
+        bracket.setLineEnd(lineData.lineHook == api::LineHook::unspecified ? core::LineEnd::none()
+                                                                           : myConverter.convert(lineData.lineHook));
 
         if (lineData.lineType != api::LineType::unspecified)
         {
-            attr.hasLineType = true;
-            attr.lineType = myConverter.convert(lineData.lineType);
+            bracket.setLineType(myConverter.convert(lineData.lineType));
         }
         if (lineData.isStopLengthSpecified)
         {
-            attr.hasEndLength = true;
-            attr.endLength = core::TenthsValue{static_cast<core::DecimalType>(lineData.endLength)};
+            bracket.setEndLength(core::Tenths{core::Decimal{static_cast<double>(lineData.endLength)}});
         }
         if (lineData.isDashLengthSpecified)
         {
-            attr.hasDashLength = true;
-            attr.dashLength = core::TenthsValue{static_cast<core::DecimalType>(lineData.dashLength)};
+            bracket.setDashLength(core::Tenths{core::Decimal{static_cast<double>(lineData.dashLength)}});
         }
         if (lineData.isSpaceLengthSpecified)
         {
-            attr.hasSpaceLength = true;
-            attr.spaceLength = core::TenthsValue{static_cast<core::DecimalType>(lineData.spaceLength)};
+            bracket.setSpaceLength(core::Tenths{core::Decimal{static_cast<double>(lineData.spaceLength)}});
         }
     };
 
     for (const auto &item : myDirectionData.bracketStarts)
     {
-        auto outDirType = core::makeDirectionType();
-        this->addDirectionType(outDirType, directionPtr);
-        outDirType->setChoice(core::DirectionType::Choice::bracket);
-        auto outElement = outDirType->getBracket();
-        auto &attr = *outElement->getAttributes();
-        setAttributesFromSpannerStart(item, attr);
-        attr.type = core::StartStopContinue::start;
-        setAttributesFromPositionData(item.positionData, attr);
-        setAttributesFromPrintData(item.printData, attr);
-        setBracketLineData(item.lineData, attr);
+        core::Bracket bracket{};
+        setAttributesFromSpannerStart(item, bracket);
+        bracket.setType(core::StartStopContinue::start());
+        setAttributesFromPositionData(item.positionData, bracket);
+        setAttributesFromPrintData(item.printData, bracket);
+        setBracketLineData(item.lineData, bracket);
+        core::DirectionType dt{};
+        dt.setChoice(core::DirectionTypeChoice::bracket(bracket));
+        addDirectionType(std::move(dt), direction);
     }
 
     for (const auto &item : myDirectionData.bracketStops)
     {
-        auto outDirType = core::makeDirectionType();
-        this->addDirectionType(outDirType, directionPtr);
-        outDirType->setChoice(core::DirectionType::Choice::bracket);
-        auto outElement = outDirType->getBracket();
-        auto &attr = *outElement->getAttributes();
-        setAttributesFromSpannerStop(item, attr);
-        attr.type = core::StartStopContinue::stop;
-        setBracketLineData(item.lineData, attr);
+        core::Bracket bracket{};
+        setAttributesFromSpannerStop(item, bracket);
+        bracket.setType(core::StartStopContinue::stop());
+        setBracketLineData(item.lineData, bracket);
+        core::DirectionType dt{};
+        dt.setChoice(core::DirectionTypeChoice::bracket(bracket));
+        addDirectionType(std::move(dt), direction);
     }
 
     for (const auto &item : myDirectionData.dashesStarts)
     {
-        auto outDirType = core::makeDirectionType();
-        this->addDirectionType(outDirType, directionPtr);
-        outDirType->setChoice(core::DirectionType::Choice::dashes);
-        auto outElement = outDirType->getDashes();
-        auto &attr = *outElement->getAttributes();
-        setAttributesFromSpannerStart(item, attr);
-        attr.type = core::StartStopContinue::start;
-        setAttributesFromPositionData(item.positionData, attr);
-        setAttributesFromPrintData(item.printData, attr);
-        setAttributesFromLineData(item.lineData, attr);
+        core::Dashes dashes{};
+        setAttributesFromSpannerStart(item, dashes);
+        dashes.setType(core::StartStopContinue::start());
+        setAttributesFromPositionData(item.positionData, dashes);
+        setAttributesFromPrintData(item.printData, dashes);
+        setAttributesFromLineData(item.lineData, dashes);
+        core::DirectionType dt{};
+        dt.setChoice(core::DirectionTypeChoice::dashes(dashes));
+        addDirectionType(std::move(dt), direction);
     }
 
     for (const auto &item : myDirectionData.dashesStops)
     {
-        auto outDirType = core::makeDirectionType();
-        this->addDirectionType(outDirType, directionPtr);
-        outDirType->setChoice(core::DirectionType::Choice::dashes);
-        auto outElement = outDirType->getDashes();
-        auto &attr = *outElement->getAttributes();
-        setAttributesFromSpannerStop(item, attr);
-        attr.type = core::StartStopContinue::stop;
+        core::Dashes dashes{};
+        setAttributesFromSpannerStop(item, dashes);
+        dashes.setType(core::StartStopContinue::stop());
+        core::DirectionType dt{};
+        dt.setChoice(core::DirectionTypeChoice::dashes(dashes));
+        addDirectionType(std::move(dt), direction);
     }
 
     for (const auto &tempo : myDirectionData.tempos)
@@ -370,74 +324,76 @@ core::MusicDataChoiceSet DirectionWriter::getDirectionLikeThings()
             MX_THROW("Only api::TempoType::beatsPerMinute is supported, others are not implemented");
         }
 
-        auto outDirType = core::makeDirectionType();
-        this->addDirectionType(outDirType, directionPtr);
-        outDirType->setChoice(core::DirectionType::Choice::metronome);
-        auto outElement = outDirType->getMetronome();
-        auto choice = outElement->getBeatUnitPerOrNoteRelationNoteChoice();
-        choice->setChoice(core::BeatUnitPerOrNoteRelationNoteChoice::Choice::beatUnitPer);
-        auto bpm = choice->getBeatUnitPer();
-        auto beatUnitGroup = bpm->getBeatUnitGroup();
-        auto beatUnit = beatUnitGroup->getBeatUnit();
+        core::BeatUnitGroup beatUnitGroup{};
         Converter converter;
-        beatUnit->setValue(converter.convert(tempo.beatsPerMinute.durationName));
+        beatUnitGroup.setBeatUnit(converter.convert(tempo.beatsPerMinute.durationName));
 
         for (int d = 0; d < tempo.beatsPerMinute.dots; ++d)
         {
-            beatUnitGroup->addBeatUnitDot(core::makeBeatUnitDot());
+            beatUnitGroup.addBeatUnitDot(core::Empty{});
         }
 
-        auto pmobuc = bpm->getPerMinuteOrBeatUnitChoice();
-        pmobuc->setChoice(core::PerMinuteOrBeatUnitChoice::Choice::perMinute);
-        auto pm = pmobuc->getPerMinute();
-        auto str = std::to_string(tempo.beatsPerMinute.beatsPerMinute);
-        pm->setValue(core::XsString{str});
-        // auto& attr = *outElement->getAttributes();
-        // setAttributesFromSpannerStart( item, attr );
+        core::PerMinute pm{};
+        pm.setValue(std::to_string(tempo.beatsPerMinute.beatsPerMinute));
+
+        core::MetronomeChoiceGroupChoice mgChoice = core::MetronomeChoiceGroupChoice::perMinute(pm);
+
+        core::MetronomeChoiceGroup mcg{};
+        mcg.setBeatUnit(beatUnitGroup);
+        mcg.setChoice(mgChoice);
+
+        core::MetronomeChoice metChoice = core::MetronomeChoice::group(mcg);
+
+        core::Metronome metronome{};
+        metronome.setChoice(metChoice);
+
+        core::DirectionType dt{};
+        dt.setChoice(core::DirectionTypeChoice::metronome(metronome));
+        addDirectionType(std::move(dt), direction);
     }
 
     if (myDirectionData.words.size() > 0)
     {
         bool isFirstWordsAdded = false;
-        auto outDirType = core::makeDirectionType();
-        outDirType->setChoice(core::DirectionType::Choice::words);
+        core::OneOrMore<core::DirectionTypeChoiceChoice> choiceSet{core::DirectionTypeChoiceChoice{}};
 
         for (const auto &wordsData : myDirectionData.words)
         {
-            auto outWords = core::makeWords();
-            outDirType->addWords(outWords);
-
-            if (!isFirstWordsAdded)
-            {
-                isFirstWordsAdded = true;
-                outDirType->removeWords(outDirType->getWordsSet().cbegin());
-            }
-
-            auto &attr = *(outWords->getAttributes());
-            outWords->setValue(core::XsString{wordsData.text});
-            setAttributesFromPositionData(wordsData.positionData, attr);
-            setAttributesFromFontData(wordsData.fontData, attr);
+            core::FormattedTextID outWords{};
+            outWords.setValue(wordsData.text);
+            setAttributesFromPositionData(wordsData.positionData, outWords);
+            setAttributesFromFontData(wordsData.fontData, outWords);
 
             if (wordsData.isColorSpecified)
             {
                 // TODO - oops color is missing from words
-                //                        attr.hasColor = true;
-                setAttributesFromColorData(wordsData.colorData, attr);
+                setAttributesFromColorData(wordsData.colorData, outWords);
+            }
+
+            auto choiceItem = core::DirectionTypeChoiceChoice::words(outWords);
+
+            if (!isFirstWordsAdded)
+            {
+                isFirstWordsAdded = true;
+                choiceSet = core::OneOrMore<core::DirectionTypeChoiceChoice>{choiceItem};
+            }
+            else
+            {
+                choiceSet.add(choiceItem);
             }
         }
 
         if (isFirstWordsAdded)
         {
-            addDirectionType(outDirType, directionPtr);
+            core::DirectionType dt{};
+            dt.setChoice(core::DirectionTypeChoice::choice(choiceSet));
+            addDirectionType(std::move(dt), direction);
         }
     }
 
     if (myIsFirstDirectionTypeAdded)
     {
-        auto directionMdc = core::makeMusicDataChoice();
-        directionMdc->setChoice(core::MusicDataChoice::Choice::direction);
-        directionMdc->setDirection(directionPtr);
-        output.push_back(directionMdc);
+        output.push_back(core::MusicDataChoice::direction(direction));
     }
 
     auto harmonyMdcs = createHarmonyElements(offset);
@@ -449,42 +405,40 @@ core::MusicDataChoiceSet DirectionWriter::getDirectionLikeThings()
     return output;
 }
 
-void DirectionWriter::addDirectionType(const core::DirectionTypePtr &directionType,
-                                       const core::DirectionPtr &ioDirection)
+void DirectionWriter::addDirectionType(core::DirectionType directionType, core::Direction &ioDirection)
 {
-    ioDirection->addDirectionType(directionType);
-
-    if (!myIsFirstDirectionTypeAdded && ioDirection->getDirectionTypeSet().size() == 2)
+    if (!myIsFirstDirectionTypeAdded)
     {
-        ioDirection->removeDirectionType(ioDirection->getDirectionTypeSet().cbegin());
+        // Replace the default-constructed direction type (OneOrMore starts with one default item).
+        ioDirection.setDirectionType(core::OneOrMore<core::DirectionType>{std::move(directionType)});
+        myIsFirstDirectionTypeAdded = true;
     }
-
-    myIsFirstDirectionTypeAdded = true;
+    else
+    {
+        ioDirection.addDirectionType(std::move(directionType));
+    }
 }
 
-core::MusicDataChoiceSet DirectionWriter::createHarmonyElements(int inOffset)
+std::vector<core::MusicDataChoice> DirectionWriter::createHarmonyElements(int inOffset)
 {
     if (myDirectionData.chords.empty())
     {
-        return core::MusicDataChoiceSet{};
+        return std::vector<core::MusicDataChoice>{};
     }
 
-    core::MusicDataChoiceSet output;
-    auto mdc = core::makeMusicDataChoice();
-    mdc->setChoice(core::MusicDataChoice::Choice::harmony);
-
-    auto harmony = mdc->getHarmony();
+    std::vector<core::MusicDataChoice> output;
+    core::Harmony harmony{};
 
     if (inOffset != 0)
     {
-        harmony->setHasOffset(true);
-        harmony->getOffset()->setValue(core::DivisionsValue{static_cast<core::DecimalType>(inOffset)});
+        core::Offset coreOffset{};
+        coreOffset.setValue(core::Divisions{core::Decimal{static_cast<double>(inOffset)}});
+        harmony.setOffset(coreOffset);
     }
 
     if (myDirectionData.isStaffValueSpecified)
     {
-        harmony->setHasStaff(true);
-        harmony->getStaff()->setValue(core::PositiveInteger{myCursor.staffIndex + 1});
+        harmony.setStaff(myCursor.staffIndex + 1);
     }
 
     const auto &chords = myDirectionData.chords;
@@ -493,114 +447,117 @@ core::MusicDataChoiceSet DirectionWriter::createHarmonyElements(int inOffset)
     const auto chordEnd = chords.cend();
 
     bool isFirstChord = true;
+    bool isFirstHarmonyChordGroup = true;
+
     for (; chordIter != chordEnd; ++chordIter)
     {
         if (isFirstChord)
         {
             isFirstChord = false;
-            auto &attributes = *harmony->getAttributes();
-            setAttributesFromPositionData(chordIter->positionData, attributes);
+            setAttributesFromPositionData(chordIter->positionData, harmony);
         }
 
-        core::HarmonyChordGroupPtr grp = nullptr;
-        if (chordIter == chords.cbegin())
-        {
-            grp = harmony->getHarmonyChordGroupSet().front();
-        }
-        else
-        {
-            grp = core::makeHarmonyChordGroup();
-            harmony->addHarmonyChordGroup(grp);
-        }
-
-        grp->setChoice(core::HarmonyChordGroup::Choice::root);
-
+        core::HarmonyChordGroup grp{};
         auto step = chordIter->root == api::Step::unspecified ? api::Step::c : chordIter->root;
-        grp->getRoot()->getRootStep()->setValue(myConverter.convert(step));
+
+        core::Root root{};
+        core::RootStep rootStep{};
+        rootStep.setValue(myConverter.convert(step));
+        root.setRootStep(rootStep);
+
         if (chordIter->rootAlter != 0)
         {
-            grp->getRoot()->setHasRootAlter(true);
-            grp->getRoot()->getRootAlter()->setValue(
-                core::Semitones{static_cast<core::DecimalType>(chordIter->rootAlter)});
+            core::HarmonyAlter rootAlter{};
+            rootAlter.setValue(core::Semitones{core::Decimal{static_cast<double>(chordIter->rootAlter)}});
+            root.setRootAlter(rootAlter);
         }
+
+        grp.setChoice(core::HarmonyChordGroupChoice::root(root));
 
         if (chordIter->bass != api::Step::unspecified)
         {
-            grp->setHasBass(true);
-            auto bass = grp->getBass();
-            bass->getBassStep()->setValue(myConverter.convert(chordIter->bass));
+            core::Bass bass{};
+            core::BassStep bassStep{};
+            bassStep.setValue(myConverter.convert(chordIter->bass));
+            bass.setBassStep(bassStep);
+
             if (chordIter->bassAlter != 0)
             {
-                bass->setHasBassAlter(true);
-                bass->getBassAlter()->setValue(core::Semitones{static_cast<core::DecimalType>(chordIter->bassAlter)});
+                core::HarmonyAlter bassAlter{};
+                bassAlter.setValue(core::Semitones{core::Decimal{static_cast<double>(chordIter->bassAlter)}});
+                bass.setBassAlter(bassAlter);
             }
+
+            grp.setBass(bass);
         }
 
         const auto k = myConverter.convert(chordIter->chordKind);
-        grp->getKind()->setValue(k);
+        core::Kind kind{};
+        kind.setValue(k);
 
         if (!chordIter->text.empty())
         {
-            auto a = grp->getKind()->getAttributes();
-            a->hasText = true;
-            a->text = core::XsToken{chordIter->text};
+            kind.setText(chordIter->text);
         }
 
         if (chordIter->useSymbols != api::Bool::unspecified)
         {
-            grp->getKind()->getAttributes()->hasUseSymbols = true;
-            grp->getKind()->getAttributes()->useSymbols =
-                chordIter->useSymbols == api::Bool::yes ? mx::core::YesNo::yes : mx::core::YesNo::no;
+            kind.setUseSymbols(chordIter->useSymbols == api::Bool::yes ? core::YesNo::yes() : core::YesNo::no());
         }
+
+        grp.setKind(kind);
 
         for (const auto &extension : chordIter->extensions)
         {
-            auto degree = core::makeDegree();
+            core::Degree degree{};
+            core::DegreeType degreeType{};
+            core::DegreeValue degreeValue{};
+            core::DegreeAlter degreeAlter{};
 
             if (extension.extensionType == api::ExtensionType::add)
             {
-                degree->getDegreeType()->setValue(core::DegreeTypeValue::add);
+                degreeType.setValue(core::DegreeTypeValue::add());
             }
             else if (extension.extensionType == api::ExtensionType::remove)
             {
-                degree->getDegreeType()->setValue(core::DegreeTypeValue::subtract);
+                degreeType.setValue(core::DegreeTypeValue::subtract());
             }
             else if (extension.extensionType == api::ExtensionType::alter)
             {
-                degree->getDegreeType()->setValue(core::DegreeTypeValue::alter);
+                degreeType.setValue(core::DegreeTypeValue::alter());
             }
 
             switch (extension.extensionNumber)
             {
             case api::ExtensionNumber::first:
-                degree->getDegreeValue()->setValue(mx::core::PositiveInteger{1});
+                degreeValue.setValue(1);
                 break;
             case api::ExtensionNumber::second:
-                degree->getDegreeValue()->setValue(mx::core::PositiveInteger{2});
+                degreeValue.setValue(2);
                 break;
             case api::ExtensionNumber::third:
-                degree->getDegreeValue()->setValue(mx::core::PositiveInteger{3});
+                degreeValue.setValue(3);
                 break;
             case api::ExtensionNumber::fourth:
-                degree->getDegreeValue()->setValue(mx::core::PositiveInteger{4});
+                degreeValue.setValue(4);
                 break;
             case api::ExtensionNumber::fifth:
-                degree->getDegreeValue()->setValue(mx::core::PositiveInteger{5});
+                degreeValue.setValue(5);
                 break;
             case api::ExtensionNumber::sixth:
-                degree->getDegreeValue()->setValue(mx::core::PositiveInteger{6});
+                degreeValue.setValue(6);
                 break;
             case api::ExtensionNumber::seventh:
-                degree->getDegreeValue()->setValue(mx::core::PositiveInteger{7});
+                degreeValue.setValue(7);
                 break;
             case api::ExtensionNumber::ninth:
-                degree->getDegreeValue()->setValue(mx::core::PositiveInteger{9});
+                degreeValue.setValue(9);
                 break;
             case api::ExtensionNumber::eleventh:
-                degree->getDegreeValue()->setValue(mx::core::PositiveInteger{11});
+                degreeValue.setValue(11);
                 break;
             case api::ExtensionNumber::thirteenth:
-                degree->getDegreeValue()->setValue(mx::core::PositiveInteger{13});
+                degreeValue.setValue(13);
                 break;
             default:
                 break;
@@ -609,83 +566,96 @@ core::MusicDataChoiceSet DirectionWriter::createHarmonyElements(int inOffset)
             switch (extension.extensionAlter)
             {
             case api::ExtensionAlter::doubleFlat:
-                degree->getDegreeAlter()->setValue(core::Semitones{-2.0});
+                degreeAlter.setValue(core::Semitones{core::Decimal{-2.0}});
                 break;
             case api::ExtensionAlter::doubleSharp:
-                degree->getDegreeAlter()->setValue(core::Semitones{2.0});
+                degreeAlter.setValue(core::Semitones{core::Decimal{2.0}});
                 break;
             case api::ExtensionAlter::flat:
-                degree->getDegreeAlter()->setValue(core::Semitones{-1.0});
+                degreeAlter.setValue(core::Semitones{core::Decimal{-1.0}});
                 break;
             case api::ExtensionAlter::sharp:
-                degree->getDegreeAlter()->setValue(core::Semitones{1.0});
+                degreeAlter.setValue(core::Semitones{core::Decimal{1.0}});
                 break;
             case api::ExtensionAlter::none:
-                degree->getDegreeAlter()->setValue(core::Semitones{0.0});
+                degreeAlter.setValue(core::Semitones{core::Decimal{0.0}});
                 break;
             }
 
-            grp->addDegree(degree);
+            degree.setDegreeType(degreeType);
+            degree.setDegreeValue(degreeValue);
+            degree.setDegreeAlter(degreeAlter);
+            grp.addDegree(degree);
         }
 
-        auto miscIter = chordIter->miscData.cbegin();
-        const auto miscEnd = chordIter->miscData.cend();
-        for (; miscIter != miscEnd; ++miscIter)
-        {
-            harmony->addProcessingInstruction(core::ProcessingInstruction{miscIter->name, miscIter->data});
-        }
+        // Note: ProcessingInstruction is not available in the new core; miscData is skipped.
 
         if (chordIter->hasFrameData)
         {
-            harmony->setHasFrame(true);
-            auto frame = harmony->getFrame();
-            frame->getFrameStrings()->setValue(core::PositiveInteger{chordIter->frameData.stringCount});
-            frame->getFrameFrets()->setValue(core::PositiveInteger{chordIter->frameData.fretCount});
+            core::Frame frame{};
+            frame.setFrameStrings(chordIter->frameData.stringCount);
+            frame.setFrameFrets(chordIter->frameData.fretCount);
 
             if (chordIter->frameData.isFirstFretSpecified)
             {
-                frame->setHasFirstFret(true);
-                frame->getFirstFret()->setValue(core::PositiveInteger{chordIter->frameData.firstFret});
-            }
-            else
-            {
-                frame->setHasFirstFret(false);
+                core::FirstFret firstFret{};
+                firstFret.setValue(chordIter->frameData.firstFret);
+                frame.setFirstFret(firstFret);
             }
 
-            frame->clearFrameNoteSet();
             for (const auto &noteData : chordIter->frameData.notes)
             {
-                auto frameNote = core::makeFrameNote();
-                frameNote->getString()->setValue(core::StringNumber{noteData.stringNumber});
-                frameNote->getFret()->setValue(core::NonNegativeInteger{noteData.fretNumber});
+                core::FrameNote frameNote{};
+                core::String strObj{};
+                strObj.setValue(core::StringNumber{noteData.stringNumber});
+                frameNote.setString(strObj);
+
+                core::Fret fret{};
+                fret.setValue(noteData.fretNumber);
+                frameNote.setFret(fret);
 
                 if (noteData.isFingeringSpecified)
                 {
-                    frameNote->setHasFingering(true);
-                    frameNote->getFingering()->setValue(core::XsString{std::to_string(noteData.fingering)});
+                    core::Fingering fingering{};
+                    fingering.setValue(std::to_string(noteData.fingering));
+                    frameNote.setFingering(fingering);
                 }
 
                 if (noteData.barre != api::FrameBarre::none)
                 {
-                    frameNote->setHasBarre(true);
-                    frameNote->getBarre()->getAttributes()->type =
-                        noteData.barre == api::FrameBarre::start ? core::StartStop::start : core::StartStop::stop;
+                    core::Barre barre{};
+                    barre.setType(noteData.barre == api::FrameBarre::start ? core::StartStop::start()
+                                                                           : core::StartStop::stop());
+                    frameNote.setBarre(barre);
                 }
 
-                frame->addFrameNote(frameNote);
+                frame.addFrameNote(frameNote);
             }
+
+            harmony.setFrame(frame);
         }
 
-        if (output.empty())
+        if (isFirstHarmonyChordGroup)
         {
-            output.push_back(mdc);
+            isFirstHarmonyChordGroup = false;
+            harmony.setHarmonyChord(core::OneOrMore<core::HarmonyChordGroup>{grp});
         }
+        else
+        {
+            harmony.addHarmonyChord(grp);
+        }
+    }
+
+    if (!chords.empty())
+    {
+        output.push_back(core::MusicDataChoice::harmony(harmony));
     }
 
     return output;
 }
 
-void DirectionWriter::addMusicDataChoices(const core::MusicDataChoiceSet &inMdcs, core::MusicDataChoiceSet &ioOutputSet)
+void DirectionWriter::addMusicDataChoices(const std::vector<core::MusicDataChoice> &inMdcs,
+                                          std::vector<core::MusicDataChoice> &ioOutputSet)
 {
     for (const auto &mdc : inMdcs)
     {

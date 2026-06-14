@@ -3,7 +3,7 @@
 // Distributed under the MIT License
 
 #include "mx/impl/ArpeggiateFunctions.h"
-#include "mx/core/elements/Arpeggiate.h"
+#include "mx/core/generated/Arpeggiate.h"
 #include "mx/impl/MarkDataFunctions.h"
 
 namespace mx
@@ -18,25 +18,22 @@ ArpeggiateFunctions::ArpeggiateFunctions(const core::Arpeggiate &inArpeggiate, i
 
 api::MarkData ArpeggiateFunctions::parseArpeggiate() const
 {
-    const auto &attr = myArpeggiate.getAttributes();
     auto markType = api::MarkType::arpeggiate;
-    if (attr->hasDirection)
+    if (myArpeggiate.direction().has_value())
     {
-
-        switch (attr->direction)
+        switch (myArpeggiate.direction()->tag())
         {
-        case core::UpDown::up:
+        case core::UpDown::Tag::up:
             markType = api::MarkType::arpeggiateUp;
             break;
 
-        case core::UpDown::down:
+        case core::UpDown::Tag::down:
             markType = api::MarkType::arpeggiateDown;
             break;
-            // TODO: fixme - MusicXML 4.0 adds UpDownNone with 'none' value
         }
     }
     api::MarkData markData{markType};
-    impl::parseMarkDataAttributes(attr, markData);
+    impl::parseMarkDataAttributes(myArpeggiate, markData);
     markData.tickTimePosition = myCursor.tickTimePosition;
 
     return markData;

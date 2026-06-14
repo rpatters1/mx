@@ -7,7 +7,10 @@
 
 #include "cpul/cpulTestHarness.h"
 #include "mx/api/DocumentManager.h"
-#include "mx/core/Document.h"
+#include "mx/core/generated/Document.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/Print.h"
+#include "mx/core/generated/YesNo.h"
 
 using namespace std;
 using namespace mx::api;
@@ -62,81 +65,63 @@ TEST(newSystem, doesItWork)
     addSystemBreak(50);
     addSystemBreak(75);
     auto &docMgr = DocumentManager::getInstance();
-    const auto id = docMgr.createFromScore(s);
+    const auto rId = docMgr.createFromScore(s);
+    REQUIRE(rId.ok());
+    const int id = rId.value();
     const auto doc = docMgr.getDocument(id);
     docMgr.destroyDocument(id);
-    const auto sp = doc->getScorePartwise();
-    const auto p = sp->getPartwisePartSet().at(0);
+    REQUIRE(doc != nullptr);
+    REQUIRE(doc->isScorePartwise());
+    const auto &sp = doc->asScorePartwise();
+    const auto &p = sp.part()[0];
 
     size_t index = 0;
-    auto mdg = p->getPartwiseMeasureSet().at(index);
-    CHECK(mdg->getAttributes()->number.getValue() == std::to_string(index + 1));
-    auto print = mdg->getMusicDataGroup()->getMusicDataChoiceSet().at(0)->getPrint();
-    CHECK(print->getAttributes()->hasNewSystem);
-    CHECK(print->getAttributes()->newSystem == mx::core::YesNo::yes);
+    auto checkNewSystem = [&](size_t idx, bool expectNewSystem) {
+        const auto &mdg = p.measure()[idx];
+        CHECK_EQUAL(std::to_string(idx + 1), mdg.number());
+        const auto &mdcSpan = mdg.musicData();
+        // Find the Print element (if any) in this measure's music data.
+        const mx::core::Print *printPtr = nullptr;
+        for (const auto &mdc : mdcSpan)
+        {
+            if (mdc.isPrint())
+            {
+                printPtr = &mdc.asPrint();
+                break;
+            }
+        }
+        if (expectNewSystem)
+        {
+            REQUIRE(printPtr != nullptr);
+            CHECK(printPtr->newSystem().has_value());
+            if (printPtr->newSystem().has_value())
+            {
+                CHECK(mx::core::YesNo::Tag::yes == printPtr->newSystem()->tag());
+            }
+        }
+        else
+        {
+            // For non-system-break measures, either no Print element exists, or Print
+            // exists without new-system="yes".
+            if (printPtr != nullptr)
+            {
+                CHECK(!printPtr->newSystem().has_value());
+            }
+        }
+    };
 
-    index = 3;
-    mdg = p->getPartwiseMeasureSet().at(index);
-    CHECK(mdg->getAttributes()->number.getValue() == std::to_string(index + 1));
-    print = mdg->getMusicDataGroup()->getMusicDataChoiceSet().at(0)->getPrint();
-    CHECK(print->getAttributes()->hasNewSystem);
-    CHECK(print->getAttributes()->newSystem == mx::core::YesNo::yes);
+    checkNewSystem(0, true);
+    checkNewSystem(3, true);
+    checkNewSystem(7, true);
+    checkNewSystem(13, true);
+    checkNewSystem(17, true);
+    checkNewSystem(25, true);
+    checkNewSystem(50, true);
+    checkNewSystem(75, true);
 
-    index = 7;
-    mdg = p->getPartwiseMeasureSet().at(index);
-    CHECK(mdg->getAttributes()->number.getValue() == std::to_string(index + 1));
-    print = mdg->getMusicDataGroup()->getMusicDataChoiceSet().at(0)->getPrint();
-    CHECK(print->getAttributes()->hasNewSystem);
-    CHECK(print->getAttributes()->newSystem == mx::core::YesNo::yes);
-
-    index = 13;
-    mdg = p->getPartwiseMeasureSet().at(index);
-    CHECK(mdg->getAttributes()->number.getValue() == std::to_string(index + 1));
-    print = mdg->getMusicDataGroup()->getMusicDataChoiceSet().at(0)->getPrint();
-    CHECK(print->getAttributes()->hasNewSystem);
-    CHECK(print->getAttributes()->newSystem == mx::core::YesNo::yes);
-
-    index = 17;
-    mdg = p->getPartwiseMeasureSet().at(index);
-    CHECK(mdg->getAttributes()->number.getValue() == std::to_string(index + 1));
-    print = mdg->getMusicDataGroup()->getMusicDataChoiceSet().at(0)->getPrint();
-    CHECK(print->getAttributes()->hasNewSystem);
-    CHECK(print->getAttributes()->newSystem == mx::core::YesNo::yes);
-
-    index = 25;
-    mdg = p->getPartwiseMeasureSet().at(index);
-    CHECK(mdg->getAttributes()->number.getValue() == std::to_string(index + 1));
-    print = mdg->getMusicDataGroup()->getMusicDataChoiceSet().at(0)->getPrint();
-    CHECK(print->getAttributes()->hasNewSystem);
-    CHECK(print->getAttributes()->newSystem == mx::core::YesNo::yes);
-
-    index = 50;
-    mdg = p->getPartwiseMeasureSet().at(index);
-    CHECK(mdg->getAttributes()->number.getValue() == std::to_string(index + 1));
-    print = mdg->getMusicDataGroup()->getMusicDataChoiceSet().at(0)->getPrint();
-    CHECK(print->getAttributes()->hasNewSystem);
-    CHECK(print->getAttributes()->newSystem == mx::core::YesNo::yes);
-
-    index = 75;
-    mdg = p->getPartwiseMeasureSet().at(index);
-    CHECK(mdg->getAttributes()->number.getValue() == std::to_string(index + 1));
-    print = mdg->getMusicDataGroup()->getMusicDataChoiceSet().at(0)->getPrint();
-    CHECK(print->getAttributes()->hasNewSystem);
-    CHECK(print->getAttributes()->newSystem == mx::core::YesNo::yes);
-
-    // check a couple of negative cases  to make sure not every measure is new system
-
-    index = 76;
-    mdg = p->getPartwiseMeasureSet().at(index);
-    CHECK(mdg->getAttributes()->number.getValue() == std::to_string(index + 1));
-    print = mdg->getMusicDataGroup()->getMusicDataChoiceSet().at(0)->getPrint();
-    CHECK(!print->getAttributes()->hasNewSystem);
-
-    index = 4;
-    mdg = p->getPartwiseMeasureSet().at(index);
-    CHECK(mdg->getAttributes()->number.getValue() == std::to_string(index + 1));
-    print = mdg->getMusicDataGroup()->getMusicDataChoiceSet().at(0)->getPrint();
-    CHECK(!print->getAttributes()->hasNewSystem);
+    // check a couple of negative cases to make sure not every measure is new system
+    checkNewSystem(76, false);
+    checkNewSystem(4, false);
 }
 
 #endif

@@ -1,0 +1,89 @@
+// {{generated_banner}}
+
+// Bespoke handling for the yyyy-mm-dd type, selected by a `types` row in
+// the render manifest: custom code for one type is a config-and-template
+// change, never a generator change. The wire API (TryParse / Parse /
+// String) matches what the stock string template would emit, so the rest
+// of the generated model composes with this file unchanged; storage stays
+// the raw wire string (round-trip fidelity), and the date components are
+// parsed on demand.
+
+package mx
+
+import (
+	"regexp"
+	"strconv"
+	"strings"
+)
+
+// patternYyyyMmDd is the schema's pattern facet, anchored, in the plates'
+// portable spelling.
+var patternYyyyMmDd = regexp.MustCompile({{pattern_q}})
+
+{{#doc_lines}}
+// {{value}}
+{{/doc_lines}}
+{{#has_patterns}}
+// Pattern: {{#patterns}}{{^is_first}} | {{/is_first}}{{value}}{{/patterns}}
+{{/has_patterns}}
+type {{ident}} string
+
+// TryParse{{ident}} accepts s only when it matches the schema's pattern
+// facet; the raw value is returned either way.
+func TryParse{{ident}}(s string) ({{ident}}, bool) {
+	if !pattern{{ident}}.MatchString(s) {
+		return {{ident}}(s), false
+	}
+	return {{ident}}(s), true
+}
+
+// Parse{{ident}} is lenient: the value is kept verbatim even when it
+// violates the pattern -- no canonical replacement exists, unlike numeric
+// clamping, and round-trip fidelity wins.
+func Parse{{ident}}(s string) {{ident}} {
+	return {{ident}}(s)
+}
+
+// String returns the wire spelling.
+func (v {{ident}}) String() string {
+	return string(v)
+}
+
+// component returns the i-th dash-separated field of the date as an int,
+// with the leniency the rest of the model applies to numbers: anything
+// unparseable is 0. A leading minus sign (a BCE year) binds to the first
+// component.
+func (v {{ident}}) component(i int) int {
+	s := string(v)
+	negativeYear := strings.HasPrefix(s, "-")
+	if negativeYear {
+		s = s[1:]
+	}
+	parts := strings.SplitN(s, "-", 3)
+	if i >= len(parts) {
+		return 0
+	}
+	n, err := strconv.Atoi(strings.TrimSpace(parts[i]))
+	if err != nil {
+		return 0
+	}
+	if i == 0 && negativeYear {
+		return -n
+	}
+	return n
+}
+
+// Yyyy returns the year component of the date (negative for BCE years).
+func (v {{ident}}) Yyyy() int {
+	return v.component(0)
+}
+
+// Mm returns the month component of the date.
+func (v {{ident}}) Mm() int {
+	return v.component(1)
+}
+
+// Dd returns the day component of the date.
+func (v {{ident}}) Dd() int {
+	return v.component(2)
+}

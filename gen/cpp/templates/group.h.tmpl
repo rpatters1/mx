@@ -1,0 +1,53 @@
+// {{generated_banner}}
+
+#pragma once
+
+{{#deps}}
+#include "mx/core/generated/{{ident}}.h"
+{{/deps}}
+{{#any_decimal}}
+#include "mx/core/Decimal.h"
+{{/any_decimal}}
+{{#any_min1}}
+#include "mx/core/OneOrMore.h"
+{{/any_min1}}
+{{#any_bounded}}
+#include "mx/core/Result.h"
+{{/any_bounded}}
+
+#include <optional>
+#include <span>
+#include <string>
+#include <vector>
+
+namespace pugi
+{
+class xml_node;
+}
+
+namespace {{vars.namespace}}
+{
+
+{{#doc_lines}}
+/// {{value}}
+{{/doc_lines}}
+/// A shared content group{{#synthesized}} (synthesized from an anonymous
+/// particle of the schema){{/synthesized}}: transparent on the wire, its
+/// fields serialize directly into the referencing element (plan §2.3).
+class {{ident}} final
+{
+public:
+{{>fields_api}}
+    bool operator==(const {{ident}} &other) const = default;
+
+private:
+{{>fields_members}}
+};
+
+/// Consumes matching siblings starting at `cursor` (which advances); `el`
+/// is the enclosing element, for error paths.
+{{ident}} parse{{ident}}(pugi::xml_node el, pugi::xml_node &cursor);
+
+void serialize{{ident}}(const {{ident}} &v, pugi::xml_node el);
+
+} // namespace {{vars.namespace}}

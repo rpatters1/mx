@@ -1,0 +1,57 @@
+// {{generated_banner}}
+
+#pragma once
+
+#include <string_view>
+
+namespace {{vars.namespace}}
+{
+
+{{#doc_lines}}
+/// {{value}}
+{{/doc_lines}}
+/// Closed vocabulary: the named factories are the only constructors, so an
+/// out-of-vocabulary value is unrepresentable through the public API.
+class {{ident}} final
+{
+public:
+    enum class Tag
+    {
+{{#variants}}
+        {{ident}},
+{{/variants}}
+    };
+
+    /// The natural zero: the first variant.
+    {{ident}}() noexcept = default;
+
+{{#variants}}
+    static {{type.ident}} {{ident}}() noexcept;
+{{/variants}}
+
+    Tag tag() const noexcept
+    {
+        return m_tag;
+    }
+
+    /// The wire literal (static storage).
+    std::string_view toString() const noexcept;
+
+    /// Strict: matches a wire literal exactly.
+    static bool tryParse(std::string_view text, {{ident}} &out) noexcept;
+
+    /// Lenient: an unrecognized literal falls back to the first variant
+    /// (the import leniency policy; never produces an invalid value).
+    static {{ident}} parse(std::string_view text) noexcept;
+
+    bool operator==(const {{ident}} &other) const noexcept = default;
+
+private:
+    explicit {{ident}}(Tag tag) noexcept : m_tag{tag}
+    {
+    }
+
+    Tag m_tag{Tag::{{#variants}}{{#is_first}}{{ident}}{{/is_first}}{{/variants}}};
+};
+
+} // namespace {{vars.namespace}}

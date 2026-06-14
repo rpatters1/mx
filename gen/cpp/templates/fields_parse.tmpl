@@ -1,0 +1,97 @@
+{{#fields}}
+{{#is_element}}
+{{#is_required}}
+    if (cursorIs(cursor, {{tag_q}}))
+    {
+        out.set{{name.pascal}}({{>field_parse_expr}});
+        cursor = nextElement(cursor);
+    }
+    else
+    {
+        throwMissingOrMisplaced(el, cursor, {{tag_q}});
+    }
+{{/is_required}}
+{{#is_optional}}
+    if (cursorIs(cursor, {{tag_q}}))
+    {
+{{#presence}}
+        parse{{type_ref.ident}}(cursor);
+        out.set{{name.pascal}}(true);
+{{/presence}}
+{{^presence}}
+        out.set{{name.pascal}}({{>field_parse_expr}});
+{{/presence}}
+        cursor = nextElement(cursor);
+    }
+{{/is_optional}}
+{{#is_vector}}
+{{#min1}}
+    if (!cursorIs(cursor, {{tag_q}}))
+    {
+        throwMissingOrMisplaced(el, cursor, {{tag_q}});
+    }
+    out.set{{name.pascal}}(OneOrMore<{{type_ref.ident}}>{ {{>field_parse_expr}} });
+    cursor = nextElement(cursor);
+    while (cursorIs(cursor, {{tag_q}}))
+    {
+        out.add{{name.pascal}}({{>field_parse_expr}});
+        cursor = nextElement(cursor);
+    }
+{{/min1}}
+{{^min1}}
+    while (cursorIs(cursor, {{tag_q}}))
+    {
+{{#max}}
+        if (!out.add{{name.pascal}}({{>field_parse_expr}}))
+        {
+            throwTooManyElements(cursor);
+        }
+{{/max}}
+{{^max}}
+        out.add{{name.pascal}}({{>field_parse_expr}});
+{{/max}}
+        cursor = nextElement(cursor);
+    }
+{{/min1}}
+{{/is_vector}}
+{{/is_element}}
+{{^is_element}}
+{{#is_required}}
+    if ({{>field_first_match}})
+    {
+        out.set{{name.pascal}}(parse{{type_ref.ident}}(el, cursor));
+    }
+{{^nullable}}
+    else
+    {
+        throwMissingElement(el, {{#first}}{{#is_first}}{{value_q}}{{/is_first}}{{/first}});
+    }
+{{/nullable}}
+{{/is_required}}
+{{#is_optional}}
+    if ({{>field_first_match}})
+    {
+        out.set{{name.pascal}}(parse{{type_ref.ident}}(el, cursor));
+    }
+{{/is_optional}}
+{{#is_vector}}
+{{#min1}}
+    if (!({{>field_first_match}}))
+    {
+        throwMissingElement(el, {{#first}}{{#is_first}}{{value_q}}{{/is_first}}{{/first}});
+    }
+    out.set{{name.pascal}}(OneOrMore<{{type_ref.ident}}>{parse{{type_ref.ident}}(el, cursor)});
+    while ({{>field_first_match}})
+    {
+        out.add{{name.pascal}}(parse{{type_ref.ident}}(el, cursor));
+    }
+{{/min1}}
+{{^min1}}
+    while ({{>field_first_match}})
+    {
+        out.add{{name.pascal}}(parse{{type_ref.ident}}(el, cursor));
+    }
+{{/min1}}
+{{/is_vector}}
+{{/is_element}}
+{{/fields}}

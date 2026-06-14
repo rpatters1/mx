@@ -3,17 +3,13 @@
 // Distributed under the MIT License
 
 #include "mx/impl/EncodingFunctions.h"
-#include "mx/core/Date.h"
-#include "mx/core/elements/Encoder.h"
-#include "mx/core/elements/Encoding.h"
-#include "mx/core/elements/EncodingChoice.h"
-#include "mx/core/elements/EncodingDate.h"
-#include "mx/core/elements/EncodingDescription.h"
-#include "mx/core/elements/Identification.h"
-#include "mx/core/elements/Miscellaneous.h"
-#include "mx/core/elements/MiscellaneousField.h"
-#include "mx/core/elements/Software.h"
-#include "mx/core/elements/Supports.h"
+#include "mx/core/generated/EncodingChoice.h"
+#include "mx/core/generated/Identification.h"
+#include "mx/core/generated/Miscellaneous.h"
+#include "mx/core/generated/MiscellaneousField.h"
+#include "mx/core/generated/Supports.h"
+#include "mx/core/generated/TypedText.h"
+#include "mx/core/generated/YyyyMmDd.h"
 
 namespace mx
 {
@@ -21,92 +17,97 @@ namespace impl
 {
 void createEncoding(const api::EncodingData &inEncoding, core::ScoreHeaderGroup &header)
 {
-    auto identification = header.getIdentification();
-    auto encoding = identification->getEncoding();
+    // The old code mutated co-allocated identification/encoding through
+    // shared pointers; under value semantics we build local copies and
+    // install them at the end if anything was set.
+    core::Identification identification = header.identification().value_or(core::Identification{});
+    core::Encoding encoding = identification.encoding().value_or(core::Encoding{});
+    bool hasIdentification = header.identification().has_value();
+    bool hasEncoding = identification.encoding().has_value();
 
     if (!inEncoding.encoder.empty())
     {
-        header.setHasIdentification(true);
-        identification->setHasEncoding(true);
-        auto item = core::makeEncodingChoice();
-        item->setChoice(core::EncodingChoice::Choice::encoder);
-        item->getEncoder()->setValue(core::XsString(inEncoding.encoder));
-        encoding->addEncodingChoice(item);
+        hasIdentification = true;
+        hasEncoding = true;
+        core::TypedText encoder;
+        encoder.setValue(inEncoding.encoder);
+        encoding.addChoice(core::EncodingChoice::encoder(std::move(encoder)));
     }
 
-    core::Date tryDate{inEncoding.encodingDate.year, inEncoding.encodingDate.month, inEncoding.encodingDate.day};
-    const bool isYearValid = inEncoding.encodingDate.year == tryDate.getYear();
-    const bool isMonthValid = inEncoding.encodingDate.month == tryDate.getMonth();
-    const bool isDayValid = inEncoding.encodingDate.day == tryDate.getDay();
+    core::YyyyMmDd tryDate{inEncoding.encodingDate.year, inEncoding.encodingDate.month, inEncoding.encodingDate.day};
+    const bool isYearValid = inEncoding.encodingDate.year == tryDate.year();
+    const bool isMonthValid = inEncoding.encodingDate.month == tryDate.month();
+    const bool isDayValid = inEncoding.encodingDate.day == tryDate.day();
     if (isYearValid || isMonthValid || isDayValid)
     {
-        header.setHasIdentification(true);
-        identification->setHasEncoding(true);
-        auto item = core::makeEncodingChoice();
-        item->setChoice(core::EncodingChoice::Choice::encodingDate);
-        item->getEncodingDate()->setValue(tryDate);
-        encoding->addEncodingChoice(item);
+        hasIdentification = true;
+        hasEncoding = true;
+        encoding.addChoice(core::EncodingChoice::encodingDate(tryDate));
     }
 
     if (!inEncoding.encodingDescription.empty())
     {
-        header.setHasIdentification(true);
-        identification->setHasEncoding(true);
-        auto item = core::makeEncodingChoice();
-        item->setChoice(core::EncodingChoice::Choice::encodingDescription);
-        item->getEncodingDescription()->setValue(core::XsString(inEncoding.encodingDescription));
-        encoding->addEncodingChoice(item);
+        hasIdentification = true;
+        hasEncoding = true;
+        encoding.addChoice(core::EncodingChoice::encodingDescription(inEncoding.encodingDescription));
     }
 
     for (const auto &s : inEncoding.software)
     {
-        header.setHasIdentification(true);
-        identification->setHasEncoding(true);
-        auto item = core::makeEncodingChoice();
-        item->setChoice(core::EncodingChoice::Choice::software);
-        item->getSoftware()->setValue(core::XsString(s));
-        encoding->addEncodingChoice(item);
+        hasIdentification = true;
+        hasEncoding = true;
+        encoding.addChoice(core::EncodingChoice::software(s));
     }
 
     for (const auto &s : inEncoding.supportedItems)
     {
-        header.setHasIdentification(true);
-        identification->setHasEncoding(true);
-        auto item = core::makeEncodingChoice();
-        item->setChoice(core::EncodingChoice::Choice::supports);
-        auto supports = item->getSupports();
-        auto attributes = supports->getAttributes();
+        hasIdentification = true;
+        hasEncoding = true;
+        core::Supports supports;
 
         if (!s.elementName.empty())
         {
-            attributes->element.setValue(s.elementName);
+            supports.setElement(core::NameToken::parse(s.elementName));
         }
 
         if (!s.attributeName.empty())
         {
-            attributes->hasAttribute = true;
-            attributes->attribute.setValue(s.attributeName);
+            supports.setAttribute(core::NameToken::parse(s.attributeName));
         }
 
         if (!s.specificValue.empty())
         {
-            attributes->hasValue = true;
-            attributes->value.setValue(s.specificValue);
+            supports.setValue(s.specificValue);
         }
 
-        attributes->type = s.isSupported ? core::YesNo::yes : core::YesNo::no;
-        encoding->addEncodingChoice(item);
+        supports.setType(s.isSupported ? core::YesNo::yes() : core::YesNo::no());
+        encoding.addChoice(core::EncodingChoice::supports(std::move(supports)));
     }
 
+    bool hasMiscellaneous = identification.miscellaneous().has_value();
+    core::Miscellaneous miscellaneous = identification.miscellaneous().value_or(core::Miscellaneous{});
     for (const auto &m : inEncoding.miscelaneousFields)
     {
-        header.setHasIdentification(true);
-        identification->setHasEncoding(true);
-        identification->setHasMiscellaneous(true);
-        auto item = core::makeMiscellaneousField();
-        item->getAttributes()->name.setValue(m.key);
-        item->setValue(core::XsString{m.value});
-        identification->getMiscellaneous()->addMiscellaneousField(item);
+        hasIdentification = true;
+        hasEncoding = true;
+        hasMiscellaneous = true;
+        core::MiscellaneousField item;
+        item.setName(m.key);
+        item.setValue(m.value);
+        miscellaneous.addMiscellaneousField(std::move(item));
+    }
+
+    if (hasMiscellaneous)
+    {
+        identification.setMiscellaneous(std::move(miscellaneous));
+    }
+    if (hasEncoding)
+    {
+        identification.setEncoding(std::move(encoding));
+    }
+    if (hasIdentification)
+    {
+        header.setIdentification(std::move(identification));
     }
 }
 
@@ -116,53 +117,52 @@ api::EncodingData createEncoding(const core::Encoding &inEncoding)
     bool isDateFound = false;
     bool isEncoderFound = false;
     bool isDescriptionFound = false;
-    for (auto ec : inEncoding.getEncodingChoiceSet())
+    for (const auto &ec : inEncoding.choice())
     {
-        switch (ec->getChoice())
+        switch (ec.kind())
         {
-        case core::EncodingChoice::Choice::encodingDate: {
+        case core::EncodingChoice::Kind::encodingDate: {
             if (!isDateFound)
             {
-                outEncoding.encodingDate.year = ec->getEncodingDate()->getValue().getYear();
-                outEncoding.encodingDate.month = ec->getEncodingDate()->getValue().getMonth();
-                outEncoding.encodingDate.day = ec->getEncodingDate()->getValue().getDay();
+                outEncoding.encodingDate.year = ec.asEncodingDate().year();
+                outEncoding.encodingDate.month = ec.asEncodingDate().month();
+                outEncoding.encodingDate.day = ec.asEncodingDate().day();
                 isDateFound = true;
             }
             break;
         }
-        case core::EncodingChoice::Choice::encoder: {
+        case core::EncodingChoice::Kind::encoder: {
             if (!isEncoderFound)
             {
-                outEncoding.encoder = ec->getEncoder()->getValue().getValue();
+                outEncoding.encoder = ec.asEncoder().value();
                 isEncoderFound = true;
             }
             break;
         }
-        case core::EncodingChoice::Choice::encodingDescription: {
+        case core::EncodingChoice::Kind::encodingDescription: {
             if (!isDescriptionFound)
             {
-                outEncoding.encodingDescription = ec->getEncodingDescription()->getValue().getValue();
+                outEncoding.encodingDescription = ec.asEncodingDescription();
                 isDescriptionFound = true;
             }
             break;
         }
-        case core::EncodingChoice::Choice::software: {
-            outEncoding.software.emplace_back(ec->getSoftware()->getValue().getValue());
+        case core::EncodingChoice::Kind::software: {
+            outEncoding.software.emplace_back(ec.asSoftware());
             break;
         }
-        case core::EncodingChoice::Choice::supports: {
-            auto supportsElement = ec->getSupports();
-            auto attr = supportsElement->getAttributes();
+        case core::EncodingChoice::Kind::supports: {
+            const auto &supportsElement = ec.asSupports();
             api::SupportedItem item;
-            item.elementName = attr->element.getValue();
-            if (attr->hasAttribute)
+            item.elementName = supportsElement.element().value();
+            if (supportsElement.attribute().has_value())
             {
-                item.attributeName = attr->attribute.getValue();
+                item.attributeName = supportsElement.attribute()->value();
             }
-            item.isSupported = (attr->type == core::YesNo::yes);
-            if (attr->hasValue)
+            item.isSupported = (supportsElement.type() == core::YesNo::yes());
+            if (supportsElement.value().has_value())
             {
-                item.specificValue = attr->value.getValue();
+                item.specificValue = *supportsElement.value();
             }
             outEncoding.supportedItems.push_back(std::move(item));
             break;

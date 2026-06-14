@@ -1,0 +1,94 @@
+// {{generated_banner}}
+
+#pragma once
+
+{{#deps}}
+#include "mx/core/generated/{{ident}}.h"
+{{/deps}}
+{{#any_decimal}}
+#include "mx/core/Decimal.h"
+{{/any_decimal}}
+{{#any_min1}}
+#include "mx/core/OneOrMore.h"
+{{/any_min1}}
+
+#include <cassert>
+#include <string>
+#include <variant>
+#include <vector>
+
+namespace pugi
+{
+class xml_node;
+}
+
+namespace {{vars.namespace}}
+{
+
+{{#doc_lines}}
+/// {{value}}
+{{/doc_lines}}
+/// A schema choice{{#synthesized}} (synthesized from an anonymous particle
+/// of the schema){{/synthesized}}: exactly one alternative by construction.
+/// Alternatives are positional; dispatch is by Kind/index, never by type
+/// (alternative types may repeat -- plan §2.3).
+class {{ident}} final
+{
+public:
+    enum class Kind
+    {
+{{#alternatives}}
+        {{ident}},
+{{/alternatives}}
+    };
+
+    /// The natural zero: the {{#nullable}}first nullable (empty)
+    /// {{/nullable}}{{^nullable}}first {{/nullable}}alternative.
+    {{ident}}();
+
+{{#alternatives}}
+    static {{type.ident}} {{ident}}({{>alt_payload_type}} value);
+{{/alternatives}}
+
+    Kind kind() const noexcept
+    {
+        return static_cast<Kind>(m_value.index());
+    }
+
+{{#alternatives}}
+    bool is{{name.pascal}}() const noexcept
+    {
+        return m_value.index() == {{index0}};
+    }
+
+    /// Precondition: is{{name.pascal}}().
+    const {{>alt_payload_type}} &as{{name.pascal}}() const noexcept
+    {
+        assert(is{{name.pascal}}());
+        return *std::get_if<{{index0}}>(&m_value);
+    }
+
+{{/alternatives}}
+    bool operator==(const {{ident}} &other) const = default;
+
+private:
+    using Storage = std::variant<
+{{#alternatives}}
+        {{>alt_payload_type}}{{^is_last}},{{/is_last}}
+{{/alternatives}}
+        >;
+
+    explicit {{ident}}(Storage value) : m_value{std::move(value)}
+    {
+    }
+
+    Storage m_value;
+};
+
+/// Consumes one alternative starting at `cursor` (which advances); `el` is
+/// the enclosing element, for error paths.
+{{ident}} parse{{ident}}(pugi::xml_node el, pugi::xml_node &cursor);
+
+void serialize{{ident}}(const {{ident}} &v, pugi::xml_node el);
+
+} // namespace {{vars.namespace}}

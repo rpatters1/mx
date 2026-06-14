@@ -5,26 +5,17 @@
 #pragma once
 
 #include "mx/api/DefaultsData.h"
-#include "mx/core/elements/PageLayout.h"
-#include "mx/core/elements/PageMargins.h"
-#include "mx/core/elements/ScoreHeaderGroup.h"
-#include "mx/core/elements/Tenths.h"
+#include "mx/core/generated/ScoreHeaderGroup.h"
 
 namespace mx
 {
 namespace impl
 {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// api::Page* -> core:Page*
-core::PageMarginsSet createPageMargins(const api::PageMarginsData &inPageMargins);
-core::PageLayoutPtr createPageLayout(const api::PageLayoutData &inPageLayout);
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // api::DefaultsData -> core::ScoreHeaderGroup
 void addDefaultsData(const api::DefaultsData &inDefaults, core::ScoreHeaderGroup &outScoreHeaderGroup);
 void addScaling(const api::DefaultsData &inDefaults, core::ScoreHeaderGroup &outScoreHeaderGroup);
 void addPageLayout(const api::PageLayoutData &inPageLayout, core::ScoreHeaderGroup &outScoreHeaderGroup);
-void addPageMargins(const api::PageMarginsData &inPageMargins, core::PageLayout &outPageLayout);
 void addSystemMargins(const api::DefaultsData &inDefaults, core::ScoreHeaderGroup &outScoreHeaderGroup);
 void addAppearance(const api::DefaultsData &inDefaults, core::ScoreHeaderGroup &outScoreHeaderGroup);
 
@@ -36,12 +27,5 @@ void addPageMargins(const core::ScoreHeaderGroup &inScoreHeaderGroup, api::Defau
 void addSystemMargins(const core::ScoreHeaderGroup &inScoreHeaderGroup, api::DefaultsData &outDefaults);
 void addStaffLayout(const core::ScoreHeaderGroup &inScoreHeaderGroup, api::DefaultsData &outDefaults);
 void addAppearance(const core::ScoreHeaderGroup &inScoreHeaderGroup, api::DefaultsData &outDefaults);
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Util
-inline core::TenthsValue toTenths(long double value)
-{
-    return core::TenthsValue{value > 0.0 ? value : 0.0};
-}
 } // namespace impl
 } // namespace mx

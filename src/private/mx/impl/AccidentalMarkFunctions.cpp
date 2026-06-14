@@ -3,7 +3,7 @@
 // Distributed under the MIT License
 
 #include "mx/impl/AccidentalMarkFunctions.h"
-#include "mx/core/elements/AccidentalMark.h"
+#include "mx/core/generated/AccidentalMark.h"
 #include "mx/impl/MarkDataFunctions.h"
 
 namespace mx
@@ -18,15 +18,15 @@ AccidentalMarkFunctions::AccidentalMarkFunctions(const core::AccidentalMark &inA
 
 api::MarkData AccidentalMarkFunctions::parseAccidentalMark() const
 {
-    const auto accidentalValue = myAccidentalMark.getValue();
+    const auto accidentalValue = myAccidentalMark.value();
     Converter converter;
     const auto markType = converter.convertAccidentalMark(accidentalValue);
     auto markData = api::MarkData{};
     markData.markType = markType;
     markData.tickTimePosition = myCursor.tickTimePosition;
 
-    markData.name = core::toString(accidentalValue);
-    markData.positionData = impl::getPositionData(*myAccidentalMark.getAttributes());
+    markData.name = std::string{accidentalValue.toString()};
+    markData.positionData = impl::getPositionData(myAccidentalMark);
 
     return markData;
 }

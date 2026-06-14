@@ -3,90 +3,48 @@
 // Distributed under the MIT License
 
 #include "mx/impl/StaffFunctions.h"
-#include "mx/core/elements/Backup.h"
-#include "mx/core/elements/Direction.h"
-#include "mx/core/elements/EditorialVoiceGroup.h"
-#include "mx/core/elements/Forward.h"
-#include "mx/core/elements/Harmony.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/MusicDataGroup.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/Properties.h"
-#include "mx/core/elements/Staff.h"
-#include "mx/core/elements/Staves.h"
-#include "mx/core/elements/Voice.h"
+#include "mx/core/generated/Attributes.h"
+#include "mx/core/generated/Direction.h"
+#include "mx/core/generated/Forward.h"
+#include "mx/core/generated/Harmony.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/Note.h"
 #include "mx/utility/Throw.h"
+#include "mx/utility/Unused.h"
 
 #include <map>
+#include <optional>
 
 namespace mx
 {
 namespace impl
 {
 
-int findStaffCountInOneMeasure(const core::MusicDataChoiceSet &inMusic);
-int findStaffCountInAllMeasures(const core::PartwiseMeasureSet &measures);
+int findStaffCountInOneMeasure(std::span<const core::MusicDataChoice> inMusic);
+int findStaffCountInAllMeasures(std::span<const core::PartwiseMeasure> measures);
 
-void createStavesFromMx(int inGlobalTicksPerQuarter, const core::PartwiseMeasureSet &inMxMeasures,
+void createStavesFromMx(int inGlobalTicksPerQuarter, std::span<const core::PartwiseMeasure> inMxMeasures,
                         std::vector<api::StaffData> &outStaves)
 {
     MX_UNUSED(inGlobalTicksPerQuarter);
     MX_UNUSED(inMxMeasures);
     MX_UNUSED(outStaves);
-#if 0
-            const int staffCount = findStaffCountInAllMeasures( inMxMeasures );
-            outStaves.clear();
-            outStaves.resize( static_cast<size_t>( staffCount ) );
-            auto mxMeasureIter = inMxMeasures.cbegin();
-            auto mxMeasureEnd = inMxMeasures.cend();
-            bool isFirstMeasure = true;
-            IntMeasureDataMap currentMeasureData;
-            
-            impl::MeasureFunctions measureFunc{ staffCount, inGlobalTicksPerQuarter  };
-            
-            for( ; mxMeasureIter != mxMeasureEnd; ++mxMeasureIter )
-            {
-                auto currentMeasurePropertiesPayload = MeasurePropertiesPayload{};
-                currentMeasureData = measureFunc.parseMeasure( **mxMeasureIter, currentMeasurePropertiesPayload );
-                isFirstMeasure = false;
-                
-                
-                if( currentMeasureData.size() != outStaves.size() ) { MX_THROW( "currentMeasureData.size() != outStaves.size()" ); } // TODO - remove this
-                auto it = currentMeasureData.cbegin();
-                
-                for( int i = 0; i < static_cast<int>( outStaves.size() ) && it != currentMeasureData.cend(); ++i, ++it )
-                {
-                    if( i != it->first )
-                    {
-                        MX_THROW( "i != it->first" ); // TODO - remove this
-                    }
-                }
-                
-                for( int i = 0; i < static_cast<int>( outStaves.size() ); ++i )
-                {
-                    //auto& staff = outStaves.at( static_cast<size_t>( i ) );
-                    auto& measureData = currentMeasureData.at( i );
-                    measureData.multiMeasureRestCount = currentMeasurePropertiesPayload.multipleRest;
-                    //staff.measures.push_back( measureData );
-                }
-            }
-#endif
 }
 
-int findStaffCountInOneMeasure(const core::MusicDataChoiceSet &inMusic)
+int findStaffCountInOneMeasure(std::span<const core::MusicDataChoice> inMusic)
 {
     int outStaffCount = 1;
 
     for (const auto &mdc : inMusic)
     {
-        if (mdc->getChoice() == core::MusicDataChoice::Choice::properties)
+        if (mdc.kind() == core::MusicDataChoice::Kind::attributes)
         {
-            const auto item = mdc->getProperties();
+            const auto &item = mdc.asAttributes();
             int tempStaffCount = 1;
 
-            if (item->getHasStaves())
+            if (item.staves().has_value())
             {
-                tempStaffCount = item->getStaves()->getValue().getValue();
+                tempStaffCount = *item.staves();
 
                 if (tempStaffCount > outStaffCount)
                 {
@@ -95,47 +53,47 @@ int findStaffCountInOneMeasure(const core::MusicDataChoiceSet &inMusic)
             }
         }
 
-        mx::core::StaffPtr staff = nullptr;
+        std::optional<int> staff;
 
-        if (mdc->getChoice() == core::MusicDataChoice::Choice::note)
+        if (mdc.kind() == core::MusicDataChoice::Kind::note)
         {
-            const auto &item = *mdc->getNote();
-            if (item.getHasStaff())
+            const auto &item = mdc.asNote();
+            if (item.staff().has_value())
             {
-                staff = item.getStaff();
+                staff = item.staff();
             }
         }
 
-        if (mdc->getChoice() == core::MusicDataChoice::Choice::direction)
+        if (mdc.kind() == core::MusicDataChoice::Kind::direction)
         {
-            const auto &item = *mdc->getDirection();
-            if (item.getHasStaff())
+            const auto &item = mdc.asDirection();
+            if (item.staff().has_value())
             {
-                staff = item.getStaff();
+                staff = item.staff();
             }
         }
 
-        if (mdc->getChoice() == core::MusicDataChoice::Choice::forward)
+        if (mdc.kind() == core::MusicDataChoice::Kind::forward)
         {
-            const auto &item = *mdc->getForward();
-            if (item.getHasStaff())
+            const auto &item = mdc.asForward();
+            if (item.staff().has_value())
             {
-                staff = item.getStaff();
+                staff = item.staff();
             }
         }
 
-        if (mdc->getChoice() == core::MusicDataChoice::Choice::harmony)
+        if (mdc.kind() == core::MusicDataChoice::Kind::harmony)
         {
-            const auto &item = *mdc->getHarmony();
-            if (item.getHasStaff())
+            const auto &item = mdc.asHarmony();
+            if (item.staff().has_value())
             {
-                staff = item.getStaff();
+                staff = item.staff();
             }
         }
 
         if (staff)
         {
-            const int tempVal = static_cast<int>(staff->getValue().getValue());
+            const int tempVal = *staff;
             if (tempVal > outStaffCount)
             {
                 outStaffCount = tempVal;
@@ -147,13 +105,13 @@ int findStaffCountInOneMeasure(const core::MusicDataChoiceSet &inMusic)
     return outStaffCount;
 }
 
-int findStaffCountInAllMeasures(const core::PartwiseMeasureSet &measures)
+int findStaffCountInAllMeasures(std::span<const core::PartwiseMeasure> measures)
 {
     int outStaffCount = 1;
 
     for (const auto &measure : measures)
     {
-        const int tempCount = findStaffCountInOneMeasure(measure->getMusicDataGroup()->getMusicDataChoiceSet());
+        const int tempCount = findStaffCountInOneMeasure(measure.musicData());
 
         if (tempCount > outStaffCount)
         {

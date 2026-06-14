@@ -1,0 +1,64 @@
+// {{generated_banner}}
+
+#pragma once
+
+#include <string>
+#include <string_view>
+
+namespace {{vars.namespace}}
+{
+
+{{#doc_lines}}
+/// {{value}}
+{{/doc_lines}}
+/// Structural representation (plan §2.2) of the two branches the pattern
+/// allows: wiggle<suffix> (suffix non-empty), or guitar<middle>VibratoStroke
+/// (middle possibly empty). The literals are structural; only the variable
+/// part is stored, so a pattern-invalid name cannot exist.
+class {{ident}} final
+{
+public:
+    enum class Kind
+    {
+        wiggle,
+        guitarVibratoStroke,
+    };
+
+    /// The natural zero: wiggle with the placeholder suffix "X".
+    {{ident}}();
+
+    {{ident}}(Kind kind, std::string part);
+
+    Kind kind() const noexcept
+    {
+        return m_kind;
+    }
+
+    /// The variable part: the wiggle suffix, or the guitar middle.
+    const std::string &part() const noexcept
+    {
+        return m_part;
+    }
+
+    void setKind(Kind value);
+
+    void setPart(std::string value);
+
+    std::string toString() const;
+
+    /// Strict: exactly one of the pattern's two branches.
+    static bool tryParse(std::string_view text, {{ident}} &out);
+
+    /// Lenient: repairs into the nearest valid glyph name.
+    static {{ident}} parse(std::string_view text);
+
+    bool operator==(const {{ident}} &other) const noexcept = default;
+
+private:
+    void repair();
+
+    Kind m_kind{Kind::wiggle};
+    std::string m_part;
+};
+
+} // namespace {{vars.namespace}}

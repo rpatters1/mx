@@ -1,0 +1,87 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include "mx/core/Lexical.h"
+
+#include <utility>
+
+namespace {{vars.namespace}}
+{
+
+namespace
+{
+
+{{target_type}} clamped({{target_type}} v)
+{
+{{#clamp}}
+{{#type.is_decimal}}
+    if (v.value() {{op}} {{bound}})
+    {
+        v.setValue({{replacement}});
+    }
+{{/type.is_decimal}}
+{{#type.is_integer}}
+    if (v {{op}} {{bound}})
+    {
+        v = {{replacement}};
+    }
+{{/type.is_integer}}
+{{/clamp}}
+    return v;
+}
+
+} // namespace
+
+{{ident}}::{{ident}}() : m_value{clamped({{target_type}}{})}
+{
+}
+
+{{ident}}::{{ident}}({{target_type}} value) : m_value{clamped(std::move(value))}
+{
+}
+
+void {{ident}}::setValue({{target_type}} value)
+{
+    m_value = clamped(std::move(value));
+}
+
+std::string {{ident}}::toString() const
+{
+{{#is_decimal}}
+    return m_value.toString();
+{{/is_decimal}}
+{{#is_integer}}
+    return formatInt(m_value);
+{{/is_integer}}
+}
+
+bool {{ident}}::tryParse(std::string_view text, {{ident}} &out)
+{
+{{#is_decimal}}
+    Decimal v;
+    if (!Decimal::tryParse(text, v))
+    {
+        return false;
+    }
+    out = {{ident}}{std::move(v)};
+{{/is_decimal}}
+{{#is_integer}}
+    int v{};
+    if (!tryParseInt(text, v))
+    {
+        return false;
+    }
+    out = {{ident}}{v};
+{{/is_integer}}
+    return true;
+}
+
+{{ident}} {{ident}}::parse(std::string_view text)
+{
+    {{ident}} v;
+    tryParse(text, v);
+    return v;
+}
+
+} // namespace {{vars.namespace}}

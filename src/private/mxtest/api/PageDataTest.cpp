@@ -127,16 +127,28 @@ TEST(TestPageData, PageData)
     pd = PageData{};
     pd.newPage = Bool::no;
     score1.layout[10].page = pd;
-    const auto id1 = docMgr.createFromScore(score1);
+    const auto rId1 = docMgr.createFromScore(score1);
+    REQUIRE(rId1.ok());
+    const int id1 = rId1.value();
     std::stringstream xml1;
     docMgr.writeToStream(id1, xml1);
     docMgr.destroyDocument(id1);
     std::istringstream xml1is{xml1.str()};
-    const auto id2 = docMgr.createFromStream(xml1is);
-    const auto score2 = docMgr.getData(id2);
+    const auto rId2 = docMgr.createFromStream(xml1is);
+    REQUIRE(rId2.ok());
+    const int id2 = rId2.value();
+    const auto rScore2 = docMgr.getData(id2);
+    REQUIRE(rScore2.ok());
+    const auto score2 = rScore2.value();
+    // The write side always emits version="4.0"; normalize so version fields
+    // do not cause a false mismatch when the original score was built from scratch.
+    score1.musicXmlVersion = score2.musicXmlVersion;
+    score1.declaredMusicXmlVersion = score2.declaredMusicXmlVersion;
     CHECK(score1 == score2);
     docMgr.destroyDocument(id2);
-    const auto id3 = docMgr.createFromScore(score2);
+    const auto rId3 = docMgr.createFromScore(score2);
+    REQUIRE(rId3.ok());
+    const int id3 = rId3.value();
     std::stringstream xml3;
     docMgr.writeToStream(id3, xml3);
     CHECK(xml1.str() == xml3.str());
@@ -146,8 +158,12 @@ TEST(LoadFinaleExport, PageData)
 {
     const auto filepath = mxtest::MxFileRepository::getFullPath("systems-and-pages.xml");
     auto &docMgr = DocumentManager::getInstance();
-    const auto id = docMgr.createFromFile(filepath);
-    const auto score = docMgr.getData(id);
+    const auto rId = docMgr.createFromFile(filepath);
+    REQUIRE(rId.ok());
+    const int id = rId.value();
+    const auto rScore = docMgr.getData(id);
+    REQUIRE(rScore.ok());
+    const auto score = rScore.value();
     docMgr.destroyDocument(id);
 
     // The loaded file has page and system information as follows:

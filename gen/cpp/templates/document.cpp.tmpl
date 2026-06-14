@@ -1,0 +1,89 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/Document.h"
+
+#include "mx/core/Error.h"
+#include "mx/core/Lexical.h"
+#include "mx/core/generated/Version.h"
+#include "mx/core/Xml.h"
+
+#include <string_view>
+#include <utility>
+
+namespace {{vars.namespace}}
+{
+
+Result<Document> parse(const pugi::xml_document &doc)
+{
+    try
+    {
+        pugi::xml_node root = doc.document_element();
+        if (!root)
+        {
+            return Error{ErrorCode::invalidDocument, "/", "document has no root element"};
+        }
+        const std::string_view declared = root.attribute("version").value();
+        if (!declared.empty() && musicXmlVersionExceeds(declared, SupportedMusicXMLVersion))
+        {
+            return Error{ErrorCode::unsupportedVersion, nodePath(root),
+                         "document declares MusicXML " + std::string{declared} + "; this model supports up to " +
+                             std::string{SupportedMusicXMLVersion}};
+        }
+        std::vector<RootNamespace> namespaces;
+        for (pugi::xml_attribute a : root.attributes())
+        {
+            if (isNamespaceDecl(a.name()))
+            {
+                namespaces.push_back(RootNamespace{a.name(), a.value()});
+            }
+        }
+        const std::string_view tag = root.name();
+        Document d;
+{{#roots}}
+        {{#is_first}}if{{/is_first}}{{^is_first}}else if{{/is_first}} (tag == {{name.wire_q}})
+        {
+            d = Document{parse{{ident}}(root)};
+        }
+{{/roots}}
+        else
+        {
+            return Error{ErrorCode::invalidDocument, "/",
+                         std::string{"unknown root element <"} + root.name() + ">"};
+        }
+        d.setRootNamespaces(std::move(namespaces));
+        return d;
+    }
+    catch (const ParseError &e)
+    {
+        return e.error();
+    }
+}
+
+void serialize(const Document &d, pugi::xml_document &out)
+{
+    out.reset();
+    pugi::xml_node decl = out.append_child(pugi::node_declaration);
+    decl.append_attribute("version").set_value("1.0");
+    decl.append_attribute("encoding").set_value("UTF-8");
+    decl.append_attribute("standalone").set_value("no");
+    pugi::xml_node doctype = out.append_child(pugi::node_doctype);
+{{#roots}}
+    {{#is_first}}if{{/is_first}}{{^is_first}}else if{{/is_first}} (d.is{{ident}}())
+    {
+        doctype.set_value(std::string{Doctype{{ident}}}.c_str());
+        serialize{{ident}}(d.as{{ident}}(), out, {{name.wire_q}});
+    }
+{{/roots}}
+    pugi::xml_node root = out.document_element();
+    for (const auto &ns : d.rootNamespaces())
+    {
+        // Only actual namespace declarations are written back: anything
+        // else in the list would be an unknown attribute on the root.
+        if (isNamespaceDecl(ns.name))
+        {
+            setAttribute(root, ns.name.c_str(), ns.value);
+        }
+    }
+}
+
+} // namespace {{vars.namespace}}

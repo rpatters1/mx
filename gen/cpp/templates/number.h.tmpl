@@ -1,0 +1,58 @@
+// {{generated_banner}}
+
+#pragma once
+
+{{#is_decimal}}
+#include "mx/core/Decimal.h"
+{{/is_decimal}}
+
+#include <string>
+#include <string_view>
+
+namespace {{vars.namespace}}
+{
+
+{{#doc_lines}}
+/// {{value}}
+{{/doc_lines}}
+/// Construction and mutation clamp to the schema's range (one policy, one
+/// spelling, identical to import); an out-of-range value is unrepresentable.
+class {{ident}} final
+{
+public:
+    /// The natural zero: the default value clamped into range.
+    {{ident}}();
+
+    explicit {{ident}}({{target_type}} value);
+
+{{#is_decimal}}
+    const Decimal &value() const noexcept
+    {
+        return m_value;
+    }
+{{/is_decimal}}
+{{#is_integer}}
+    int value() const noexcept
+    {
+        return m_value;
+    }
+{{/is_integer}}
+
+    void setValue({{target_type}} value);
+
+    std::string toString() const;
+
+    /// Strict lexical parse, then range-clamp (the import leniency policy
+    /// for numbers, plan §2.4).
+    static bool tryParse(std::string_view text, {{ident}} &out);
+
+    /// Lenient: non-numeric text yields the clamped zero.
+    static {{ident}} parse(std::string_view text);
+
+    bool operator==(const {{ident}} &other) const noexcept = default;
+
+private:
+    {{target_type}} m_value{};
+};
+
+} // namespace {{vars.namespace}}

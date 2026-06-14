@@ -4,22 +4,23 @@
 
 #include "mxtest/corert/CoreRoundtripImpl.h"
 
-#include "ezxml/XAttribute.h"
-#include "ezxml/XAttributeIterator.h"
-#include "ezxml/XElementIterator.h"
-#include "ezxml/XFactory.h"
-#include "mx/core/Document.h"
+#include "mx/core/Lexical.h"
+#include "mx/core/generated/Document.h"
+#include "mx/core/generated/Version.h"
+#include "mxtest/corert/Compare.h"
 #include "mxtest/corert/Fixer.h"
 #include "mxtest/file/PathRoot.h"
-#include "mxtest/import/ChangeValues.h"
-#include "mxtest/import/SortAttributes.h"
+#include "mxtest/import/Normalize.h"
+
+#include "pugixml/pugixml.hpp"
 
 #include <algorithm>
 #include <cmath>
-#include <exception>
 #include <filesystem>
 #include <fstream>
+#include <optional>
 #include <sstream>
+#include <string_view>
 
 namespace mxtest
 {
@@ -30,7 +31,6 @@ namespace
 {
 
 constexpr const char *const kDataDirName = "data";
-constexpr const char *const kTestOutputSubdir = "testOutput/corert";
 
 const std::string &dataRoot()
 {
@@ -38,7 +38,6 @@ const std::string &dataRoot()
     return root;
 }
 
-// Exclude any path containing a directory segment named one of these.
 bool isExcludedPath(const std::filesystem::path &p)
 {
     static const std::vector<std::string> excludedSegments = {"expected", "testOutput", "generalxml", "smufl"};
@@ -62,23 +61,17 @@ bool hasXmlExtension(const std::filesystem::path &p)
     return ext == ".xml" || ext == ".musicxml";
 }
 
-// Fixup sidecars (`<name>.fixup.xml`) live next to inputs and end in `.xml`
-// but are not themselves MusicXML inputs. They are consumed by Fixer.
 bool isFixupSidecar(const std::filesystem::path &p)
 {
     const std::string filename = p.filename().string();
-    constexpr const char *const kSuffix = ".fixup.xml";
-    const size_t suffixLen = std::char_traits<char>::length(kSuffix);
-    if (filename.size() < suffixLen)
+    constexpr std::string_view kSuffix = ".fixup.xml";
+    if (filename.size() < kSuffix.size())
     {
         return false;
     }
-    return filename.compare(filename.size() - suffixLen, suffixLen, kSuffix) == 0;
+    return filename.compare(filename.size() - kSuffix.size(), kSuffix.size(), kSuffix) == 0;
 }
 
-// A file is marked invalid (and therefore unfit for schema-strict round-trip)
-// when a sibling file with the same name plus a trailing `.invalid` extension
-// exists. See data/README.md for the convention.
 bool hasInvalidMarker(const std::filesystem::path &p)
 {
     std::filesystem::path marker = p;
@@ -87,326 +80,26 @@ bool hasInvalidMarker(const std::filesystem::path &p)
     return std::filesystem::exists(marker, ec);
 }
 
-// Set the root `version` attribute to mx::core's supported MusicXML version.
-// Equivalent in shape to mxtest/import's setRootMusicXmlVersion but without
-// the doctype cross-check (which we apply via setDoctype below based on the
-// root element name).
-// Pinned MusicXML version string for the supported `mx::core` schema.
-//
-// TODO: Ideally this would come from a single `mx::core` constant. Today the
-// core namespace declares the version in two conflicting places
-// (`DocumentSpec.h::DEFAULT_MUSIC_XML_VERSION` lower-case and
-// `DocumentHeader.h::kDefaultMusicXmlVersion` upper-case `ThreePointZero`),
-// and including both in one TU is a hard compile error. The api import suite
-// already hardcodes `"3.0"` for the same reason (see
-// `ImportTestImpl::loadTestFile`); we follow that precedent here. When the
-// core-side conflict is resolved (likely as part of the codegen rewrite that
-// brings MusicXML 4.0 support), replace this with the canonical constant.
-constexpr const char *const kMusicXmlVersionString = "3.0";
-
-void setRootMusicXmlVersion(const ::ezxml::XDocPtr &xdoc)
+std::string saveToString(const pugi::xml_document &doc)
 {
-    const auto root = xdoc->getRoot();
+    std::ostringstream ss;
+    doc.save(ss, "  ");
+    return ss.str();
+}
+
+bool declaredVersionExceeds(const pugi::xml_document &doc)
+{
+    pugi::xml_node root = doc.document_element();
     if (!root)
     {
-        return;
+        return false;
     }
-    for (auto it = root->attributesBegin(); it != root->attributesEnd(); ++it)
+    const std::string_view declared = root.attribute("version").value();
+    if (declared.empty())
     {
-        if (it->getName() == "version")
-        {
-            it->setValue(kMusicXmlVersionString);
-            return;
-        }
+        return false; // absent means MusicXML 1.0
     }
-    root->appendAttribute("version")->setValue(kMusicXmlVersionString);
-}
-
-void setXmlDeclaration(const ::ezxml::XDocPtr &xdoc)
-{
-    xdoc->setHasStandaloneAttribute(true);
-    xdoc->setIsStandalone(false);
-    xdoc->setXmlVersion(::ezxml::XmlVersion::onePointZero);
-    const auto encoding = xdoc->getEncoding();
-    if (encoding == ::ezxml::Encoding::unknown)
-    {
-        xdoc->setEncoding(::ezxml::DEFAULT_ENCODING);
-    }
-}
-
-void setDoctypeFromRoot(const ::ezxml::XDocPtr &xdoc)
-{
-    const auto root = xdoc->getRoot();
-    if (!root)
-    {
-        return;
-    }
-    const std::string name = root->getName();
-    xdoc->setHasDoctypeDeclaration(true);
-    if (name == "score-timewise")
-    {
-        xdoc->setDoctypeValue(mx::core::DOCTYPE_VALUE_SCORE_TIMEWISE);
-    }
-    else
-    {
-        // Default to partwise for anything else (including the common
-        // score-partwise root). A non-MusicXML root will be caught upstream
-        // by fromXDoc.
-        xdoc->setDoctypeValue(mx::core::DOCTYPE_VALUE_SCORE_PARTWISE);
-    }
-}
-
-// Apply the full normalization pipeline (design §3 Normalization). Must be
-// applied to both the expected (input reloaded) and the actual (toXDoc output)
-// trees so the comparison sees canonical-against-canonical input.
-void normalize(const ::ezxml::XDocPtr &xdoc)
-{
-    setXmlDeclaration(xdoc);
-    setDoctypeFromRoot(xdoc);
-    setRootMusicXmlVersion(xdoc);
-    mxtest::stripZerosFromDecimalFields(*xdoc);
-    mxtest::sortAttributes(*xdoc); // must be last
-}
-
-// Format a node path like /score-partwise/part[0]/measure[2]/note[1]/pitch.
-std::string nodePath(const std::vector<std::string> &segments)
-{
-    std::string s;
-    for (const auto &seg : segments)
-    {
-        s += "/";
-        s += seg;
-    }
-    return s.empty() ? "/" : s;
-}
-
-struct CompareFailure
-{
-    bool isFailure = false;
-    std::string detail;
-};
-
-inline std::optional<long long> parseLongLong(const std::string &str)
-{
-    try
-    {
-        size_t pos;
-        long long val = std::stoll(str, &pos);
-
-        // Ensure the entire string was consumed (e.g., rejects "123abc")
-        if (pos == str.size())
-        {
-            return val;
-        }
-    }
-    catch (...)
-    {
-        // Suppress exceptions and just return empty
-    }
-    return std::nullopt;
-}
-
-inline bool equivilantLongLong(const std::string &l, const std::string &r)
-{
-    const auto lVal = parseLongLong(l);
-    const auto rVal = parseLongLong(r);
-
-    // Check if both parsed successfully AND if their values match
-    if (lVal && rVal && *lVal == *rVal)
-    {
-        return true;
-    }
-    return false;
-}
-
-inline std::optional<unsigned long long> parseUnsignedLongLong(const std::string &str)
-{
-    try
-    {
-        size_t pos;
-        unsigned long long val = std::stoull(str, &pos);
-
-        // Ensure the entire string was consumed (e.g., rejects "123abc")
-        if (pos == str.size())
-        {
-            return val;
-        }
-    }
-    catch (...)
-    {
-        // Suppress exceptions and just return empty
-    }
-    return std::nullopt;
-}
-
-inline bool equivilantUnsignedLongLong(const std::string &l, const std::string &r)
-{
-    const auto lVal = parseUnsignedLongLong(l);
-    const auto rVal = parseUnsignedLongLong(r);
-
-    // Check if both parsed successfully AND if their values match
-    if (lVal && rVal && *lVal == *rVal)
-    {
-        return true;
-    }
-    return false;
-}
-
-std::optional<long double> parseLongDouble(const std::string &str)
-{
-    try
-    {
-        size_t pos;
-        long double val = std::stold(str, &pos);
-
-        // 1. Reject partial matches (e.g., "3.14abc")
-        if (pos != str.size())
-        {
-            return std::nullopt;
-        }
-
-        // 2. Reject NaN and Infinity
-        if (std::isnan(val) || std::isinf(val))
-        {
-            return std::nullopt;
-        }
-
-        return val;
-    }
-    catch (...)
-    {
-        return std::nullopt;
-    }
-}
-
-inline bool equivilantLongDouble(const std::string &l, const std::string &r)
-{
-    const auto lVal = parseLongDouble(l);
-    const auto rVal = parseLongDouble(r);
-
-    // Check if both parsed successfully AND if their values match
-    if (lVal && rVal && std::fabs(*lVal - *rVal) < 0.00000001)
-    {
-        return true;
-    }
-    return false;
-}
-
-inline bool isEquivilant(const std::string &left, const std::string &right)
-{
-    if (left == right)
-    {
-        return true;
-    }
-    // Check if they both parse to integers.
-    // If they both successfully parse as long long, compare values, if same return true
-    if (equivilantLongLong(left, right))
-    {
-        return true;
-    }
-    // If they both successfully parse as usizes, compare values, if same return true
-    if (equivilantUnsignedLongLong(left, right))
-    {
-        return true;
-    }
-
-    // Check if they both parse to floats and their difference is arbitrarily small.
-    if (equivilantLongDouble(left, right))
-    {
-        return true;
-    }
-
-    return false;
-}
-
-CompareFailure compareElements(const ::ezxml::XElement &expected, const ::ezxml::XElement &actual,
-                               std::vector<std::string> &pathStack)
-{
-    CompareFailure fail;
-
-    if (expected.getName() != actual.getName())
-    {
-        std::stringstream ss;
-        ss << "element name mismatch at " << nodePath(pathStack) << ": expected '" << expected.getName()
-           << "', actual '" << actual.getName() << "'";
-        fail.isFailure = true;
-        fail.detail = ss.str();
-        return fail;
-    }
-
-    // Compare text payload (exact, per design §3 open question — start exact).
-    if (!isEquivilant(expected.getValue(), actual.getValue()))
-    {
-        // TODO: use isEquivilant
-        std::stringstream ss;
-        ss << "mismatch at " << nodePath(pathStack) << ": expected '" << expected.getValue() << "', actual '"
-           << actual.getValue() << "'";
-        fail.isFailure = true;
-        fail.detail = ss.str();
-        return fail;
-    }
-
-    // Compare attributes. They are already sorted by the normalization step.
-    auto eAttrIt = expected.attributesBegin();
-    const auto eAttrEnd = expected.attributesEnd();
-    auto aAttrIt = actual.attributesBegin();
-    const auto aAttrEnd = actual.attributesEnd();
-    while (eAttrIt != eAttrEnd && aAttrIt != aAttrEnd)
-    {
-        // TODO: use isEquivilant for attribute value comparisons
-        if (eAttrIt->getName() != aAttrIt->getName() || !isEquivilant(eAttrIt->getValue(), aAttrIt->getValue()))
-        {
-            std::stringstream ss;
-            ss << "attribute mismatch at " << nodePath(pathStack) << "[@" << eAttrIt->getName() << "]: expected '"
-               << eAttrIt->getName() << "=" << eAttrIt->getValue() << "', actual '" << aAttrIt->getName() << "="
-               << aAttrIt->getValue() << "'";
-            fail.isFailure = true;
-            fail.detail = ss.str();
-            return fail;
-        }
-        ++eAttrIt;
-        ++aAttrIt;
-    }
-    if (eAttrIt != eAttrEnd || aAttrIt != aAttrEnd)
-    {
-        std::stringstream ss;
-        ss << "attribute count mismatch at " << nodePath(pathStack);
-        fail.isFailure = true;
-        fail.detail = ss.str();
-        return fail;
-    }
-
-    // Compare children, depth-first.
-    auto eIt = expected.begin();
-    const auto eEnd = expected.end();
-    auto aIt = actual.begin();
-    const auto aEnd = actual.end();
-    int childIndex = 0;
-    while (eIt != eEnd && aIt != aEnd)
-    {
-        std::stringstream segSs;
-        segSs << eIt->getName() << "[" << childIndex << "]";
-        pathStack.push_back(segSs.str());
-        const auto childFail = compareElements(*eIt, *aIt, pathStack);
-        if (childFail.isFailure)
-        {
-            return childFail;
-        }
-        pathStack.pop_back();
-        ++eIt;
-        ++aIt;
-        ++childIndex;
-    }
-    if (eIt != eEnd || aIt != aEnd)
-    {
-        std::stringstream ss;
-        ss << "child count mismatch at " << nodePath(pathStack);
-        fail.isFailure = true;
-        fail.detail = ss.str();
-        return fail;
-    }
-
-    return fail;
+    return mx::core::musicXmlVersionExceeds(declared, mx::core::SupportedMusicXMLVersion);
 }
 
 } // namespace
@@ -428,23 +121,8 @@ std::vector<std::string> discoverInputFiles()
             continue;
         }
         const fs::path &p = entry.path();
-        // Excludes are checked against the path relative to the data root so
-        // an unrelated `expected` segment higher in the filesystem cannot
-        // affect classification.
         const fs::path relative = fs::relative(p, root);
-        if (isExcludedPath(relative))
-        {
-            continue;
-        }
-        if (!hasXmlExtension(p))
-        {
-            continue;
-        }
-        if (isFixupSidecar(p))
-        {
-            continue;
-        }
-        if (hasInvalidMarker(p))
+        if (isExcludedPath(relative) || !hasXmlExtension(p) || isFixupSidecar(p) || hasInvalidMarker(p))
         {
             continue;
         }
@@ -465,9 +143,7 @@ std::string toTestName(const std::string &absolutePath)
     {
         return absolutePath;
     }
-    // Forward slashes for cross-platform consistency in test names.
-    std::string s = rel.generic_string();
-    return s;
+    return rel.generic_string();
 }
 
 CoreRoundtripResult runCoreRoundtrip(const std::string &absoluteInputPath)
@@ -475,69 +151,61 @@ CoreRoundtripResult runCoreRoundtrip(const std::string &absoluteInputPath)
     CoreRoundtripResult r;
     try
     {
-        // 1. Load the input via ezxml.
-        auto inputXDoc = ::ezxml::XFactory::makeXDoc();
-        inputXDoc->loadFile(absoluteInputPath);
-
-        // 2. Set input root `version` to the supported MusicXML version. The
-        //    declaration and doctype are set later by normalization.
-        setRootMusicXmlVersion(inputXDoc);
-
-        // 3. fromXDoc into a mx::core::Document.
-        auto mxDoc = mx::core::makeDocument();
-        std::stringstream fromMsg;
-        const bool ok = mxDoc->fromXDoc(fromMsg, *inputXDoc);
-        if (!ok)
+        // 1. Load the input (pugixml auto-detects UTF-16/Latin-1).
+        pugi::xml_document inputDoc;
+        const pugi::xml_parse_result loaded =
+            inputDoc.load_file(absoluteInputPath.c_str(), pugi::parse_default | pugi::parse_doctype);
+        if (!loaded)
         {
-            r.ok = false;
-            r.message = "fromXDoc returned false: " + fromMsg.str();
+            r.message = std::string{"failed to load: "} + loaded.description();
             return r;
         }
 
-        // 4. toXDoc back out.
-        auto actualXDoc = ::ezxml::XFactory::makeXDoc();
-        mxDoc->toXDoc(*actualXDoc);
+        // 2. Version gate: a document declaring a NEWER MusicXML than the
+        //    generated model supports may use types the model cannot
+        //    represent; skip, don't fail. (Nothing in the corpus does.)
+        if (declaredVersionExceeds(inputDoc))
+        {
+            r.skipped = true;
+            r.message = "declares a MusicXML version newer than the supported " +
+                        std::string{mx::core::SupportedMusicXMLVersion};
+            return r;
+        }
 
-        // 5. Normalize the actual document.
-        normalize(actualXDoc);
+        // 3. Pin the root version to the harness baseline, then parse.
+        setRootMusicXmlVersion(inputDoc, kMusicXmlVersionBaseline);
+        auto parsed = mx::core::parse(inputDoc);
+        if (!parsed)
+        {
+            r.message = "parse failed [" + parsed.error().path + "] " + parsed.error().message;
+            return r;
+        }
 
-        // 6. Load a fresh expected from disk.
-        auto expectedXDoc = ::ezxml::XFactory::makeXDoc();
-        expectedXDoc->loadFile(absoluteInputPath);
-        // Mirror step 2 so the input version is canonical before normalization.
-        setRootMusicXmlVersion(expectedXDoc);
+        // 4. Serialize back out and normalize the actual document.
+        pugi::xml_document actualDoc;
+        mx::core::serialize(parsed.value(), actualDoc);
+        normalizeForComparison(actualDoc);
 
-        // 7. Normalize the expected document with the same pipeline.
-        normalize(expectedXDoc);
-
-        // 7b. Apply per-file fixups to the expected document. Patches expected
-        //     values that mx clamps to a different value on round-trip.
+        // 5. Load a fresh expected from disk, normalize identically, then
+        //    apply per-file fixups (mx clamps out-of-bounds values; the
+        //    sidecar patches the expected to the clamped form).
+        pugi::xml_document expectedDoc;
+        if (!expectedDoc.load_file(absoluteInputPath.c_str(), pugi::parse_default | pugi::parse_doctype))
+        {
+            r.message = "failed to reload expected";
+            return r;
+        }
+        normalizeForComparison(expectedDoc);
         Fixer fixer(absoluteInputPath);
-        fixer.applyToExpected(expectedXDoc);
+        fixer.applyToExpected(expectedDoc);
 
-        // 8. Depth-first compare.
-        std::vector<std::string> pathStack;
-        const auto expectedRoot = expectedXDoc->getRoot();
-        const auto actualRoot = actualXDoc->getRoot();
-        if (!expectedRoot || !actualRoot)
-        {
-            r.ok = false;
-            r.message = "missing root element after normalization";
-            return r;
-        }
-        pathStack.push_back(expectedRoot->getName());
-        const auto fail = compareElements(*expectedRoot, *actualRoot, pathStack);
-
+        // 6. Depth-first compare.
+        const auto fail = compareElements(expectedDoc.document_element(), actualDoc.document_element());
         if (fail.isFailure)
         {
-            r.ok = false;
             r.message = fail.detail;
-            std::stringstream eSs;
-            std::stringstream aSs;
-            expectedXDoc->saveStream(eSs);
-            actualXDoc->saveStream(aSs);
-            r.expectedXml = eSs.str();
-            r.actualXml = aSs.str();
+            r.expectedXml = saveToString(expectedDoc);
+            r.actualXml = saveToString(actualDoc);
             return r;
         }
 
@@ -546,13 +214,11 @@ CoreRoundtripResult runCoreRoundtrip(const std::string &absoluteInputPath)
     }
     catch (const std::exception &e)
     {
-        r.ok = false;
-        r.message = std::string("exception: ") + e.what();
+        r.message = std::string{"exception: "} + e.what();
         return r;
     }
     catch (...)
     {
-        r.ok = false;
         r.message = "unknown exception";
         return r;
     }
@@ -564,25 +230,20 @@ void writeFailureFiles(const std::string &testName, const std::string &expectedX
     const fs::path outDir = fs::path(MX_REPO_ROOT_PATH) / kDataDirName / "testOutput" / "corert";
     std::error_code ec;
     fs::create_directories(outDir, ec);
-    // If create_directories fails, the open below will fail too; we let that
-    // surface to the caller via the test simply not having debug files. No
-    // throw — the suite is already in a failure state at this point.
 
     std::string flat = testName;
     std::replace(flat.begin(), flat.end(), '/', '_');
     std::replace(flat.begin(), flat.end(), '\\', '_');
 
-    const fs::path expectedPath = outDir / (flat + ".expected.xml");
-    const fs::path actualPath = outDir / (flat + ".actual.xml");
     {
-        std::ofstream f(expectedPath);
+        std::ofstream f(outDir / (flat + ".expected.xml"));
         if (f.is_open())
         {
             f << expectedXml;
         }
     }
     {
-        std::ofstream f(actualPath);
+        std::ofstream f(outDir / (flat + ".actual.xml"));
         if (f.is_open())
         {
             f << actualXml;

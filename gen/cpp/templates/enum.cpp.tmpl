@@ -1,0 +1,54 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include <cstddef>
+#include <iterator>
+
+namespace {{vars.namespace}}
+{
+
+namespace
+{
+
+constexpr std::string_view kWire[] = {
+{{#variants}}
+    {{name.wire_q}},
+{{/variants}}
+};
+
+} // namespace
+
+{{#variants}}
+{{type.ident}} {{type.ident}}::{{ident}}() noexcept
+{
+    return {{type.ident}}{Tag::{{ident}}};
+}
+
+{{/variants}}
+std::string_view {{ident}}::toString() const noexcept
+{
+    return kWire[static_cast<std::size_t>(m_tag)];
+}
+
+bool {{ident}}::tryParse(std::string_view text, {{ident}} &out) noexcept
+{
+    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    {
+        if (kWire[i] == text)
+        {
+            out = {{ident}}{static_cast<Tag>(i)};
+            return true;
+        }
+    }
+    return false;
+}
+
+{{ident}} {{ident}}::parse(std::string_view text) noexcept
+{
+    {{ident}} v;
+    tryParse(text, v);
+    return v;
+}
+
+} // namespace {{vars.namespace}}

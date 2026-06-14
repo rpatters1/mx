@@ -1,0 +1,59 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include "mx/core/Lexical.h"
+#include "mx/core/Xml.h"
+
+#include <utility>
+
+namespace {{vars.namespace}}
+{
+
+{{>attributes_impl}}
+{{#value}}
+const {{type_ref.ident}} &{{type.ident}}::{{ident}}() const noexcept
+{
+    return m_{{ident}};
+}
+
+void {{type.ident}}::set{{name.pascal}}({{type_ref.ident}} value)
+{
+    m_{{ident}} = std::move(value);
+}
+
+{{/value}}
+{{ident}} parse{{ident}}(pugi::xml_node el)
+{
+    {{ident}} out;
+{{>attributes_parse}}
+    parse{{ident}}Content(out, el);
+    return out;
+}
+
+void parse{{ident}}Content({{ident}} &out, pugi::xml_node el)
+{
+{{#value}}
+    out.set{{name.pascal}}({{#type_ref.is_value}}{{type_ref.ident}}::parse(childText(el)){{/type_ref.is_value}}{{#type_ref.is_primitive_string}}std::string{childText(el)}{{/type_ref.is_primitive_string}}{{#type_ref.is_primitive_integer}}parseInt(childText(el)){{/type_ref.is_primitive_integer}}{{#type_ref.is_primitive_decimal}}Decimal::parse(childText(el)){{/type_ref.is_primitive_decimal}});
+{{/value}}
+    if (firstElement(el))
+    {
+        throwUnknownElement(firstElement(el));
+    }
+}
+
+void serialize{{ident}}(const {{ident}} &v, pugi::xml_node parent, const char *tag)
+{
+    pugi::xml_node el = parent.append_child(tag);
+{{>attributes_serialize}}
+    serialize{{ident}}Content(v, el);
+}
+
+void serialize{{ident}}Content(const {{ident}} &v, pugi::xml_node el)
+{
+{{#value}}
+    setText(el, {{#type_ref.is_value}}v.{{ident}}().toString(){{/type_ref.is_value}}{{#type_ref.is_primitive_string}}v.{{ident}}(){{/type_ref.is_primitive_string}}{{#type_ref.is_primitive_integer}}formatInt(v.{{ident}}()){{/type_ref.is_primitive_integer}}{{#type_ref.is_primitive_decimal}}v.{{ident}}().toString(){{/type_ref.is_primitive_decimal}});
+{{/value}}
+}
+
+} // namespace {{vars.namespace}}

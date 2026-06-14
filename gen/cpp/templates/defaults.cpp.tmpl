@@ -1,0 +1,38 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/DefaultsProbe.h"
+
+{{#complex_types}}
+#include "mx/core/generated/{{ident}}.h"
+{{/complex_types}}
+{{#groups}}
+#include "mx/core/generated/{{ident}}.h"
+{{/groups}}
+#include "mx/core/Xml.h"
+
+namespace {{vars.namespace}}
+{
+
+void roundTripDefaults()
+{
+{{#complex_types}}
+    {
+        pugi::xml_document doc;
+        serialize{{ident}}({{ident}}{}, doc, "probe");
+        parse{{ident}}(doc.document_element());
+    }
+{{/complex_types}}
+{{#groups}}
+    {
+        pugi::xml_document doc;
+        pugi::xml_node el = doc.append_child("probe");
+        serialize{{ident}}({{ident}}{}, el);
+        if (pugi::xml_node cursor = firstElement(el))
+        {
+            parse{{ident}}(el, cursor);
+        }
+    }
+{{/groups}}
+}
+
+} // namespace {{vars.namespace}}

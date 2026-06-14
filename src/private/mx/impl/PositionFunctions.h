@@ -12,28 +12,26 @@ namespace mx
 {
 namespace impl
 {
-using LongDouble = long double;
+MX_OPTIONAL_HAS_FUNC(defaultX, DefaultX);
+MX_OPTIONAL_GET_DECIMAL_FUNC(defaultX, DefaultX, 1.0);
 
-MX_ATTR_FUNC_OPTIONAL(hasDefaultX, HasDefaultX, bool, false);
-MX_ATTR_FUNC_OPTIONAL_WITH_GETTER(defaultX, DefaultX, LongDouble, 1.0L);
+MX_OPTIONAL_HAS_FUNC(defaultY, DefaultY);
+MX_OPTIONAL_GET_DECIMAL_FUNC(defaultY, DefaultY, 1.0);
 
-MX_ATTR_FUNC_OPTIONAL(hasDefaultY, HasDefaultY, bool, false);
-MX_ATTR_FUNC_OPTIONAL_WITH_GETTER(defaultY, DefaultY, LongDouble, 1.0L);
+MX_OPTIONAL_HAS_FUNC(relativeX, RelativeX);
+MX_OPTIONAL_GET_DECIMAL_FUNC(relativeX, RelativeX, 1.0);
 
-MX_ATTR_FUNC_OPTIONAL(hasRelativeX, HasRelativeX, bool, false);
-MX_ATTR_FUNC_OPTIONAL_WITH_GETTER(relativeX, RelativeX, LongDouble, 1.0L);
+MX_OPTIONAL_HAS_FUNC(relativeY, RelativeY);
+MX_OPTIONAL_GET_DECIMAL_FUNC(relativeY, RelativeY, 1.0);
 
-MX_ATTR_FUNC_OPTIONAL(hasRelativeY, HasRelativeY, bool, false);
-MX_ATTR_FUNC_OPTIONAL_WITH_GETTER(relativeY, RelativeY, LongDouble, 1.0L);
+MX_OPTIONAL_HAS_FUNC(halign, Halign);
+MX_OPTIONAL_GET_VALUE_FUNC(halign, Halign, core::LeftCenterRight, core::LeftCenterRight::left());
 
-MX_ATTR_FUNC_OPTIONAL(hasHalign, HasHalign, bool, false);
-MX_ATTR_FUNC_OPTIONAL(halign, Halign, core::LeftCenterRight, core::LeftCenterRight::left);
+MX_OPTIONAL_HAS_FUNC(valign, Valign);
+MX_OPTIONAL_GET_VALUE_FUNC(valign, Valign, core::Valign, core::Valign::baseline());
 
-MX_ATTR_FUNC_OPTIONAL(hasValign, HasValign, bool, false);
-MX_ATTR_FUNC_OPTIONAL(valign, Valign, core::Valign, core::Valign::baseline);
-
-MX_ATTR_FUNC_OPTIONAL(hasPlacement, HasPlacement, bool, false);
-MX_ATTR_FUNC_OPTIONAL(placement, Placement, core::AboveBelow, core::AboveBelow::above);
+MX_OPTIONAL_HAS_FUNC(placement, Placement);
+MX_OPTIONAL_GET_VALUE_FUNC(placement, Placement, core::AboveBelow, core::AboveBelow::above());
 
 template <typename ATTRIBUTES_TYPE> api::PositionData getPositionData(const ATTRIBUTES_TYPE &inAttributes)
 {
@@ -95,26 +93,26 @@ template <typename ATTRIBUTES_TYPE> api::PositionData getPositionData(const ATTR
     return outPositionData;
 }
 
-MX_ATTR_SETFUNC_OPTIONAL(hasDefaultX, HasDefaultX, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL_WITH_SETTER(defaultX, DefaultX, LongDouble, 1.0L);
+MX_OPTIONAL_SET_HAS_FUNC(defaultX, setDefaultX, DefaultX);
+MX_OPTIONAL_SET_DECIMAL_FUNC(defaultX, setDefaultX, DefaultX);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasDefaultY, HasDefaultY, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL_WITH_SETTER(defaultY, DefaultY, LongDouble, 1.0L);
+MX_OPTIONAL_SET_HAS_FUNC(defaultY, setDefaultY, DefaultY);
+MX_OPTIONAL_SET_DECIMAL_FUNC(defaultY, setDefaultY, DefaultY);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasRelativeX, HasRelativeX, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL_WITH_SETTER(relativeX, RelativeX, LongDouble, 1.0L);
+MX_OPTIONAL_SET_HAS_FUNC(relativeX, setRelativeX, RelativeX);
+MX_OPTIONAL_SET_DECIMAL_FUNC(relativeX, setRelativeX, RelativeX);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasRelativeY, HasRelativeY, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL_WITH_SETTER(relativeY, RelativeY, LongDouble, 1.0L);
+MX_OPTIONAL_SET_HAS_FUNC(relativeY, setRelativeY, RelativeY);
+MX_OPTIONAL_SET_DECIMAL_FUNC(relativeY, setRelativeY, RelativeY);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasHalign, HasHalign, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL(halign, Halign, core::LeftCenterRight, core::LeftCenterRight::left);
+MX_OPTIONAL_SET_HAS_FUNC(halign, setHalign, Halign);
+MX_OPTIONAL_SET_VALUE_FUNC(halign, setHalign, Halign);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasValign, HasValign, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL(valign, Valign, core::Valign, core::Valign::baseline);
+MX_OPTIONAL_SET_HAS_FUNC(valign, setValign, Valign);
+MX_OPTIONAL_SET_VALUE_FUNC(valign, setValign, Valign);
 
-MX_ATTR_SETFUNC_OPTIONAL(hasPlacement, HasPlacement, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL(placement, Placement, core::AboveBelow, core::AboveBelow::above);
+MX_OPTIONAL_SET_HAS_FUNC(placement, setPlacement, Placement);
+MX_OPTIONAL_SET_VALUE_FUNC(placement, setPlacement, Placement);
 
 template <typename ATTRIBUTES_TYPE>
 void setAttributesFromPositionData(const api::PositionData &positionData, ATTRIBUTES_TYPE &outAttributes)

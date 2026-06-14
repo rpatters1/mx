@@ -8,10 +8,15 @@
 
 #include "cpul/cpulTestHarness.h"
 #include "mx/api/DocumentManager.h"
-#include "mx/core/Document.h"
-#include "mx/core/elements/MusicDataChoice.h"
+#include "mx/core/generated/Document.h"
+#include "mx/core/generated/FullNoteGroup.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/NormalNoteGroup.h"
+#include "mx/core/generated/Note.h"
+#include "mx/core/generated/NoteChoice.h"
 #include "mxtest/file/MxFileRepository.h"
 #include <sstream>
+#include <vector>
 
 using namespace std;
 using namespace mx::api;
@@ -70,75 +75,67 @@ TEST(chordTest, Chords)
     //    noteP->beams.emplace_back(Beam::end);
 
     auto &mgr = DocumentManager::getInstance();
-    auto docId = mgr.createFromScore(score);
+    const auto docIdResult = mgr.createFromScore(score);
+    REQUIRE(docIdResult.ok());
+    const int docId = docIdResult.value();
     std::stringstream ss;
     mgr.writeToStream(docId, ss);
     auto doc = mgr.getDocument(docId);
     mgr.destroyDocument(docId);
-    auto xml = ss.str();
 
-    using namespace mx::core;
+    REQUIRE(doc != nullptr);
+    REQUIRE(doc->isScorePartwise());
+    const auto &scorePartwise = doc->asScorePartwise();
+    const auto parts = scorePartwise.part();
+    REQUIRE(!parts.empty());
+    const auto &firstPart = parts[0];
+    const auto measures = firstPart.measure();
+    REQUIRE(!measures.empty());
+    const auto &firstMeasure = measures[0];
+    const auto &mdcSet = firstMeasure.musicData();
 
-    auto scorePartwise = doc->getScorePartwise();
-    auto partPtr = scorePartwise->getPartwisePartSet().front();
-    const auto &measures = partPtr->getPartwiseMeasureSet();
-    auto measureIter = measures.cbegin();
-    auto measurePtr = *measureIter;
-
-    auto mdg = measurePtr->getMusicDataGroup();
-    auto mdcSet = mdg->getMusicDataChoiceSet();
-
-    std::vector<NotePtr> notes;
+    // Collect only note choices
+    std::vector<const mx::core::Note *> notes;
     for (const auto &mdc : mdcSet)
     {
-        if (mdc->getChoice() == MusicDataChoice::Choice::note)
+        if (mdc.isNote())
         {
-            notes.push_back(mdc->getNote());
+            notes.push_back(&mdc.asNote());
         }
     }
 
     // first note
+    REQUIRE(notes.size() >= 1);
     auto notesIter = notes.cbegin();
-    auto note = (*notesIter);
-    CHECK(!note->getNoteChoice()->getNormalNoteGroup()->getFullNoteGroup()->getHasChord());
+    const mx::core::Note *note = *notesIter;
+    REQUIRE(note->choice().isNormalNoteGroup());
+    CHECK(!note->choice().asNormalNoteGroup().fullNote().chord());
 
     // second note
     ++notesIter;
-    note = (*notesIter);
-    CHECK(note->getNoteChoice()->getNormalNoteGroup()->getFullNoteGroup()->getHasChord());
-
-    //    notes.clear();
-    //    ++measureIter;
-    //    measurePtr = *measureIter;
-    //
-    //    mdg = measurePtr->getMusicDataGroup();
-    //    mdcSet = mdg->getMusicDataChoiceSet();
-    //
-    //    for (const auto& mdc : mdcSet)
-    //    {
-    //        if (mdc->getChoice() == MusicDataChoice::Choice::note)
-    //        {
-    //            notes.push_back(mdc->getNote());
-    //        }
-    //    }
+    REQUIRE(notesIter != notes.cend());
+    note = *notesIter;
+    REQUIRE(note->choice().isNormalNoteGroup());
+    CHECK(note->choice().asNormalNoteGroup().fullNote().chord());
 
     // third note
     ++notesIter;
-    note = (*notesIter);
-    CHECK(!note->getNoteChoice()->getNormalNoteGroup()->getFullNoteGroup()->getHasChord());
+    REQUIRE(notesIter != notes.cend());
+    note = *notesIter;
+    REQUIRE(note->choice().isNormalNoteGroup());
+    CHECK(!note->choice().asNormalNoteGroup().fullNote().chord());
 
     // fourth note
     ++notesIter;
-    note = (*notesIter);
-    CHECK(note->getNoteChoice()->getNormalNoteGroup()->getFullNoteGroup()->getHasChord());
+    REQUIRE(notesIter != notes.cend());
+    note = *notesIter;
+    REQUIRE(note->choice().isNormalNoteGroup());
+    CHECK(note->choice().asNormalNoteGroup().fullNote().chord());
 
+    // Also verify no forward elements in the measure
     for (const auto &mdc : mdcSet)
     {
-        if (mdc->getChoice() == MusicDataChoice::Choice::note)
-        {
-            notes.push_back(mdc->getNote());
-        }
-        CHECK(mdc->getChoice() != MusicDataChoice::Choice::forward);
+        CHECK(!mdc.isForward());
     }
 }
 

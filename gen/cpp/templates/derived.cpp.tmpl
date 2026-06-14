@@ -1,0 +1,29 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include "mx/core/Lexical.h"
+#include "mx/core/Xml.h"
+
+#include <utility>
+
+namespace {{vars.namespace}}
+{
+
+{{>attributes_impl}}
+{{ident}} parse{{ident}}(pugi::xml_node el)
+{
+    {{ident}} out;
+{{>attributes_parse}}
+    parse{{base.ident}}Content(out, el);
+    return out;
+}
+
+void serialize{{ident}}(const {{ident}} &v, pugi::xml_node parent, const char *tag)
+{
+    pugi::xml_node el = parent.append_child(tag);
+{{>attributes_serialize}}
+    serialize{{base.ident}}Content(v, el);
+}
+
+} // namespace {{vars.namespace}}

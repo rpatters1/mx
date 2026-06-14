@@ -1,0 +1,34 @@
+{{#fields}}
+{{#is_required}}
+    const {{type_ref.ident}} &{{ident}}() const noexcept;
+    void set{{name.pascal}}({{type_ref.ident}} value);
+{{/is_required}}
+{{#is_optional}}
+{{#presence}}
+    bool {{ident}}() const noexcept;
+    void set{{name.pascal}}(bool value) noexcept;
+{{/presence}}
+{{^presence}}
+    const std::optional<{{type_ref.ident}}> &{{ident}}() const noexcept;
+    void set{{name.pascal}}(std::optional<{{type_ref.ident}}> value);
+{{/presence}}
+{{/is_optional}}
+{{#is_vector}}
+    std::span<const {{type_ref.ident}}> {{ident}}() const noexcept;
+{{#max}}
+    /// Bounded by the schema: at most {{max}} occurrences. An over-cap
+    /// append is rejected (plan §1.2).
+    [[nodiscard]] Result<void> add{{name.pascal}}({{type_ref.ident}} value);
+    void clear{{name.pascal}}() noexcept;
+{{/max}}
+{{^max}}
+    void add{{name.pascal}}({{type_ref.ident}} value);
+{{#min1}}
+    void set{{name.pascal}}(OneOrMore<{{type_ref.ident}}> value);
+{{/min1}}
+{{^min1}}
+    void set{{name.pascal}}(std::vector<{{type_ref.ident}}> value);
+{{/min1}}
+{{/max}}
+{{/is_vector}}
+{{/fields}}

@@ -4,19 +4,14 @@
 
 #pragma once
 
-#include "ezxml/XAttribute.h"
-#include "ezxml/XAttributeIterator.h"
-#include "ezxml/XDoc.h"
-#include "ezxml/XElement.h"
-#include "ezxml/XElementIterator.h"
-
 #include <set>
 #include <string>
 
 // Some of the test files (particularly MuseScore and Recordare) have
-// trailing zeros after decimal points.  Mx does not do this, so for
-// example when we see '75.00' in an input file, we would expect Mx to
-// produce '75'.  These functions will alter the 'expected' files.
+// trailing zeros after decimal points. mx does not write these (its Decimal
+// serializes the shortest round-trip form when constructed numerically), so
+// the corert normalization strips them from BOTH sides of the comparison.
+// The list names every element/attribute the rule applies to.
 
 namespace mxtest
 {
@@ -25,6 +20,8 @@ const std::set<std::string> decimalFields = {
     "top-system-distance", "dynamics",  "left-margin", "right-margin", "staff-distance",
     "system-distance",     "default-y", "default-x",   "tenths",       "width"};
 
+// Number of trailing characters to strip from a decimal string: the
+// trailing zeros after the decimal point, plus the orphaned point itself.
 inline int trailingCharsToStrip(const std::string &value)
 {
     bool isDecimalFound = false;
@@ -64,49 +61,19 @@ inline int trailingCharsToStrip(const std::string &value)
     return zeroCount;
 }
 
-inline void stripZeros(::ezxml::XElement &xelement)
+inline std::string stripZeros(const std::string &value)
 {
-    const auto initialValue = xelement.getValue();
-
-    if (initialValue.empty())
+    if (value.empty())
     {
-        return;
+        return value;
     }
-
-    const int chars = trailingCharsToStrip(initialValue);
-
-    if (chars != 0)
+    const int chars = trailingCharsToStrip(value);
+    std::string out = chars ? value.substr(0, value.size() - chars) : value;
+    if (out == "-0")
     {
-        xelement.setValue(initialValue.substr(0, initialValue.size() - chars));
+        out = "0";
     }
-
-    auto str = xelement.getValue();
-    if (str == "-0")
-    {
-        xelement.setValue("0");
-    }
+    return out;
 }
 
-inline void stripZeros(::ezxml::XAttribute &xattribute)
-{
-    const auto initialValue = xattribute.getValue();
-
-    if (initialValue.empty())
-    {
-        return;
-    }
-
-    const int chars = trailingCharsToStrip(initialValue);
-
-    if (chars != 0)
-    {
-        xattribute.setValue(initialValue.substr(0, initialValue.size() - chars));
-    }
-
-    auto str = xattribute.getValue();
-    if (str == "-0")
-    {
-        xattribute.setValue("0");
-    }
-}
 } // namespace mxtest

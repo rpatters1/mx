@@ -3,35 +3,17 @@
 // Distributed under the MIT License
 
 #include "mx/impl/TechnicalFunctions.h"
-#include "mx/core/elements/Arrow.h"
-#include "mx/core/elements/ArrowDirection.h"
-#include "mx/core/elements/ArrowGroup.h"
-#include "mx/core/elements/Bend.h"
-#include "mx/core/elements/DoubleTongue.h"
-#include "mx/core/elements/DownBow.h"
-#include "mx/core/elements/Fingering.h"
-#include "mx/core/elements/Fingernails.h"
-#include "mx/core/elements/Fret.h"
-#include "mx/core/elements/HammerOn.h"
-#include "mx/core/elements/Handbell.h"
-#include "mx/core/elements/Harmonic.h"
-#include "mx/core/elements/Heel.h"
-#include "mx/core/elements/Hole.h"
-#include "mx/core/elements/HoleClosed.h"
-#include "mx/core/elements/OpenString.h"
-#include "mx/core/elements/OtherTechnical.h"
-#include "mx/core/elements/Pluck.h"
-#include "mx/core/elements/PullOff.h"
-#include "mx/core/elements/SnapPizzicato.h"
-#include "mx/core/elements/Stopped.h"
-#include "mx/core/elements/String.h"
-#include "mx/core/elements/Tap.h"
-#include "mx/core/elements/Technical.h"
-#include "mx/core/elements/TechnicalChoice.h"
-#include "mx/core/elements/ThumbPosition.h"
-#include "mx/core/elements/Toe.h"
-#include "mx/core/elements/TripleTongue.h"
-#include "mx/core/elements/UpBow.h"
+#include "mx/core/generated/Arrow.h"
+#include "mx/core/generated/ArrowChoice.h"
+#include "mx/core/generated/ArrowChoiceGroup.h"
+#include "mx/core/generated/ArrowDirection.h"
+#include "mx/core/generated/Handbell.h"
+#include "mx/core/generated/HandbellValue.h"
+#include "mx/core/generated/Hole.h"
+#include "mx/core/generated/HoleClosed.h"
+#include "mx/core/generated/HoleClosedValue.h"
+#include "mx/core/generated/Technical.h"
+#include "mx/core/generated/TechnicalChoice.h"
 #include "mx/impl/Converter.h"
 #include "mx/impl/MarkDataFunctions.h"
 
@@ -39,14 +21,14 @@ namespace
 {
 std::string holeToSmuflName(const mx::core::Hole &hole)
 {
-    const auto closedValue = hole.getHoleClosed()->getValue();
-    switch (closedValue)
+    const auto closedValue = hole.holeClosed().value();
+    switch (closedValue.tag())
     {
-    case mx::core::HoleClosedValue::yes:
+    case mx::core::HoleClosedValue::Tag::yes:
         return "windClosedHole";
-    case mx::core::HoleClosedValue::half:
+    case mx::core::HoleClosedValue::Tag::half:
         return "windHalfClosedHole3";
-    case mx::core::HoleClosedValue::no:
+    case mx::core::HoleClosedValue::Tag::no:
     default:
         return "windOpenHole";
     }
@@ -54,62 +36,62 @@ std::string holeToSmuflName(const mx::core::Hole &hole)
 
 std::string arrowToSmuflName(const mx::core::Arrow &arrow)
 {
-    using Direction = mx::core::ArrowDirectionEnum;
-    if (arrow.getChoice() != mx::core::Arrow::Choice::arrowGroup)
+    using Tag = mx::core::ArrowDirection::Tag;
+    if (arrow.choice().kind() != mx::core::ArrowChoice::Kind::group)
     {
         return "arrowOpenUp";
     }
 
-    const auto direction = arrow.getArrowGroup()->getArrowDirection()->getValue();
+    const auto direction = arrow.choice().asGroup().arrowDirection().tag();
     switch (direction)
     {
-    case Direction::left:
+    case Tag::left:
         return "arrowOpenLeft";
-    case Direction::up:
+    case Tag::up:
         return "arrowOpenUp";
-    case Direction::right:
+    case Tag::right:
         return "arrowOpenRight";
-    case Direction::down:
+    case Tag::down:
         return "arrowOpenDown";
-    case Direction::northwest:
+    case Tag::northwest:
         return "arrowOpenUpLeft";
-    case Direction::northeast:
+    case Tag::northeast:
         return "arrowOpenUpRight";
-    case Direction::southeast:
+    case Tag::southeast:
         return "arrowOpenDownRight";
-    case Direction::southwest:
+    case Tag::southwest:
         return "arrowOpenDownLeft";
     default:
         return "arrowOpenUp";
     }
 }
 
-std::string handbellToSmuflName(const mx::core::HandbellValue value)
+std::string handbellToSmuflName(const mx::core::HandbellValue &value)
 {
-    using Handbell = mx::core::HandbellValue;
-    switch (value)
+    using Tag = mx::core::HandbellValue::Tag;
+    switch (value.tag())
     {
-    case Handbell::damp:
+    case Tag::damp:
         return "handbellsDamp3";
-    case Handbell::echo:
+    case Tag::echo:
         return "handbellsEcho1";
-    case Handbell::gyro:
+    case Tag::gyro:
         return "handbellsGyro";
-    case Handbell::handMartellato:
+    case Tag::handMartellato:
         return "handbellsHandMartellato";
-    case Handbell::malletLift:
+    case Tag::malletLift:
         return "handbellsMalletLft";
-    case Handbell::malletTable:
+    case Tag::malletTable:
         return "handbellsMalletBellOnTable";
-    case Handbell::martellato:
+    case Tag::martellato:
         return "handbellsMartellato";
-    case Handbell::martellatoLift:
+    case Tag::martellatoLift:
         return "handbellsMartellatoLift";
-    case Handbell::mutedMartellato:
+    case Tag::mutedMartellato:
         return "handbellsMutedMartellato";
-    case Handbell::pluckLift:
+    case Tag::pluckLift:
         return "handbellsPluckLift";
-    case Handbell::swing:
+    case Tag::swing:
         return "handbellsSwing";
     default:
         return "handbellsGyro";
@@ -121,29 +103,27 @@ namespace mx
 {
 namespace impl
 {
-TechnicalFunctions::TechnicalFunctions(const core::TechnicalChoiceSet &inTechnicalChoiceSet, Cursor inCursor)
-    : myTechincalChoiceSet{inTechnicalChoiceSet}, myCursor{inCursor}
+TechnicalFunctions::TechnicalFunctions(std::span<const core::TechnicalChoice> inTechincalChoiceSet, Cursor inCursor)
+    : myTechincalChoiceSet{inTechincalChoiceSet}, myCursor{inCursor}
 {
 }
 
 void TechnicalFunctions::parseTechnicalMarks(std::vector<api::MarkData> &outMarks) const
 {
-    MX_UNUSED(outMarks);
-
     for (const auto &techChoice : myTechincalChoiceSet)
     {
-        const auto choiceValue = techChoice->getChoice();
+        const auto choiceKind = techChoice.kind();
         Converter converter;
-        const auto markType = converter.convertTechnicalMark(choiceValue);
+        const auto markType = converter.convertTechnicalMark(choiceKind);
 
-        if (markType == api::MarkType::unspecified && choiceValue != core::TechnicalChoice::Choice::otherTechnical)
+        if (markType == api::MarkType::unspecified && choiceKind != core::TechnicalChoice::Kind::otherTechnical)
         {
             continue;
         }
         api::MarkData markData;
         markData.markType = markType;
         markData.tickTimePosition = myCursor.tickTimePosition;
-        bool isSuccess = parseTechicalMark(*techChoice, markData);
+        bool isSuccess = parseTechicalMark(techChoice, markData);
 
         if (isSuccess)
         {
@@ -155,121 +135,117 @@ void TechnicalFunctions::parseTechnicalMarks(std::vector<api::MarkData> &outMark
 bool TechnicalFunctions::parseTechicalMark(const core::TechnicalChoice &techicalChoice,
                                            api::MarkData &outMarkData) const
 {
-    switch (techicalChoice.getChoice())
+    switch (techicalChoice.kind())
     {
-    case core::TechnicalChoice::Choice::upBow: {
-        parseMarkDataAttributes(*techicalChoice.getUpBow()->getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::upBow: {
+        parseMarkDataAttributes(techicalChoice.asUpBow(), outMarkData);
         outMarkData.name = "up-bow";
         return true;
     }
-    case core::TechnicalChoice::Choice::downBow: {
-        parseMarkDataAttributes(*techicalChoice.getDownBow()->getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::downBow: {
+        parseMarkDataAttributes(techicalChoice.asDownBow(), outMarkData);
         outMarkData.name = "down-bow";
         return true;
     }
-    case core::TechnicalChoice::Choice::harmonic: {
-        parseMarkDataAttributes(*techicalChoice.getHarmonic()->getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::harmonic: {
+        parseMarkDataAttributes(techicalChoice.asHarmonic(), outMarkData);
         outMarkData.name = "harmonic";
         return true;
     }
-    case core::TechnicalChoice::Choice::openString: {
-        parseMarkDataAttributes(*techicalChoice.getOpenString()->getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::openString: {
+        parseMarkDataAttributes(techicalChoice.asOpenString(), outMarkData);
         outMarkData.name = "open-string";
         return true;
     }
-    case core::TechnicalChoice::Choice::thumbPosition: {
-        parseMarkDataAttributes(*techicalChoice.getThumbPosition()->getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::thumbPosition: {
+        parseMarkDataAttributes(techicalChoice.asThumbPosition(), outMarkData);
         outMarkData.name = "thumb-position";
         return true;
     }
-    case core::TechnicalChoice::Choice::fingering:
+    case core::TechnicalChoice::Kind::fingering:
         return false;
-    case core::TechnicalChoice::Choice::pluck: {
-        parseMarkDataAttributes(*techicalChoice.getPluck()->getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::pluck: {
+        parseMarkDataAttributes(techicalChoice.asPluck(), outMarkData);
         outMarkData.name = "pluck";
         return true;
     }
-    case core::TechnicalChoice::Choice::doubleTongue: {
-        parseMarkDataAttributes(*techicalChoice.getDoubleTongue()->getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::doubleTongue: {
+        parseMarkDataAttributes(techicalChoice.asDoubleTongue(), outMarkData);
         outMarkData.name = "double-tongue";
         return true;
     }
-    case core::TechnicalChoice::Choice::tripleTongue: {
-        parseMarkDataAttributes(*techicalChoice.getTripleTongue()->getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::tripleTongue: {
+        parseMarkDataAttributes(techicalChoice.asTripleTongue(), outMarkData);
         outMarkData.name = "triple-tongue";
         return true;
     }
-    case core::TechnicalChoice::Choice::stopped: {
-        parseMarkDataAttributes(*techicalChoice.getStopped()->getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::stopped: {
+        parseMarkDataAttributes(techicalChoice.asStopped(), outMarkData);
         outMarkData.name = "stopped";
         return true;
     }
-    case core::TechnicalChoice::Choice::snapPizzicato: {
-        parseMarkDataAttributes(*techicalChoice.getSnapPizzicato()->getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::snapPizzicato: {
+        parseMarkDataAttributes(techicalChoice.asSnapPizzicato(), outMarkData);
         outMarkData.name = "snap-pizzicato";
         return true;
     }
-    case core::TechnicalChoice::Choice::fret: {
-        const auto &fret = *techicalChoice.getFret();
-        parseMarkDataAttributes(*fret.getAttributes(), outMarkData);
-        outMarkData.name = core::toString(fret.getValue());
+    case core::TechnicalChoice::Kind::fret: {
+        const auto &fret = techicalChoice.asFret();
+        parseMarkDataAttributes(fret, outMarkData);
+        outMarkData.name = std::to_string(fret.value());
         return true;
     }
-    case core::TechnicalChoice::Choice::string_: {
-        const auto &stringNumber = *techicalChoice.getString();
-        parseMarkDataAttributes(*stringNumber.getAttributes(), outMarkData);
-        outMarkData.name = core::toString(stringNumber.getValue());
+    case core::TechnicalChoice::Kind::string: {
+        const auto &s = techicalChoice.asString();
+        parseMarkDataAttributes(s, outMarkData);
+        outMarkData.name = std::to_string(s.value().value());
         return true;
     }
-    case core::TechnicalChoice::Choice::hammerOn:
+    case core::TechnicalChoice::Kind::hammerOn:
         return false;
-    case core::TechnicalChoice::Choice::pullOff:
+    case core::TechnicalChoice::Kind::pullOff:
         return false;
-    case core::TechnicalChoice::Choice::bend:
+    case core::TechnicalChoice::Kind::bend:
         return false;
-    case core::TechnicalChoice::Choice::tap:
+    case core::TechnicalChoice::Kind::tap:
         return false;
-    case core::TechnicalChoice::Choice::heel: {
-        parseMarkDataAttributes(*techicalChoice.getHeel()->getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::heel: {
+        parseMarkDataAttributes(techicalChoice.asHeel(), outMarkData);
         outMarkData.name = "heel";
         return true;
     }
-    case core::TechnicalChoice::Choice::toe: {
-        parseMarkDataAttributes(*techicalChoice.getToe()->getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::toe: {
+        parseMarkDataAttributes(techicalChoice.asToe(), outMarkData);
         outMarkData.name = "toe";
         return true;
     }
-    case core::TechnicalChoice::Choice::fingernails: {
-        parseMarkDataAttributes(*techicalChoice.getFingernails()->getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::fingernails: {
+        parseMarkDataAttributes(techicalChoice.asFingernails(), outMarkData);
         outMarkData.name = "fingernails";
         return true;
     }
-    case core::TechnicalChoice::Choice::hole: {
-        const auto &hole = *techicalChoice.getHole();
-        parseMarkDataAttributes(*hole.getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::hole: {
+        const auto &hole = techicalChoice.asHole();
+        parseMarkDataAttributes(hole, outMarkData);
         outMarkData.name = holeToSmuflName(hole);
         return true;
     }
-    case core::TechnicalChoice::Choice::arrow: {
-        const auto &arrow = *techicalChoice.getArrow();
-        parseMarkDataAttributes(*arrow.getAttributes(), outMarkData);
+    case core::TechnicalChoice::Kind::arrow: {
+        const auto &arrow = techicalChoice.asArrow();
+        parseMarkDataAttributes(arrow, outMarkData);
         outMarkData.name = arrowToSmuflName(arrow);
         return true;
     }
-    case core::TechnicalChoice::Choice::handbell: {
-        const auto &handbell = *techicalChoice.getHandbell();
-        parseMarkDataAttributes(*handbell.getAttributes(), outMarkData);
-        outMarkData.name = handbellToSmuflName(handbell.getValue());
+    case core::TechnicalChoice::Kind::handbell: {
+        const auto &handbell = techicalChoice.asHandbell();
+        parseMarkDataAttributes(handbell, outMarkData);
+        outMarkData.name = handbellToSmuflName(handbell.value());
         return true;
     }
-    case core::TechnicalChoice::Choice::otherTechnical: {
-        const auto &other = *techicalChoice.getOtherTechnical();
-        const auto &attr = *other.getAttributes();
-        parseMarkDataAttributes(attr, outMarkData);
-
-        const auto value = other.getValue().getValue();
-        outMarkData.name = value;
-
+    case core::TechnicalChoice::Kind::otherTechnical: {
+        const auto &oa = techicalChoice.asOtherTechnical();
+        parseMarkDataAttributes(oa, outMarkData);
+        outMarkData.name = oa.value();
         return true;
     }
     default:

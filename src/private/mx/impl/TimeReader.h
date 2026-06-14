@@ -5,23 +5,13 @@
 #pragma once
 
 #include "mx/api/TimeSignatureData.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/ScorePartwise.h"
+#include "mx/core/generated/MusicDataChoice.h"
 #include "mx/impl/Cursor.h"
+
+#include <span>
 
 namespace mx
 {
-namespace core
-{
-class Duration;
-class MusicDataChoice;
-using MusicDataChoicePtr = std::shared_ptr<MusicDataChoice>;
-using MusicDataChoiceSet = std::vector<MusicDataChoicePtr>;
-class Time;
-using TimePtr = std::shared_ptr<Time>;
-class TimeSignatureGroup;
-} // namespace core
-
 namespace impl
 {
 class TimeReader
@@ -31,13 +21,13 @@ class TimeReader
     // after that you can query the discovered time
     // element properties using accessors on the
     // cached data
-    TimeReader(const core::MusicDataChoiceSet &inMusicDataChoices);
+    TimeReader(std::span<const core::MusicDataChoice> inMusicDataChoices);
     bool getIsTimeFound() const;
     mx::api::TimeSignatureData getTimeSignatureData() const;
 
   private:
-    const core::MusicDataChoiceSet &myMusicDataChoiceSet;
-    core::TimePtr myTime;
+    std::span<const core::MusicDataChoice> myMusicDataChoiceSet;
+    const core::Time *myTime;
     bool myIsTimeFound;
     mx::api::TimeSignatureData myTimeSignatureData;
 
@@ -45,14 +35,6 @@ class TimeReader
     bool initialize();
     bool parseTime();
     bool parseTimeSignatureGroup(const core::TimeSignatureGroup &timeSig);
-
-    // bool findAndFillTimeSignature( const core::MusicDataChoice& inMdc, api::TimeSignatureData& outTimeSignatureData )
-    // const; bool isTimeSignatureImplicit( const api::TimeSignatureData& previousTimeSignature, const
-    // api::TimeSignatureData& currentTimeSignature, const bool isFirstMeasureInPart ) const;
-    int findMaxDivisionsPerQuarter(const core::ScorePartwise &inScorePartwise) const;
-    //            int convertDurationToGlobalTickScale( const impl::Cursor& cursor, const core::Duration& duration )
-    //            const; int convertDurationToGlobalTickScale( const impl::Cursor& cursor, long double durationValue )
-    //            const;
 };
 } // namespace impl
 } // namespace mx

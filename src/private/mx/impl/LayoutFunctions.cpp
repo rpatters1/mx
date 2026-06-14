@@ -4,34 +4,103 @@
 
 #include "mx/impl/LayoutFunctions.h"
 #include "mx/api/ScoreData.h"
-#include "mx/core/elements/Appearance.h"
-#include "mx/core/elements/BottomMargin.h"
-#include "mx/core/elements/Defaults.h"
-#include "mx/core/elements/Distance.h"
-#include "mx/core/elements/LayoutGroup.h"
-#include "mx/core/elements/LeftMargin.h"
-#include "mx/core/elements/LineWidth.h"
-#include "mx/core/elements/Millimeters.h"
-#include "mx/core/elements/NoteSize.h"
-#include "mx/core/elements/OtherAppearance.h"
-#include "mx/core/elements/PageHeight.h"
-#include "mx/core/elements/PageLayout.h"
-#include "mx/core/elements/PageMargins.h"
-#include "mx/core/elements/PageWidth.h"
-#include "mx/core/elements/RightMargin.h"
-#include "mx/core/elements/Scaling.h"
-#include "mx/core/elements/StaffDistance.h"
-#include "mx/core/elements/StaffLayout.h"
-#include "mx/core/elements/SystemDistance.h"
-#include "mx/core/elements/SystemLayout.h"
-#include "mx/core/elements/SystemMargins.h"
-#include "mx/core/elements/TopMargin.h"
-#include "mx/core/elements/TopSystemDistance.h"
+#include "mx/core/Decimal.h"
+#include "mx/core/generated/AllMarginsGroup.h"
+#include "mx/core/generated/Appearance.h"
+#include "mx/core/generated/Defaults.h"
+#include "mx/core/generated/Distance.h"
+#include "mx/core/generated/DistanceType.h"
+#include "mx/core/generated/LayoutGroup.h"
+#include "mx/core/generated/LeftRightMarginsGroup.h"
+#include "mx/core/generated/LineWidth.h"
+#include "mx/core/generated/LineWidthType.h"
+#include "mx/core/generated/Millimeters.h"
+#include "mx/core/generated/NoteSize.h"
+#include "mx/core/generated/NoteSizeType.h"
+#include "mx/core/generated/OtherAppearance.h"
+#include "mx/core/generated/PageLayout.h"
+#include "mx/core/generated/PageLayoutGroup.h"
+#include "mx/core/generated/PageMargins.h"
+#include "mx/core/generated/Scaling.h"
+#include "mx/core/generated/StaffLayout.h"
+#include "mx/core/generated/SystemLayout.h"
+#include "mx/core/generated/SystemMargins.h"
+#include "mx/core/generated/Tenths.h"
 
 namespace mx
 {
 namespace impl
 {
+
+static core::Tenths toTenths(double value)
+{
+    return core::Tenths{core::Decimal{value > 0.0 ? value : 0.0}};
+}
+
+static std::vector<core::PageMargins> createPageMargins(const api::PageMarginsData &inPageMargins)
+{
+    std::vector<core::PageMargins> out;
+    if (!inPageMargins.isUsed())
+    {
+        return out;
+    }
+
+    const bool areEvenOddSame = inPageMargins.same();
+
+    if (inPageMargins.odd)
+    {
+        core::PageMargins m;
+        m.setType(areEvenOddSame ? core::MarginType::both() : core::MarginType::odd());
+        core::AllMarginsGroup allMargins;
+        core::LeftRightMarginsGroup lrm;
+        lrm.setLeftMargin(core::Tenths{core::Decimal{inPageMargins.odd->left}});
+        lrm.setRightMargin(core::Tenths{core::Decimal{inPageMargins.odd->right}});
+        allMargins.setLeftRightMargins(lrm);
+        allMargins.setTopMargin(core::Tenths{core::Decimal{inPageMargins.odd->top}});
+        allMargins.setBottomMargin(core::Tenths{core::Decimal{inPageMargins.odd->bottom}});
+        m.setAllMargins(allMargins);
+        out.push_back(std::move(m));
+    }
+
+    if (inPageMargins.even && !areEvenOddSame)
+    {
+        core::PageMargins m;
+        m.setType(core::MarginType::even());
+        core::AllMarginsGroup allMargins;
+        core::LeftRightMarginsGroup lrm;
+        lrm.setLeftMargin(core::Tenths{core::Decimal{inPageMargins.even->left}});
+        lrm.setRightMargin(core::Tenths{core::Decimal{inPageMargins.even->right}});
+        allMargins.setLeftRightMargins(lrm);
+        allMargins.setTopMargin(core::Tenths{core::Decimal{inPageMargins.even->top}});
+        allMargins.setBottomMargin(core::Tenths{core::Decimal{inPageMargins.even->bottom}});
+        m.setAllMargins(allMargins);
+        out.push_back(std::move(m));
+    }
+
+    return out;
+}
+
+static core::PageLayout createPageLayout(const api::PageLayoutData &inPageLayout)
+{
+    core::PageLayout outPageLayout;
+
+    if (inPageLayout.size)
+    {
+        core::PageLayoutGroup group;
+        group.setPageHeight(core::Tenths{core::Decimal{inPageLayout.size->height}});
+        group.setPageWidth(core::Tenths{core::Decimal{inPageLayout.size->width}});
+        outPageLayout.setGroup(group);
+    }
+
+    auto marginsVec = createPageMargins(inPageLayout.margins);
+    for (auto &m : marginsVec)
+    {
+        (void)outPageLayout.addPageMargins(std::move(m));
+    }
+
+    return outPageLayout;
+}
+
 void addDefaultsData(const api::DefaultsData &inDefaults, core::ScoreHeaderGroup &outScoreHeaderGroup)
 {
     addScaling(inDefaults, outScoreHeaderGroup);
@@ -42,96 +111,24 @@ void addDefaultsData(const api::DefaultsData &inDefaults, core::ScoreHeaderGroup
 
 void addScaling(const api::DefaultsData &inDefaults, core::ScoreHeaderGroup &outScoreHeaderGroup)
 {
-    if (inDefaults.scalingMillimeters > 0)
+    if (inDefaults.scalingMillimeters <= 0 && inDefaults.scalingTenths <= 0)
     {
-        outScoreHeaderGroup.setHasDefaults(true);
-        outScoreHeaderGroup.getDefaults()->setHasScaling(true);
-        outScoreHeaderGroup.getDefaults()->getScaling()->getMillimeters()->setValue(
-            core::MillimetersValue{inDefaults.scalingMillimeters});
+        return;
     }
 
-    if (inDefaults.scalingTenths > 0)
-    {
-        outScoreHeaderGroup.setHasDefaults(true);
-        outScoreHeaderGroup.getDefaults()->setHasScaling(true);
-        outScoreHeaderGroup.getDefaults()->getScaling()->getTenths()->setValue(
-            core::TenthsValue{inDefaults.scalingTenths});
-    }
-}
+    auto defaults = outScoreHeaderGroup.defaults().value_or(core::Defaults{});
+    core::Scaling scaling{};
 
-core::PageMarginsSet createPageMargins(const api::PageMarginsData &inPageMargins)
-{
-    core::PageMarginsSet outPageMargins;
+    core::Millimeters mm;
+    mm.setValue(core::Decimal{inDefaults.scalingMillimeters > 0 ? inDefaults.scalingMillimeters : 0.0});
+    scaling.setMillimeters(mm);
 
-    if (!inPageMargins.isUsed())
-    {
-        return outPageMargins;
-    }
+    core::Tenths t;
+    t.setValue(core::Decimal{inDefaults.scalingTenths > 0 ? inDefaults.scalingTenths : 0.0});
+    scaling.setTenths(t);
 
-    const bool areEvenOddSame = inPageMargins.same();
-
-    // these margins will serve as either the 'odd' margins, or 'both' (if 'even' and 'odd' are the same).
-    if (inPageMargins.odd)
-    {
-        auto outMargins = core::makePageMargins();
-        outMargins->getAttributes()->hasType = true;
-        const auto t = areEvenOddSame ? core::MarginType::both : core::MarginType::odd;
-        outMargins->getAttributes()->type = t;
-        const auto left = toTenths(inPageMargins.odd.value().left);
-        const auto right = toTenths(inPageMargins.odd.value().right);
-        const auto top = toTenths(inPageMargins.odd.value().top);
-        const auto bottom = toTenths(inPageMargins.odd.value().bottom);
-        outMargins->getLeftMargin()->setValue(left);
-        outMargins->getRightMargin()->setValue(right);
-        outMargins->getTopMargin()->setValue(top);
-        outMargins->getBottomMargin()->setValue(bottom);
-        outPageMargins.push_back(outMargins);
-    }
-
-    // 'even' margins are only needed if 'both' was not specified above.
-    if (inPageMargins.even && !areEvenOddSame)
-    {
-        auto outEvenMargins = core::makePageMargins();
-        outEvenMargins->getAttributes()->hasType = true;
-        const auto t = core::MarginType::even;
-        outEvenMargins->getAttributes()->type = t;
-        const auto left = toTenths(inPageMargins.even.value().left);
-        const auto right = toTenths(inPageMargins.even.value().right);
-        const auto top = toTenths(inPageMargins.even.value().top);
-        const auto bottom = toTenths(inPageMargins.even.value().bottom);
-        outEvenMargins->getLeftMargin()->setValue(left);
-        outEvenMargins->getRightMargin()->setValue(right);
-        outEvenMargins->getTopMargin()->setValue(top);
-        outEvenMargins->getBottomMargin()->setValue(bottom);
-        outPageMargins.push_back(outEvenMargins);
-    }
-
-    return outPageMargins;
-}
-
-core::PageLayoutPtr createPageLayout(const api::PageLayoutData &inPageLayout)
-{
-    auto outPageLayout = core::makePageLayout();
-
-    if (inPageLayout.size)
-    {
-        const auto &size = inPageLayout.size.value();
-        outPageLayout->getPageHeight()->setValue(core::TenthsValue{size.height});
-        outPageLayout->getPageWidth()->setValue(core::TenthsValue{size.width});
-    }
-
-    if (!inPageLayout.margins.isUsed())
-    {
-        return outPageLayout;
-    }
-
-    auto outPageMarginsSet = createPageMargins(inPageLayout.margins);
-    for (auto &outPageMargins : outPageMarginsSet)
-    {
-        outPageLayout->addPageMargins(outPageMargins);
-    }
-
-    return outPageLayout;
+    defaults.setScaling(scaling);
+    outScoreHeaderGroup.setDefaults(defaults);
 }
 
 void addPageLayout(const api::PageLayoutData &inPageLayout, core::ScoreHeaderGroup &outScoreHeaderGroup)
@@ -141,106 +138,104 @@ void addPageLayout(const api::PageLayoutData &inPageLayout, core::ScoreHeaderGro
         return;
     }
 
-    auto &outDefaults = *outScoreHeaderGroup.getDefaults();
-    auto &outLayout = *outDefaults.getLayoutGroup();
-    outScoreHeaderGroup.setHasDefaults(true);
-    outLayout.setHasPageLayout(true);
-    auto outPageLayout = createPageLayout(inPageLayout);
-    outLayout.setPageLayout(outPageLayout);
+    auto defaults = outScoreHeaderGroup.defaults().value_or(core::Defaults{});
+    auto layout = defaults.layout();
+    layout.setPageLayout(createPageLayout(inPageLayout));
+    defaults.setLayout(layout);
+    outScoreHeaderGroup.setDefaults(defaults);
 }
 
 void addSystemMargins(const api::DefaultsData &inDefaults, core::ScoreHeaderGroup &outScoreHeaderGroup)
 {
-    auto &defaults = *outScoreHeaderGroup.getDefaults();
-    auto &layoutGroup = *defaults.getLayoutGroup();
-    auto &systemLayout = *layoutGroup.getSystemLayout();
-    auto &systemMargins = *systemLayout.getSystemMargins();
+    bool needsDefaults = false;
+    auto defaults = outScoreHeaderGroup.defaults().value_or(core::Defaults{});
+    auto layout = defaults.layout();
+    auto systemLayout = layout.systemLayout().value_or(core::SystemLayout{});
 
     if (inDefaults.systemLayout.systemDistance)
     {
-        outScoreHeaderGroup.setHasDefaults(true);
-        layoutGroup.setHasSystemLayout(true);
-        systemLayout.setHasSystemDistance(true);
-        systemLayout.getSystemDistance()->setValue(core::TenthsValue{inDefaults.systemLayout.systemDistance.value()});
+        systemLayout.setSystemDistance(toTenths(inDefaults.systemLayout.systemDistance.value()));
+        needsDefaults = true;
     }
 
-    if (inDefaults.systemLayout.staffDistance)
+    if (inDefaults.systemLayout.topSystemDistance)
     {
-        outScoreHeaderGroup.setHasDefaults(true);
-        auto staffLayout = core::makeStaffLayout();
-        staffLayout->setHasStaffDistance(true);
-        staffLayout->getStaffDistance()->setValue(core::TenthsValue{inDefaults.systemLayout.staffDistance.value()});
-        layoutGroup.addStaffLayout(staffLayout);
+        systemLayout.setTopSystemDistance(toTenths(inDefaults.systemLayout.topSystemDistance.value()));
+        needsDefaults = true;
     }
 
     if (inDefaults.systemLayout.margins)
     {
         const auto &margins = inDefaults.systemLayout.margins.value();
-        outScoreHeaderGroup.setHasDefaults(true);
-        layoutGroup.setHasSystemLayout(true);
-        systemLayout.setHasSystemMargins(true);
-        systemMargins.getLeftMargin()->setValue(core::TenthsValue{margins.left});
-        outScoreHeaderGroup.setHasDefaults(true);
-        layoutGroup.setHasSystemLayout(true);
-        systemLayout.setHasSystemMargins(true);
-        systemMargins.getRightMargin()->setValue(core::TenthsValue{margins.right});
+        core::SystemMargins sm;
+        core::LeftRightMarginsGroup lrm;
+        lrm.setLeftMargin(toTenths(margins.left));
+        lrm.setRightMargin(toTenths(margins.right));
+        sm.setLeftRightMargins(lrm);
+        systemLayout.setSystemMargins(sm);
+        needsDefaults = true;
     }
 
-    if (inDefaults.systemLayout.topSystemDistance)
+    if (inDefaults.systemLayout.staffDistance)
     {
-        const auto &top = inDefaults.systemLayout.topSystemDistance.value();
-        outScoreHeaderGroup.setHasDefaults(true);
-        layoutGroup.setHasSystemLayout(true);
-        systemLayout.setHasSystemMargins(true);
-        systemLayout.setHasTopSystemDistance(true);
-        systemLayout.getTopSystemDistance()->setValue(core::TenthsValue{top});
+        core::StaffLayout staffLayout;
+        staffLayout.setStaffDistance(toTenths(inDefaults.systemLayout.staffDistance.value()));
+        layout.addStaffLayout(staffLayout);
+        needsDefaults = true;
+    }
+
+    if (needsDefaults)
+    {
+        layout.setSystemLayout(systemLayout);
+        defaults.setLayout(layout);
+        outScoreHeaderGroup.setDefaults(defaults);
     }
 }
 
 void addAppearance(const api::DefaultsData &inDefaults, core::ScoreHeaderGroup &outScoreHeaderGroup)
 {
+    if (inDefaults.appearance.empty())
+    {
+        return;
+    }
+
+    auto defaults = outScoreHeaderGroup.defaults().value_or(core::Defaults{});
+    auto appearance = defaults.appearance().value_or(core::Appearance{});
+
     for (const auto &appearanceData : inDefaults.appearance)
     {
         if (appearanceData.appearanceType == api::AppearanceType::LineWidth)
         {
-            const auto lw = core::makeLineWidth();
-            lw->getAttributes()->type = core::LineWidthType{appearanceData.appearanceSubType};
-            lw->setValue(core::TenthsValue{appearanceData.value});
-            outScoreHeaderGroup.setHasDefaults(true);
-            outScoreHeaderGroup.getDefaults()->setHasAppearance(true);
-            outScoreHeaderGroup.getDefaults()->getAppearance()->addLineWidth(lw);
+            core::LineWidth lw;
+            lw.setType(core::LineWidthType{appearanceData.appearanceSubType});
+            lw.setValue(toTenths(appearanceData.value));
+            appearance.addLineWidth(lw);
         }
-
-        if (appearanceData.appearanceType == api::AppearanceType::NoteSize)
+        else if (appearanceData.appearanceType == api::AppearanceType::NoteSize)
         {
-            const auto ns = core::makeNoteSize();
-            ns->getAttributes()->type = core::parseNoteSizeType(appearanceData.appearanceSubType);
-            ns->setValue(core::NonNegativeDecimal{appearanceData.value});
-            outScoreHeaderGroup.setHasDefaults(true);
-            outScoreHeaderGroup.getDefaults()->setHasAppearance(true);
-            outScoreHeaderGroup.getDefaults()->getAppearance()->addNoteSize(ns);
+            core::NoteSize ns;
+            ns.setType(core::NoteSizeType::parse(appearanceData.appearanceSubType));
+            ns.setValue(core::NonNegativeDecimal{core::Decimal{appearanceData.value}});
+            appearance.addNoteSize(ns);
         }
-
-        if (appearanceData.appearanceType == api::AppearanceType::Distance)
+        else if (appearanceData.appearanceType == api::AppearanceType::Distance)
         {
-            const auto di = core::makeDistance();
-            di->getAttributes()->type = core::parseDistanceType(appearanceData.appearanceSubType);
-            di->setValue(core::TenthsValue{appearanceData.value});
-            outScoreHeaderGroup.setHasDefaults(true);
-            outScoreHeaderGroup.getDefaults()->setHasAppearance(true);
-            outScoreHeaderGroup.getDefaults()->getAppearance()->addDistance(di);
+            core::Distance di;
+            di.setType(core::DistanceType{appearanceData.appearanceSubType});
+            di.setValue(toTenths(appearanceData.value));
+            appearance.addDistance(di);
         }
-
-        if (appearanceData.appearanceType == api::AppearanceType::OtherAppearance)
+        else if (appearanceData.appearanceType == api::AppearanceType::OtherAppearance)
         {
-            const auto oa = core::makeOtherAppearance();
-            oa->getAttributes()->type = appearanceData.appearanceSubType;
-            oa->setValue(core::XsString{std::to_string(appearanceData.value)});
-            outScoreHeaderGroup.setHasDefaults(true);
-            outScoreHeaderGroup.getDefaults()->setHasAppearance(true);
-            outScoreHeaderGroup.getDefaults()->getAppearance()->addOtherAppearance(oa);
+            core::OtherAppearance oa;
+            oa.setType(appearanceData.appearanceSubType);
+            oa.setValue(std::to_string(appearanceData.value));
+            appearance.addOtherAppearance(oa);
         }
     }
+
+    defaults.setAppearance(appearance);
+    outScoreHeaderGroup.setDefaults(defaults);
 }
 
 api::DefaultsData createDefaults(const core::ScoreHeaderGroup &inScoreHeaderGroup)
@@ -256,11 +251,11 @@ api::DefaultsData createDefaults(const core::ScoreHeaderGroup &inScoreHeaderGrou
 
 void addScaling(const core::ScoreHeaderGroup &inScoreHeaderGroup, api::DefaultsData &outDefaults)
 {
-    if (inScoreHeaderGroup.getHasDefaults() && inScoreHeaderGroup.getDefaults()->getHasScaling())
+    if (inScoreHeaderGroup.defaults().has_value() && inScoreHeaderGroup.defaults()->scaling().has_value())
     {
-        auto scaling = inScoreHeaderGroup.getDefaults()->getScaling();
-        outDefaults.scalingMillimeters = scaling->getMillimeters()->getValue().getValue();
-        outDefaults.scalingTenths = scaling->getTenths()->getValue().getValue();
+        const auto &scaling = *inScoreHeaderGroup.defaults()->scaling();
+        outDefaults.scalingMillimeters = scaling.millimeters().value().value();
+        outDefaults.scalingTenths = scaling.tenths().value().value();
     }
     else
     {
@@ -271,77 +266,84 @@ void addScaling(const core::ScoreHeaderGroup &inScoreHeaderGroup, api::DefaultsD
 
 void addPageMargins(const core::ScoreHeaderGroup &inScoreHeaderGroup, api::DefaultsData &outDefaults)
 {
-    if (!inScoreHeaderGroup.getHasDefaults() || !inScoreHeaderGroup.getDefaults()->getLayoutGroup()->getHasPageLayout())
+    if (!inScoreHeaderGroup.defaults().has_value() || !inScoreHeaderGroup.defaults()->layout().pageLayout().has_value())
     {
         return;
     }
 
-    auto pageLayout = inScoreHeaderGroup.getDefaults()->getLayoutGroup()->getPageLayout();
-    outDefaults.pageLayout.size = api::SizeData{pageLayout->getPageHeight()->getValue().getValue(),
-                                                pageLayout->getPageWidth()->getValue().getValue()};
-    auto pageMargins = pageLayout->getPageMarginsSet();
-    for (const auto &m : pageMargins)
-    {
-        const auto a = m->getAttributes();
-        const auto t = a->type;
+    const auto &pageLayout = *inScoreHeaderGroup.defaults()->layout().pageLayout();
 
-        if (!a->hasType || t == core::MarginType::both || t == core::MarginType::odd)
+    if (pageLayout.group().has_value())
+    {
+        outDefaults.pageLayout.size = api::SizeData{pageLayout.group()->pageHeight().value().value(),
+                                                    pageLayout.group()->pageWidth().value().value()};
+    }
+
+    for (const auto &m : pageLayout.pageMargins())
+    {
+        const auto &allMargins = m.allMargins();
+        const auto &lrm = allMargins.leftRightMargins();
+        api::MarginsData md{lrm.leftMargin().value().value(), lrm.rightMargin().value().value(),
+                            allMargins.topMargin().value().value(), allMargins.bottomMargin().value().value()};
+
+        const bool hasBoth = !m.type().has_value() || *m.type() == core::MarginType::both();
+
+        if (hasBoth || *m.type() == core::MarginType::odd())
         {
-            outDefaults.pageLayout.margins.odd =
-                api::MarginsData{m->getLeftMargin()->getValue().getValue(), m->getRightMargin()->getValue().getValue(),
-                                 m->getTopMargin()->getValue().getValue(), m->getBottomMargin()->getValue().getValue()};
+            outDefaults.pageLayout.margins.odd = md;
         }
 
-        if (!a->hasType || t == core::MarginType::both || t == core::MarginType::even)
+        if (hasBoth || *m.type() == core::MarginType::even())
         {
-            outDefaults.pageLayout.margins.even =
-                api::MarginsData{m->getLeftMargin()->getValue().getValue(), m->getRightMargin()->getValue().getValue(),
-                                 m->getTopMargin()->getValue().getValue(), m->getBottomMargin()->getValue().getValue()};
+            outDefaults.pageLayout.margins.even = md;
         }
     }
 }
 
 void addSystemMargins(const core::ScoreHeaderGroup &inScoreHeaderGroup, api::DefaultsData &outDefaults)
 {
-    if (!inScoreHeaderGroup.getHasDefaults() ||
-        !inScoreHeaderGroup.getDefaults()->getLayoutGroup()->getHasSystemLayout())
+    if (!inScoreHeaderGroup.defaults().has_value() ||
+        !inScoreHeaderGroup.defaults()->layout().systemLayout().has_value())
     {
         return;
     }
 
-    auto systemLayout = inScoreHeaderGroup.getDefaults()->getLayoutGroup()->getSystemLayout();
+    const auto &systemLayout = *inScoreHeaderGroup.defaults()->layout().systemLayout();
 
-    if (systemLayout->getHasTopSystemDistance())
+    if (systemLayout.topSystemDistance().has_value())
     {
-        outDefaults.systemLayout.topSystemDistance = systemLayout->getTopSystemDistance()->getValue().getValue();
+        outDefaults.systemLayout.topSystemDistance = systemLayout.topSystemDistance()->value().value();
     }
 
-    if (systemLayout->getHasSystemDistance())
+    if (systemLayout.systemDistance().has_value())
     {
-        outDefaults.systemLayout.systemDistance = systemLayout->getSystemDistance()->getValue().getValue();
+        outDefaults.systemLayout.systemDistance = systemLayout.systemDistance()->value().value();
     }
 
-    if (systemLayout->getHasSystemMargins())
+    if (systemLayout.systemMargins().has_value())
     {
-        auto systemMargins = systemLayout->getSystemMargins();
-        outDefaults.systemLayout.margins = api::LeftRight{systemMargins->getLeftMargin()->getValue().getValue(),
-                                                          systemMargins->getRightMargin()->getValue().getValue()};
+        const auto &lrm = systemLayout.systemMargins()->leftRightMargins();
+        outDefaults.systemLayout.margins =
+            api::LeftRight{lrm.leftMargin().value().value(), lrm.rightMargin().value().value()};
     }
 }
 
 void addStaffLayout(const core::ScoreHeaderGroup &inScoreHeaderGroup, api::DefaultsData &outDefaults)
 {
-    const auto &layoutSet = inScoreHeaderGroup.getDefaults()->getLayoutGroup()->getStaffLayoutSet();
-    if (!inScoreHeaderGroup.getHasDefaults() || layoutSet.empty())
+    if (!inScoreHeaderGroup.defaults().has_value())
     {
         return;
     }
 
-    const auto &firstStaffLayout = *layoutSet.cbegin();
-
-    if (firstStaffLayout->getHasStaffDistance())
+    const auto &staffLayouts = inScoreHeaderGroup.defaults()->layout().staffLayout();
+    if (staffLayouts.empty())
     {
-        outDefaults.systemLayout.staffDistance = firstStaffLayout->getStaffDistance()->getValue().getValue();
+        return;
+    }
+
+    if (staffLayouts.front().staffDistance().has_value())
+    {
+        outDefaults.systemLayout.staffDistance = staffLayouts.front().staffDistance()->value().value();
     }
 }
 
@@ -349,55 +351,46 @@ void addAppearance(const core::ScoreHeaderGroup &inScoreHeaderGroup, api::Defaul
 {
     outDefaults.appearance.clear();
 
-    if (!inScoreHeaderGroup.getHasDefaults())
+    if (!inScoreHeaderGroup.defaults().has_value() || !inScoreHeaderGroup.defaults()->appearance().has_value())
     {
         return;
     }
 
-    const auto &defaults = *inScoreHeaderGroup.getDefaults();
+    const auto &appearance = *inScoreHeaderGroup.defaults()->appearance();
 
-    if (!defaults.getHasAppearance())
-    {
-        return;
-    }
-
-    const auto &appearance = *defaults.getAppearance();
-
-    for (const auto &lineWidth : appearance.getLineWidthSet())
+    for (const auto &lw : appearance.lineWidth())
     {
         api::AppearanceData data{};
         data.appearanceType = api::AppearanceType::LineWidth;
-        data.appearanceSubType = core::toString(lineWidth->getAttributes()->type);
-        data.value = lineWidth->getValue().getValue();
+        data.appearanceSubType = std::string{lw.type().toString()};
+        data.value = lw.value().value().value();
         outDefaults.appearance.emplace_back(std::move(data));
     }
 
-    for (const auto &noteSize : appearance.getNoteSizeSet())
+    for (const auto &ns : appearance.noteSize())
     {
         api::AppearanceData data{};
         data.appearanceType = api::AppearanceType::NoteSize;
-        data.appearanceSubType = core::toString(noteSize->getAttributes()->type);
-        data.value = noteSize->getValue().getValue();
+        data.appearanceSubType = std::string{ns.type().toString()};
+        data.value = ns.value().value().value();
         outDefaults.appearance.emplace_back(std::move(data));
     }
 
-    for (const auto &distance : appearance.getDistanceSet())
+    for (const auto &di : appearance.distance())
     {
         api::AppearanceData data{};
         data.appearanceType = api::AppearanceType::Distance;
-        data.appearanceSubType = core::toString(distance->getAttributes()->type);
-        data.value = distance->getValue().getValue();
+        data.appearanceSubType = std::string{di.type().toString()};
+        data.value = di.value().value().value();
         outDefaults.appearance.emplace_back(std::move(data));
     }
 
-    for (const auto &other : appearance.getOtherAppearanceSet())
+    for (const auto &oa : appearance.otherAppearance())
     {
         api::AppearanceData data{};
-        data.appearanceType = api::AppearanceType::Distance;
-        data.appearanceSubType = core::toString(other->getAttributes()->type);
-
-        // TODO - fix
-        data.value = 0.0; // other->getValue().getValue();
+        data.appearanceType = api::AppearanceType::OtherAppearance;
+        data.appearanceSubType = oa.type();
+        data.value = 0.0;
         outDefaults.appearance.emplace_back(std::move(data));
     }
 }

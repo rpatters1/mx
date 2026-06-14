@@ -13,10 +13,8 @@ namespace mx
 {
 namespace impl
 {
-using LongDouble = long double;
-
-MX_ATTR_FUNC_OPTIONAL(hasNumber, HasNumber, bool, false);
-MX_ATTR_FUNC_OPTIONAL_WITH_GETTER(number, Number, int, -1);
+MX_OPTIONAL_HAS_FUNC(number, Number);
+MX_OPTIONAL_GET_INT_FUNC(number, Number, -1);
 
 template <typename ATTRIBUTES_TYPE> api::SpannerStart getSpannerStart(const ATTRIBUTES_TYPE &inAttributes)
 {
@@ -45,8 +43,8 @@ template <typename ATTRIBUTES_TYPE> api::SpannerStop getSpannerStop(const ATTRIB
     return stop;
 }
 
-MX_ATTR_SETFUNC_OPTIONAL(hasNumber, HasNumber, bool, false);
-MX_ATTR_SETFUNC_OPTIONAL_WITH_SETTER(number, Number, int, -1);
+MX_OPTIONAL_SET_HAS_FUNC(number, setNumber, Number);
+MX_OPTIONAL_SET_INT_FUNC(number, setNumber, Number);
 
 template <typename ATTRIBUTES_TYPE>
 void setAttributesFromSpannerStart(const api::SpannerStart &start, ATTRIBUTES_TYPE &outAttributes)

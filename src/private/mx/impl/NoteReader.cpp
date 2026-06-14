@@ -3,49 +3,18 @@
 // Distributed under the MIT License
 
 #include "mx/impl/NoteReader.h"
-#include "mx/core/elements/Accidental.h"
-#include "mx/core/elements/ActualNotes.h"
-#include "mx/core/elements/Alter.h"
-#include "mx/core/elements/Beam.h"
-#include "mx/core/elements/CueNoteGroup.h"
-#include "mx/core/elements/DisplayOctave.h"
-#include "mx/core/elements/DisplayStep.h"
-#include "mx/core/elements/DisplayStepOctaveGroup.h"
-#include "mx/core/elements/Duration.h"
-#include "mx/core/elements/EditorialVoiceGroup.h"
-#include "mx/core/elements/Elision.h"
-#include "mx/core/elements/ElisionSyllabicGroup.h"
-#include "mx/core/elements/ElisionSyllabicTextGroup.h"
-#include "mx/core/elements/FullNoteGroup.h"
-#include "mx/core/elements/FullNoteTypeChoice.h"
-#include "mx/core/elements/GraceNoteGroup.h"
-#include "mx/core/elements/Lyric.h"
-#include "mx/core/elements/LyricTextChoice.h"
-#include "mx/core/elements/NormalNoteGroup.h"
-#include "mx/core/elements/NormalNotes.h"
-#include "mx/core/elements/NormalType.h"
-#include "mx/core/elements/NormalTypeNormalDotGroup.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/NoteChoice.h"
-#include "mx/core/elements/Notehead.h"
-#include "mx/core/elements/Octave.h"
-#include "mx/core/elements/Pitch.h"
-#include "mx/core/elements/Rest.h"
-#include "mx/core/elements/Staff.h"
-#include "mx/core/elements/Stem.h"
-#include "mx/core/elements/Step.h"
-#include "mx/core/elements/Syllabic.h"
-#include "mx/core/elements/SyllabicTextGroup.h"
-#include "mx/core/elements/Text.h"
-#include "mx/core/elements/Tie.h"
-#include "mx/core/elements/TimeModification.h"
-#include "mx/core/elements/Type.h"
-#include "mx/core/elements/Unpitched.h"
-#include "mx/core/elements/Voice.h"
+#include "mx/core/generated/BeamLevel.h"
+#include "mx/core/generated/ElisionSyllabicGroup.h"
+#include "mx/core/generated/LyricChoice.h"
+#include "mx/core/generated/LyricSyllableGroup.h"
+#include "mx/core/generated/LyricTextGroup.h"
+#include "mx/core/generated/Syllabic.h"
+#include "mx/core/generated/TextElementData.h"
 #include "mx/impl/FontFunctions.h"
 #include "mx/impl/PositionFunctions.h"
 #include "mx/impl/PrintFunctions.h"
 #include "mx/utility/StringToInt.h"
+#include "mx/utility/Throw.h"
 
 #include "Converter.h"
 #include "mx/api/PitchData.h"
@@ -57,132 +26,110 @@ namespace impl
 {
 namespace
 {
-api::LyricSyllabic convertLyricSyllabic(core::SyllabicEnum value)
+api::LyricSyllabic convertLyricSyllabic(core::Syllabic value)
 {
-    switch (value)
+    switch (value.tag())
     {
-    case core::SyllabicEnum::single:
+    case core::Syllabic::Tag::single:
         return api::LyricSyllabic::single;
-    case core::SyllabicEnum::begin:
+    case core::Syllabic::Tag::begin:
         return api::LyricSyllabic::begin;
-    case core::SyllabicEnum::end:
+    case core::Syllabic::Tag::end:
         return api::LyricSyllabic::end;
-    case core::SyllabicEnum::middle:
+    case core::Syllabic::Tag::middle:
         return api::LyricSyllabic::middle;
     }
 
     return api::LyricSyllabic::single;
 }
 
-api::PositionData getLyricPositionData(const core::LyricAttributes &inAttributes)
+api::PositionData getLyricPositionData(const core::Lyric &inLyric)
 {
     api::PositionData outPositionData;
 
-    if (inAttributes.hasDefaultX)
+    if (inLyric.defaultX().has_value())
     {
         outPositionData.isDefaultXSpecified = true;
-        outPositionData.defaultX = inAttributes.defaultX.getValue();
+        outPositionData.defaultX = inLyric.defaultX()->value().value();
     }
 
-    if (inAttributes.hasDefaultY)
+    if (inLyric.defaultY().has_value())
     {
         outPositionData.isDefaultYSpecified = true;
-        outPositionData.defaultY = inAttributes.defaultY.getValue();
+        outPositionData.defaultY = inLyric.defaultY()->value().value();
     }
 
-    if (inAttributes.hasRelativeX)
+    if (inLyric.relativeX().has_value())
     {
         outPositionData.isRelativeXSpecified = true;
-        outPositionData.relativeX = inAttributes.relativeX.getValue();
+        outPositionData.relativeX = inLyric.relativeX()->value().value();
     }
 
-    if (inAttributes.hasRelativeY)
+    if (inLyric.relativeY().has_value())
     {
         outPositionData.isRelativeYSpecified = true;
-        outPositionData.relativeY = inAttributes.relativeY.getValue();
+        outPositionData.relativeY = inLyric.relativeY()->value().value();
     }
 
     Converter converter;
 
-    if (inAttributes.hasPlacement)
+    if (inLyric.placement().has_value())
     {
-        outPositionData.placement = converter.convert(inAttributes.placement);
+        outPositionData.placement = converter.convert(*inLyric.placement());
     }
 
-    if (inAttributes.hasJustify)
+    if (inLyric.justify().has_value())
     {
-        outPositionData.horizontalAlignmnet = converter.convert(inAttributes.justify);
+        outPositionData.horizontalAlignmnet = converter.convert(*inLyric.justify());
     }
 
     return outPositionData;
 }
 
-api::PrintData getLyricPrintData(const core::LyricAttributes &lyricAttributes,
-                                 const core::TextAttributes *textAttributes)
+api::PrintData getLyricPrintData(const core::Lyric &inLyric, const core::TextElementData *textElement)
 {
     api::PrintData outPrintData;
-    outPrintData.printObject = getPrintObject(lyricAttributes);
+    outPrintData.printObject = getPrintObject(inLyric);
 
-    if (lyricAttributes.hasColor)
+    if (inLyric.color().has_value())
     {
         outPrintData.isColorSpecified = true;
-        outPrintData.color = getColor(lyricAttributes);
+        outPrintData.color = getColor(inLyric);
     }
 
-    if (textAttributes)
+    if (textElement)
     {
-        outPrintData.fontData = getFontData(*textAttributes);
+        outPrintData.fontData = getFontData(*textElement);
     }
 
     return outPrintData;
 }
 
-std::string getElisionDisplayText(const core::ElisionSyllabicTextGroup &inGroup)
+std::string getElisionDisplayText(const core::LyricSyllableGroup &inGroup)
 {
-    if (inGroup.getHasElisionSyllabicGroup())
+    if (inGroup.elisionSyllabicGroup().has_value())
     {
-        const auto &elisionGroup = inGroup.getElisionSyllabicGroup();
-        if (elisionGroup)
+        const auto &elision = inGroup.elisionSyllabicGroup()->elision();
+        const auto &value = elision.value();
+        if (!value.empty())
         {
-            const auto &elision = elisionGroup->getElision();
-            if (elision)
-            {
-                const auto value = elision->getValue().getValue();
-                if (!value.empty())
-                {
-                    return value;
-                }
-            }
+            return value;
         }
     }
 
     return "\xE2\x80\xBF";
 }
 
-std::string getLyricDisplayText(const core::SyllabicTextGroup &inGroup)
+std::string getLyricDisplayText(const core::LyricTextGroup &inGroup)
 {
     std::string result;
 
-    const auto &leadingText = inGroup.getText();
-    if (leadingText)
+    result += inGroup.text().value();
+
+    for (const auto &group : inGroup.lyricSyllableGroup())
     {
-        result += leadingText->getValue().getValue();
-    }
-
-    for (const auto &group : inGroup.getElisionSyllabicTextGroupSet())
-    {
-        if (!group)
-        {
-            continue;
-        }
-
-        result += getElisionDisplayText(*group);
-
-        const auto &text = group->getText();
-        if (text)
-        {
-            result += text->getValue().getValue();
-        }
+        result += getElisionDisplayText(group);
+        result += group.text().value();
     }
 
     return result;
@@ -190,16 +137,17 @@ std::string getLyricDisplayText(const core::SyllabicTextGroup &inGroup)
 } // namespace
 
 NoteReader::NoteReader(const core::Note &mxNote)
-    : myNote(mxNote), myNoteChoice(*myNote.getNoteChoice()), myFullNoteGroup(findFullNoteGroup(myNoteChoice)),
+    : myNote(mxNote), myNoteChoice(myNote.choice()), myFullNoteGroup(findFullNoteGroup(myNoteChoice)),
       myIsNormal(false), myIsGrace(false), myIsCue(false), myIsRest(false), myIsChord(false), myIsMeasureRest(false),
-      myIsUnpitched(false), myIsPitch(false), myIsDisplayStepOctaveSpecified(false), myDurationValue(0.0L),
-      myStep(core::StepEnum::c), myAlter(0), myCents(0.0), myOctave(4), myStaffNumber(0), myVoiceNumber(0),
-      myNoteheadValue(core::NoteheadValue::normal), myDurationType(core::NoteTypeValue::maxima),
+      myIsUnpitched(false), myIsPitch(false), myIsDisplayStepOctaveSpecified(false), myDurationValue(0.0),
+      myStep(core::Step::c()), myAlter(0), myCents(0.0), myOctave(4), myStaffNumber(0), myVoiceNumber(0),
+      myNoteheadValue(core::NoteheadValue::normal()), myDurationType(core::NoteTypeValue::maxima()),
       myIsDurationTypeSpecified(false), myNumDots(0), myBeams(), myTimeModificationActualNotes(-1),
-      myTimeModificationNormalNotes(-1), myTimeModificationNormalType(core::NoteTypeValue::maxima),
-      myTimeModificationNormalTypeDots(0), myHasAccidental(false), myAccidental(core::AccidentalValue::natural),
+      myTimeModificationNormalNotes(-1), myTimeModificationNormalType(core::NoteTypeValue::maxima()),
+      myTimeModificationNormalTypeDots(0), myHasAccidental(false), myAccidental(core::AccidentalValue::natural()),
       myIsAccidentalParenthetical(false), myIsAccidentalCautionary{false}, myIsAccidentalEditorial{false},
-      myIsAccidentalBracketed{false}, myIsTieStart{false}, myIsTieStop{false}, myHasLyric{false}
+      myIsAccidentalBracketed{false}, myIsStemSpecified{false}, myStem{}, myIsTieStart{false}, myIsTieStop{false},
+      myHasLyric{false}
 {
     setNormalGraceCueItems();
     setRestPitchUnpitchedItems();
@@ -218,19 +166,21 @@ NoteReader::NoteReader(const core::Note &mxNote)
 
 const core::FullNoteGroup &NoteReader::findFullNoteGroup(const core::NoteChoice &noteChoice) const
 {
-    switch (noteChoice.getChoice())
+    switch (noteChoice.kind())
     {
-    case core::NoteChoice::Choice::normal: {
-        const auto &noteGuts = *noteChoice.getNormalNoteGroup();
-        return *noteGuts.getFullNoteGroup();
+    case core::NoteChoice::Kind::normalNoteGroup: {
+        return noteChoice.asNormalNoteGroup().fullNote();
     }
-    case core::NoteChoice::Choice::grace: {
-        const auto &noteGuts = *noteChoice.getGraceNoteGroup();
-        return *noteGuts.getFullNoteGroup();
+    case core::NoteChoice::Kind::graceNoteGroup: {
+        const auto &graceChoice = noteChoice.asGraceNoteGroup().graceNoteChoice();
+        if (graceChoice.isGraceCueNoteGroup())
+        {
+            return graceChoice.asGraceCueNoteGroup().fullNote();
+        }
+        return graceChoice.asGraceNormalNoteGroup().fullNote();
     }
-    case core::NoteChoice::Choice::cue: {
-        const auto &noteGuts = *noteChoice.getCueNoteGroup();
-        return *noteGuts.getFullNoteGroup();
+    case core::NoteChoice::Kind::cueNoteGroup: {
+        return noteChoice.asCueNoteGroup().fullNote();
     }
     default:
         break;
@@ -241,84 +191,86 @@ const core::FullNoteGroup &NoteReader::findFullNoteGroup(const core::NoteChoice 
 
 void NoteReader::setNormalGraceCueItems()
 {
-    switch (myNoteChoice.getChoice())
+    switch (myNoteChoice.kind())
     {
-    case core::NoteChoice::Choice::normal: {
+    case core::NoteChoice::Kind::normalNoteGroup: {
         myIsNormal = true;
-        const auto &noteGuts = *myNoteChoice.getNormalNoteGroup();
-        myDurationValue = noteGuts.getDuration()->getValue().getValue();
-        setTie(noteGuts.getTieSet());
+        const auto &noteGuts = myNoteChoice.asNormalNoteGroup();
+        myDurationValue = noteGuts.duration().value().value();
+        setTie(noteGuts.tie());
         break;
     }
-    case core::NoteChoice::Choice::grace: {
+    case core::NoteChoice::Kind::graceNoteGroup: {
         myIsGrace = true;
-        const auto &noteGuts = *myNoteChoice.getGraceNoteGroup();
+        const auto &noteGuts = myNoteChoice.asGraceNoteGroup();
         myDurationValue = 0;
-        setTie(noteGuts.getTieSet());
+        if (noteGuts.graceNoteChoice().isGraceNormalNoteGroup())
+        {
+            setTie(noteGuts.graceNoteChoice().asGraceNormalNoteGroup().tie());
+        }
         break;
     }
-    case core::NoteChoice::Choice::cue: {
+    case core::NoteChoice::Kind::cueNoteGroup: {
         myIsCue = true;
-        const auto &noteGuts = *myNoteChoice.getCueNoteGroup();
-        myDurationValue = noteGuts.getDuration()->getValue().getValue();
+        const auto &noteGuts = myNoteChoice.asCueNoteGroup();
+        myDurationValue = noteGuts.duration().value().value();
         break;
     }
     default:
-        MX_THROW("invalid NoteChoice::Choice value");
+        MX_THROW("invalid NoteChoice::Kind value");
     }
 }
 
 void NoteReader::setRestPitchUnpitchedItems()
 {
-    const auto &fullNoteTypeChoice = *myFullNoteGroup.getFullNoteTypeChoice();
+    const auto &fullNoteTypeChoice = myFullNoteGroup.choice();
 
-    switch (fullNoteTypeChoice.getChoice())
+    switch (fullNoteTypeChoice.kind())
     {
-    case core::FullNoteTypeChoice::Choice::rest: {
+    case core::FullNoteGroupChoice::Kind::rest: {
         myIsRest = true;
-        const auto &rest = *fullNoteTypeChoice.getRest();
+        const auto &rest = fullNoteTypeChoice.asRest();
 
-        if (rest.getAttributes()->hasMeasure && (rest.getAttributes()->measure == core::YesNo::yes))
+        if (rest.measure().has_value() && (*rest.measure() == core::YesNo::yes()))
         {
             myIsMeasureRest = true;
         }
 
-        const auto &stepOctave = *rest.getDisplayStepOctaveGroup();
-
-        if (rest.getHasDisplayStepOctaveGroup())
+        if (rest.displayStepOctave().has_value())
         {
+            const auto &stepOctave = *rest.displayStepOctave();
             myIsDisplayStepOctaveSpecified = true;
-            myStep = stepOctave.getDisplayStep()->getValue();
-            myOctave = stepOctave.getDisplayOctave()->getValue().getValue();
+            myStep = stepOctave.displayStep();
+            myOctave = stepOctave.displayOctave().value();
         }
 
         myAlter = 0;
         break;
     }
-    case core::FullNoteTypeChoice::Choice::unpitched: {
+    case core::FullNoteGroupChoice::Kind::unpitched: {
         myIsUnpitched = true;
-        const auto &unpitched = *fullNoteTypeChoice.getUnpitched();
-        const auto &stepOctave = *unpitched.getDisplayStepOctaveGroup();
+        const auto &unpitched = fullNoteTypeChoice.asUnpitched();
 
-        if (unpitched.getHasDisplayStepOctaveGroup())
+        if (unpitched.displayStepOctave().has_value())
         {
+            const auto &stepOctave = *unpitched.displayStepOctave();
             myIsDisplayStepOctaveSpecified = true;
-            myStep = stepOctave.getDisplayStep()->getValue();
-            myOctave = stepOctave.getDisplayOctave()->getValue().getValue();
+            myStep = stepOctave.displayStep();
+            myOctave = stepOctave.displayOctave().value();
         }
 
         myAlter = 0;
         break;
     }
-    case core::FullNoteTypeChoice::Choice::pitch: {
+    case core::FullNoteGroupChoice::Kind::pitch: {
         myIsPitch = true;
-        const auto &pitch = *fullNoteTypeChoice.getPitch();
-        myStep = pitch.getStep()->getValue();
-        myOctave = pitch.getOctave()->getValue().getValue();
-        if (pitch.getHasAlter())
+        const auto &pitch = fullNoteTypeChoice.asPitch();
+        myStep = pitch.step();
+        myOctave = pitch.octave().value();
+        if (pitch.alter().has_value())
         {
             const auto semitonesAndCents =
-                mx::impl::Converter::convertToSemitonesAndCents(pitch.getAlter()->getValue().getValue());
+                mx::impl::Converter::convertToSemitonesAndCents(pitch.alter()->value().value());
             myAlter = semitonesAndCents.first;
             myCents = semitonesAndCents.second;
         }
@@ -326,21 +278,20 @@ void NoteReader::setRestPitchUnpitchedItems()
     }
 
     default:
-        MX_THROW("invalid FullNoteTypeChoice::Choice value");
+        MX_THROW("invalid FullNoteGroupChoice::Kind value");
     }
 }
 
 void NoteReader::setChord()
 {
-    myIsChord = myFullNoteGroup.getHasChord();
+    myIsChord = myFullNoteGroup.chord();
 }
 
 void NoteReader::setStaffNumber()
 {
-    if (myNote.getHasStaff())
+    if (myNote.staff().has_value())
     {
-        const auto &staffObject = *myNote.getStaff();
-        myStaffNumber = static_cast<int>(staffObject.getValue().getValue());
+        myStaffNumber = *myNote.staff();
     }
 }
 
@@ -348,49 +299,52 @@ void NoteReader::setVoiceNumber()
 {
     myVoiceNumber = -1;
 
-    if (!myNote.getEditorialVoiceGroup()->getHasVoice())
+    if (!myNote.editorialVoice().voice().has_value())
     {
         return;
     }
 
-    utility::stringToInt(myNote.getEditorialVoiceGroup()->getVoice()->getValue().getValue().c_str(), myVoiceNumber);
+    utility::stringToInt(myNote.editorialVoice().voice()->c_str(), myVoiceNumber);
 }
 
 void NoteReader::setNoteheadValue()
 {
-    myNoteheadValue = myNote.getNotehead()->getValue();
+    if (myNote.notehead().has_value())
+    {
+        myNoteheadValue = myNote.notehead()->value();
+    }
 }
 
 void NoteReader::setDurationType()
 {
-    if (myNote.getHasType())
+    if (myNote.type().has_value())
     {
         myIsDurationTypeSpecified = true;
-        myDurationType = myNote.getType()->getValue();
+        myDurationType = myNote.type()->value();
     }
 }
 
 void NoteReader::setNumDots()
 {
-    myNumDots = static_cast<int>(myNote.getDotSet().size());
+    myNumDots = static_cast<int>(myNote.dot().size());
 }
 
 void NoteReader::setBeams()
 {
-    const auto &mxBeamSet = myNote.getBeamSet();
+    const auto mxBeamSet = myNote.beam();
     std::map<int, core::BeamValue> mapOfBeams;
     int calculatedBeamIndex = 0;
 
     for (const auto &mxBeam : mxBeamSet)
     {
-        const int userBeamIndex = (mxBeam->getAttributes()->number.getValue());
+        const int userBeamIndex = mxBeam.number().has_value() ? mxBeam.number()->value() : core::BeamLevel{}.value();
         int useThisBeamIndex = calculatedBeamIndex;
 
         // if the userBeamIndex seems valid we will use it
         // by doing this we support the possibility that
         // the musicxml file could have beams listed in the
         // 'wrong' order, i.e. 3,4,1,2
-        if (mxBeam->getAttributes()->hasNumber)
+        if (mxBeam.number().has_value())
         {
             if (mapOfBeams.find(userBeamIndex) == mapOfBeams.cend())
             {
@@ -398,7 +352,7 @@ void NoteReader::setBeams()
             }
         }
 
-        mapOfBeams[useThisBeamIndex] = mxBeam->getValue();
+        mapOfBeams[useThisBeamIndex] = mxBeam.value();
         ++calculatedBeamIndex;
     }
 
@@ -412,22 +366,22 @@ void NoteReader::setBeams()
 
 void NoteReader::setTimeModification()
 {
-    if (!myNote.getHasTimeModification())
+    if (!myNote.timeModification().has_value())
     {
         myTimeModificationActualNotes = 1;
         myTimeModificationNormalNotes = 1;
         return;
     }
 
-    const auto &mxTimeMod = *myNote.getTimeModification();
-    myTimeModificationActualNotes = mxTimeMod.getActualNotes()->getValue().getValue();
-    myTimeModificationNormalNotes = mxTimeMod.getNormalNotes()->getValue().getValue();
+    const auto &mxTimeMod = *myNote.timeModification();
+    myTimeModificationActualNotes = mxTimeMod.actualNotes();
+    myTimeModificationNormalNotes = mxTimeMod.normalNotes();
 
-    if (mxTimeMod.getHasNormalTypeNormalDotGroup())
+    if (mxTimeMod.group().has_value())
     {
-        const auto &grp = *mxTimeMod.getNormalTypeNormalDotGroup();
-        myTimeModificationNormalType = grp.getNormalType()->getValue();
-        myTimeModificationNormalTypeDots = static_cast<int>(grp.getNormalDotSet().size());
+        const auto &grp = *mxTimeMod.group();
+        myTimeModificationNormalType = grp.normalType();
+        myTimeModificationNormalTypeDots = static_cast<int>(grp.normalDot().size());
     }
     else
     {
@@ -439,32 +393,29 @@ void NoteReader::setTimeModification()
 void NoteReader::setAccidental()
 {
     myIsAccidentalParenthetical = false;
-    myHasAccidental = myNote.getHasAccidental();
+    myHasAccidental = myNote.accidental().has_value();
 
     if (myHasAccidental)
     {
-        myAccidental = myNote.getAccidental()->getValue();
+        const auto &accidental = *myNote.accidental();
+        myAccidental = accidental.value();
 
-        if (myNote.getAccidental()->getAttributes()->hasParentheses &&
-            myNote.getAccidental()->getAttributes()->parentheses == core::YesNo::yes)
+        if (accidental.parentheses().has_value() && *accidental.parentheses() == core::YesNo::yes())
         {
             myIsAccidentalParenthetical = true;
         }
 
-        if (myNote.getAccidental()->getAttributes()->hasCautionary &&
-            myNote.getAccidental()->getAttributes()->cautionary == core::YesNo::yes)
+        if (accidental.cautionary().has_value() && *accidental.cautionary() == core::YesNo::yes())
         {
             myIsAccidentalCautionary = true;
         }
 
-        if (myNote.getAccidental()->getAttributes()->hasEditorial &&
-            myNote.getAccidental()->getAttributes()->editorial == core::YesNo::yes)
+        if (accidental.editorial().has_value() && *accidental.editorial() == core::YesNo::yes())
         {
             myIsAccidentalEditorial = true;
         }
 
-        if (myNote.getAccidental()->getAttributes()->hasBracket &&
-            myNote.getAccidental()->getAttributes()->bracket == core::YesNo::yes)
+        if (accidental.bracket().has_value() && *accidental.bracket() == core::YesNo::yes())
         {
             myIsAccidentalBracketed = true;
         }
@@ -473,10 +424,10 @@ void NoteReader::setAccidental()
 
 void NoteReader::setStem()
 {
-    if (myNote.getHasStem())
+    if (myNote.stem().has_value())
     {
         myIsStemSpecified = true;
-        myStem = myNote.getStem()->getValue();
+        myStem = myNote.stem()->value();
     }
     else
     {
@@ -484,15 +435,15 @@ void NoteReader::setStem()
     }
 }
 
-void NoteReader::setTie(const core::TieSet &tieSet)
+void NoteReader::setTie(std::span<const core::Tie> tieSet)
 {
     for (const auto &tie : tieSet)
     {
-        if (tie->getAttributes()->type == core::StartStop::start)
+        if (tie.type() == core::StartStop::start())
         {
             myIsTieStart = true;
         }
-        else if (tie->getAttributes()->type == core::StartStop::stop)
+        else if (tie.type() == core::StartStop::stop())
         {
             myIsTieStop = true;
         }
@@ -501,70 +452,59 @@ void NoteReader::setTie(const core::TieSet &tieSet)
 
 void NoteReader::setLyric()
 {
-    const auto &lyricSet = myNote.getLyricSet();
+    const auto lyricSet = myNote.lyric();
     auto iter = lyricSet.begin();
     const auto iterEnd = lyricSet.end();
     for (; iter != iterEnd; ++iter)
     {
         const auto &lyric = *iter;
+        const auto &textChoice = lyric.choice();
 
-        const auto &textChoice = lyric->getLyricTextChoice();
-        if (textChoice)
+        api::LyricData lyricData;
+        lyricData.positionData = getLyricPositionData(lyric);
+
+        if (lyric.number().has_value())
         {
-            api::LyricData lyricData;
-            const auto &lyricAttributes = *lyric->getAttributes();
-            lyricData.positionData = getLyricPositionData(lyricAttributes);
+            lyricData.verseNumber = lyric.number()->value();
+        }
 
-            if (lyricAttributes.hasNumber)
+        if (lyric.name().has_value())
+        {
+            lyricData.verseName = *lyric.name();
+        }
+
+        switch (textChoice.kind())
+        {
+        case core::LyricChoice::Kind::lyricTextGroup: {
+            const auto &textGroup = textChoice.asLyricTextGroup();
+
+            core::Syllabic syllabic = core::Syllabic::single();
+            if (textGroup.syllabic().has_value())
             {
-                lyricData.verseNumber = lyricAttributes.number.getValue();
+                syllabic = *textGroup.syllabic();
             }
 
-            if (lyricAttributes.hasName)
-            {
-                lyricData.verseName = lyricAttributes.name.getValue();
-            }
+            lyricData.text = getLyricDisplayText(textGroup);
+            lyricData.printData = getLyricPrintData(lyric, &textGroup.text());
 
-            const auto choice = textChoice->getChoice();
-            switch (choice)
-            {
-            case core::LyricTextChoice::Choice::syllabicTextGroup: {
-                const auto textGroup = textChoice->getSyllabicTextGroup();
-                if (textGroup)
-                {
-                    core::SyllabicEnum syllabic = core::SyllabicEnum::single;
-                    if (textGroup->getHasSyllabic())
-                    {
-                        syllabic = textGroup->getSyllabic()->getValue();
-                    }
+            lyricData.syllabic = convertLyricSyllabic(syllabic);
+            lyricData.hasExtend = textGroup.extend().has_value();
+            myLyrics.emplace_back(lyricData);
+            myHasLyric = true;
+            break;
+        }
 
-                    const auto &textPtr = textGroup->getText();
-                    if (textPtr)
-                    {
-                        lyricData.text = getLyricDisplayText(*textGroup);
-                        lyricData.printData = getLyricPrintData(lyricAttributes, textPtr->getAttributes().get());
-                    }
+        case core::LyricChoice::Kind::extend:
+            lyricData.hasExtend = true;
+            lyricData.printData = getLyricPrintData(lyric, nullptr);
+            myLyrics.emplace_back(lyricData);
+            myHasLyric = true;
+            break;
 
-                    lyricData.syllabic = convertLyricSyllabic(syllabic);
-                    lyricData.hasExtend = textGroup->getHasExtend();
-                    myLyrics.emplace_back(lyricData);
-                    myHasLyric = true;
-                }
-                break;
-            }
-
-            case core::LyricTextChoice::Choice::extend:
-                lyricData.hasExtend = true;
-                lyricData.printData = getLyricPrintData(lyricAttributes, nullptr);
-                myLyrics.emplace_back(lyricData);
-                myHasLyric = true;
-                break;
-
-            case core::LyricTextChoice::Choice::laughing:
-            case core::LyricTextChoice::Choice::humming: {
-                break;
-            }
-            }
+        case core::LyricChoice::Kind::laughing:
+        case core::LyricChoice::Kind::humming: {
+            break;
+        }
         }
     }
 }

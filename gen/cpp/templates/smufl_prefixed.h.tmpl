@@ -1,0 +1,73 @@
+// {{generated_banner}}
+
+#pragma once
+
+#include <string>
+#include <string_view>
+
+namespace {{vars.namespace}}
+{
+
+{{#doc_lines}}
+/// {{value}}
+{{/doc_lines}}
+/// Structural representation (plan §2.2): the glyph-name prefix is
+/// structural and emitted by the serializer; only the suffix is stored.
+/// Construction repairs the suffix to name characters{{#suffix_required}}
+/// (and to non-empty, the placeholder being "X"){{/suffix_required}}, so a
+/// pattern-invalid name cannot exist.
+class {{ident}} final
+{
+public:
+{{#multi_prefix}}
+    enum class Prefix
+    {
+{{#prefixes}}
+        {{ident}},
+{{/prefixes}}
+    };
+
+{{/multi_prefix}}
+    /// The natural zero: the {{#multi_prefix}}first {{/multi_prefix}}prefix{{#suffix_required}} plus the placeholder suffix{{/suffix_required}}.
+    {{ident}}();
+
+    explicit {{ident}}(std::string suffix);
+
+{{#multi_prefix}}
+    {{ident}}(Prefix prefix, std::string suffix);
+
+    Prefix prefix() const noexcept
+    {
+        return m_prefix;
+    }
+
+    void setPrefix(Prefix value) noexcept;
+
+{{/multi_prefix}}
+    const std::string &suffix() const noexcept
+    {
+        return m_suffix;
+    }
+
+    void setSuffix(std::string value);
+
+    std::string toString() const;
+
+    /// Strict: a known prefix followed by a pattern-valid suffix.
+    static bool tryParse(std::string_view text, {{ident}} &out);
+
+    /// Lenient: repairs into the nearest valid glyph name.
+    static {{ident}} parse(std::string_view text);
+
+    bool operator==(const {{ident}} &other) const noexcept = default;
+
+private:
+    void repair();
+
+{{#multi_prefix}}
+    Prefix m_prefix{Prefix::{{#prefixes}}{{#is_first}}{{ident}}{{/is_first}}{{/prefixes}}};
+{{/multi_prefix}}
+    std::string m_suffix;
+};
+
+} // namespace {{vars.namespace}}

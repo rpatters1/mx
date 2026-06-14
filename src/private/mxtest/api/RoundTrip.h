@@ -18,28 +18,45 @@ inline void roundTrip()
 {
     const std::string path{MxFileRepository::getFullPath(roundTripFileName)};
     auto &docMgr = mx::api::DocumentManager::getInstance();
-    auto docId = docMgr.createFromFile(path);
-    auto scoreData = docMgr.getData(docId);
+    auto docIdResult = docMgr.createFromFile(path);
+    if (!docIdResult.ok())
+        return;
+    auto docId = docIdResult.value();
+    auto scoreDataResult = docMgr.getData(docId);
     docMgr.destroyDocument(docId);
-    docId = docMgr.createFromScore(scoreData);
+    if (!scoreDataResult.ok())
+        return;
+    auto scoreData = scoreDataResult.value();
+    auto docId2Result = docMgr.createFromScore(scoreData);
+    if (!docId2Result.ok())
+        return;
+    auto docId2 = docId2Result.value();
     const std::string outputPath = getResourcesDirectoryPath() + "testOutput" + FILE_PATH_SEPARATOR + "output.xml";
-    docMgr.writeToFile(docId, outputPath);
-    docMgr.destroyDocument(docId);
+    docMgr.writeToFile(docId2, outputPath);
+    docMgr.destroyDocument(docId2);
 }
 
 inline mx::api::ScoreData roundTrip(const mx::api::ScoreData inScoreData)
 {
     auto &docMgr = mx::api::DocumentManager::getInstance();
-    auto docId = docMgr.createFromScore(inScoreData);
+    auto docIdResult = docMgr.createFromScore(inScoreData);
+    if (!docIdResult.ok())
+        return {};
+    auto docId = docIdResult.value();
     std::stringstream ss;
     docMgr.writeToStream(docId, ss);
     docMgr.destroyDocument(docId);
     auto xmlData = ss.str();
     std::istringstream iss{xmlData};
-    docId = docMgr.createFromStream(iss);
-    auto outScoreData = docMgr.getData(docId);
-    docMgr.destroyDocument(docId);
+    auto docId2Result = docMgr.createFromStream(iss);
+    if (!docId2Result.ok())
+        return {};
+    auto docId2 = docId2Result.value();
+    auto outScoreDataResult = docMgr.getData(docId2);
+    docMgr.destroyDocument(docId2);
+    if (!outScoreDataResult.ok())
+        return {};
     // std::cout << xmlData << std::endl;
-    return outScoreData;
+    return outScoreDataResult.value();
 }
 } // namespace mxtest

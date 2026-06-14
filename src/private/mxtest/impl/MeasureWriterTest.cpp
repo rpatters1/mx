@@ -6,16 +6,10 @@
 #ifdef MX_COMPILE_IMPL_TESTS
 
 #include "cpul/cpulTestHarness.h"
-#include "mx/core/elements/Barline.h"
-#include "mx/core/elements/Clef.h"
-#include "mx/core/elements/Divisions.h"
-#include "mx/core/elements/Line.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/MusicDataGroup.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/Properties.h"
-#include "mx/core/elements/StaffDetails.h"
-#include "mx/core/elements/StaffLines.h"
+#include "mx/core/generated/Attributes.h"
+#include "mx/core/generated/Clef.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/StaffDetails.h"
 #include "mx/impl/MeasureWriter.h"
 #include "mx/impl/ScoreWriter.h"
 
@@ -86,8 +80,8 @@ TEST(measureNumber, MeasureWriter)
     params.numStaves = 2;
     mxtest::TestItems t = mxtest::setupTestItems(params);
     const auto partwiseMeasure = t.measureWriter->getPartwiseMeasure();
-    const auto expected = "4";
-    const auto actual = partwiseMeasure->getAttributes()->number.getValue();
+    const auto expected = std::string{"4"};
+    const auto actual = partwiseMeasure.number();
     CHECK_EQUAL(expected, actual);
 }
 
@@ -103,8 +97,8 @@ TEST(measureNumberString, MeasureWriter)
     mxtest::TestItems t = mxtest::setupTestItems(params);
     t.measureData->number = "hello";
     const auto partwiseMeasure = t.measureWriter->getPartwiseMeasure();
-    const auto expected = "hello";
-    const auto actual = partwiseMeasure->getAttributes()->number.getValue();
+    const auto expected = std::string{"hello"};
+    const auto actual = partwiseMeasure.number();
     CHECK_EQUAL(expected, actual);
 }
 
@@ -128,25 +122,22 @@ TEST(leftBarlineFirstNoteRequiresForward, MeasureWriter)
     note.tickTimePosition = 101;
 
     const auto partwiseMeasure = t.measureWriter->getPartwiseMeasure();
-    auto mdcIter = partwiseMeasure->getMusicDataGroup()->getMusicDataChoiceSet().cbegin();
-    auto mdcEnd = partwiseMeasure->getMusicDataGroup()->getMusicDataChoiceSet().cend();
+    auto musicData = partwiseMeasure.musicData();
+    auto mdcIter = musicData.begin();
+    auto mdcEnd = musicData.end();
 
     CHECK(mdcIter != mdcEnd);
 
-    auto choice = (*mdcIter)->getChoice();
-    CHECK(choice == core::MusicDataChoice::Choice::barline);
+    CHECK(mdcIter->isBarline());
 
     CHECK(++mdcIter != mdcEnd);
-    choice = (*mdcIter)->getChoice();
-    CHECK(choice == core::MusicDataChoice::Choice::properties);
+    CHECK(mdcIter->isAttributes());
 
     CHECK(++mdcIter != mdcEnd);
-    choice = (*mdcIter)->getChoice();
-    CHECK(choice == core::MusicDataChoice::Choice::forward);
+    CHECK(mdcIter->isForward());
 
     CHECK(++mdcIter != mdcEnd);
-    choice = (*mdcIter)->getChoice();
-    CHECK(choice == core::MusicDataChoice::Choice::note);
+    CHECK(mdcIter->isNote());
 
     CHECK(++mdcIter == mdcEnd);
 }
@@ -172,24 +163,23 @@ TEST(PropertiesButNoNotes, MeasureWriter)
     clef.tickTimePosition = 101;
 
     const auto partwiseMeasure = t.measureWriter->getPartwiseMeasure();
-    auto mdcIter = partwiseMeasure->getMusicDataGroup()->getMusicDataChoiceSet().cbegin();
-    auto mdcEnd = partwiseMeasure->getMusicDataGroup()->getMusicDataChoiceSet().cend();
+    auto musicData = partwiseMeasure.musicData();
+    auto mdcIter = musicData.begin();
+    auto mdcEnd = musicData.end();
 
     CHECK(mdcIter != mdcEnd);
 
-    auto choice = (*mdcIter)->getChoice();
-    CHECK(choice == core::MusicDataChoice::Choice::barline);
+    CHECK(mdcIter->isBarline());
 
     CHECK(++mdcIter != mdcEnd);
-    choice = (*mdcIter)->getChoice();
-    CHECK(choice == core::MusicDataChoice::Choice::properties);
-    auto props = (*mdcIter)->getProperties();
-    CHECK(props->getHasDivisions());
-    CHECK_DOUBLES_EQUAL(101.0, props->getDivisions()->getValue().getValue(), 0.01);
+    CHECK(mdcIter->isAttributes());
+    const auto &props = mdcIter->asAttributes();
+    CHECK(props.divisions().has_value());
+    CHECK_DOUBLES_EQUAL(101.0, props.divisions()->value().value(), 0.01);
 
-    CHECK_EQUAL(1, props->getClefSet().size());
-    CHECK(props->getClefSet().back()->getAttributes()->hasNumber);
-    CHECK(1 == props->getClefSet().back()->getAttributes()->number.getValue());
+    CHECK_EQUAL(1, props.clef().size());
+    CHECK(props.clef().back().number().has_value());
+    CHECK(1 == props.clef().back().number()->value());
 
     CHECK(++mdcIter == mdcEnd);
 }
@@ -208,19 +198,20 @@ TEST(staffDetailsWritesStaffLines, MeasureWriter)
     staff.staffLines = 1;
 
     const auto partwiseMeasure = t.measureWriter->getPartwiseMeasure();
-    auto mdcIter = partwiseMeasure->getMusicDataGroup()->getMusicDataChoiceSet().cbegin();
-    const auto mdcEnd = partwiseMeasure->getMusicDataGroup()->getMusicDataChoiceSet().cend();
+    auto musicData = partwiseMeasure.musicData();
+    auto mdcIter = musicData.begin();
+    const auto mdcEnd = musicData.end();
 
     CHECK(mdcIter != mdcEnd);
-    CHECK((*mdcIter)->getChoice() == core::MusicDataChoice::Choice::properties);
+    CHECK(mdcIter->isAttributes());
 
-    const auto props = (*mdcIter)->getProperties();
-    CHECK_EQUAL(1, props->getStaffDetailsSet().size());
+    const auto &props = mdcIter->asAttributes();
+    CHECK_EQUAL(1, props.staffDetails().size());
 
-    const auto details = props->getStaffDetailsSet().front();
-    CHECK(details->getHasStaffLines());
-    CHECK_EQUAL(1, details->getStaffLines()->getValue().getValue());
-    CHECK(!details->getAttributes()->hasNumber);
+    const auto &details = props.staffDetails().front();
+    CHECK(details.group().has_value());
+    CHECK_EQUAL(1, details.group()->staffLines());
+    CHECK(!details.number().has_value());
 }
 
 T_END

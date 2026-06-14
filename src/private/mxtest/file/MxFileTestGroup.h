@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include "mxtest/file/MxFileRepository.h"
 #include "mxtest/file/MxFileTest.h"
-#include "mxtest/import/ImportTestImpl.h"
 
 #include <list>
 #include <memory>

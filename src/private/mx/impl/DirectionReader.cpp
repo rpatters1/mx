@@ -4,80 +4,74 @@
 
 #include "mx/impl/DirectionReader.h"
 #include "mx/api/WedgeData.h"
-#include "mx/core/elements/AccordionRegistration.h"
-#include "mx/core/elements/Barre.h"
-#include "mx/core/elements/Bass.h"
-#include "mx/core/elements/BassAlter.h"
-#include "mx/core/elements/BassStep.h"
-#include "mx/core/elements/Bracket.h"
-#include "mx/core/elements/Coda.h"
-#include "mx/core/elements/Damp.h"
-#include "mx/core/elements/DampAll.h"
-#include "mx/core/elements/Dashes.h"
-#include "mx/core/elements/Degree.h"
-#include "mx/core/elements/DegreeAlter.h"
-#include "mx/core/elements/DegreeType.h"
-#include "mx/core/elements/DegreeValue.h"
-#include "mx/core/elements/Direction.h"
-#include "mx/core/elements/DirectionType.h"
-#include "mx/core/elements/Dynamics.h"
-#include "mx/core/elements/EditorialGroup.h"
-#include "mx/core/elements/EditorialVoiceDirectionGroup.h"
-#include "mx/core/elements/Eyeglasses.h"
-#include "mx/core/elements/Fingering.h"
-#include "mx/core/elements/FirstFret.h"
-#include "mx/core/elements/Footnote.h"
-#include "mx/core/elements/Frame.h"
-#include "mx/core/elements/FrameFrets.h"
-#include "mx/core/elements/FrameNote.h"
-#include "mx/core/elements/FrameStrings.h"
-#include "mx/core/elements/Fret.h"
-#include "mx/core/elements/Function.h"
-#include "mx/core/elements/Harmony.h"
-#include "mx/core/elements/HarmonyChordGroup.h"
-#include "mx/core/elements/HarpPedals.h"
-#include "mx/core/elements/Image.h"
-#include "mx/core/elements/Inversion.h"
-#include "mx/core/elements/Kind.h"
-#include "mx/core/elements/Level.h"
-#include "mx/core/elements/Metronome.h"
-#include "mx/core/elements/OctaveShift.h"
-#include "mx/core/elements/Offset.h"
-#include "mx/core/elements/OtherDirection.h"
-#include "mx/core/elements/Pedal.h"
-#include "mx/core/elements/Percussion.h"
-#include "mx/core/elements/PrincipalVoice.h"
-#include "mx/core/elements/Rehearsal.h"
-#include "mx/core/elements/Root.h"
-#include "mx/core/elements/RootAlter.h"
-#include "mx/core/elements/RootStep.h"
-#include "mx/core/elements/Scordatura.h"
-#include "mx/core/elements/Segno.h"
-#include "mx/core/elements/Sound.h"
-#include "mx/core/elements/Staff.h"
-#include "mx/core/elements/String.h"
-#include "mx/core/elements/StringMute.h"
-#include "mx/core/elements/Voice.h"
-#include "mx/core/elements/Wedge.h"
-#include "mx/core/elements/Words.h"
+#include "mx/core/generated/AccordionRegistration.h"
+#include "mx/core/generated/Barre.h"
+#include "mx/core/generated/Bass.h"
+#include "mx/core/generated/BassStep.h"
+#include "mx/core/generated/Bracket.h"
+#include "mx/core/generated/Coda.h"
+#include "mx/core/generated/Dashes.h"
+#include "mx/core/generated/Degree.h"
+#include "mx/core/generated/DegreeAlter.h"
+#include "mx/core/generated/DegreeType.h"
+#include "mx/core/generated/DegreeTypeValue.h"
+#include "mx/core/generated/DegreeValue.h"
+#include "mx/core/generated/Direction.h"
+#include "mx/core/generated/DirectionType.h"
+#include "mx/core/generated/DirectionTypeChoice.h"
+#include "mx/core/generated/Dynamics.h"
+#include "mx/core/generated/Fingering.h"
+#include "mx/core/generated/FirstFret.h"
+#include "mx/core/generated/Frame.h"
+#include "mx/core/generated/FrameNote.h"
+#include "mx/core/generated/Fret.h"
+#include "mx/core/generated/HarmonyAlter.h"
+#include "mx/core/generated/HarmonyChordGroup.h"
+#include "mx/core/generated/HarmonyChordGroupChoice.h"
+#include "mx/core/generated/HarpPedals.h"
+#include "mx/core/generated/Image.h"
+#include "mx/core/generated/Kind.h"
+#include "mx/core/generated/KindValue.h"
+#include "mx/core/generated/Metronome.h"
+#include "mx/core/generated/OctaveShift.h"
+#include "mx/core/generated/Offset.h"
+#include "mx/core/generated/OtherDirection.h"
+#include "mx/core/generated/Pedal.h"
+#include "mx/core/generated/PedalType.h"
+#include "mx/core/generated/Percussion.h"
+#include "mx/core/generated/PrincipalVoice.h"
+#include "mx/core/generated/Root.h"
+#include "mx/core/generated/RootStep.h"
+#include "mx/core/generated/Scordatura.h"
+#include "mx/core/generated/Segno.h"
+#include "mx/core/generated/StartStop.h"
+#include "mx/core/generated/StartStopContinue.h"
+#include "mx/core/generated/Step.h"
+#include "mx/core/generated/String.h"
+#include "mx/core/generated/StringMute.h"
+#include "mx/core/generated/UpDownStopContinue.h"
+#include "mx/core/generated/Wedge.h"
+#include "mx/core/generated/WedgeType.h"
+#include "mx/core/generated/YesNo.h"
 #include "mx/impl/DynamicsReader.h"
 #include "mx/impl/MarkDataFunctions.h"
 #include "mx/impl/MetronomeReader.h"
 #include "mx/impl/PrintFunctions.h"
 #include "mx/impl/SpannerFunctions.h"
 #include "mx/utility/Round.h"
+#include "mx/utility/Unused.h"
 
 namespace mx
 {
 namespace impl
 {
-DirectionReader::DirectionReader(std::shared_ptr<const core::Direction> inDirection, Cursor inCursor)
-    : myDirection{inDirection}, myHarmony{nullptr}, myCursor{inCursor}, myConverter{}, myOutDirectionData{}
+DirectionReader::DirectionReader(const core::Direction &inDirection, Cursor inCursor)
+    : myDirection{&inDirection}, myHarmony{nullptr}, myCursor{inCursor}, myConverter{}, myOutDirectionData{}
 {
 }
 
-DirectionReader::DirectionReader(std::shared_ptr<const core::Harmony> inHarmony, Cursor inCursor)
-    : myDirection{nullptr}, myHarmony{inHarmony}, myCursor{inCursor}, myConverter{}, myOutDirectionData{}
+DirectionReader::DirectionReader(const core::Harmony &inHarmony, Cursor inCursor)
+    : myDirection{nullptr}, myHarmony{&inHarmony}, myCursor{inCursor}, myConverter{}, myOutDirectionData{}
 {
 }
 
@@ -100,11 +94,11 @@ mx::api::DirectionData DirectionReader::initializeData()
 
     if (myDirection)
     {
-        result.isStaffValueSpecified = myDirection->getHasStaff();
+        result.isStaffValueSpecified = myDirection->staff().has_value();
     }
     else if (myHarmony)
     {
-        result.isStaffValueSpecified = myHarmony->getHasStaff();
+        result.isStaffValueSpecified = myHarmony->staff().has_value();
     }
 
     return result;
@@ -114,17 +108,19 @@ void DirectionReader::updateTimeForOffset()
 {
     if (myDirection)
     {
-        if (myDirection->getHasOffset())
+        if (myDirection->offset().has_value())
         {
-            const auto offset = static_cast<int>(std::ceil(myDirection->getOffset()->getValue().getValue() - 0.5));
+            const auto rawVal = myDirection->offset()->value().value().value();
+            const auto offset = static_cast<int>(std::ceil(rawVal - 0.5));
             myOutDirectionData.tickTimePosition += offset;
         }
     }
     else if (myHarmony)
     {
-        if (myHarmony->getHasOffset())
+        if (myHarmony->offset().has_value())
         {
-            const auto offset = static_cast<int>(std::ceil(myHarmony->getOffset()->getValue().getValue() - 0.5));
+            const auto rawVal = myHarmony->offset()->value().value().value();
+            const auto offset = static_cast<int>(std::ceil(rawVal - 0.5));
             myOutDirectionData.tickTimePosition += offset;
         }
     }
@@ -134,16 +130,16 @@ void DirectionReader::parsePlacement()
 {
     if (myDirection)
     {
-        if (myDirection->getAttributes()->hasPlacement)
+        if (myDirection->placement().has_value())
         {
-            myOutDirectionData.placement = myConverter.convert(myDirection->getAttributes()->placement);
+            myOutDirectionData.placement = myConverter.convert(*myDirection->placement());
         }
     }
     else if (myHarmony)
     {
-        if (myHarmony->getAttributes()->hasPlacement)
+        if (myHarmony->placement().has_value())
         {
-            myOutDirectionData.placement = myConverter.convert(myHarmony->getAttributes()->placement);
+            myOutDirectionData.placement = myConverter.convert(*myHarmony->placement());
         }
     }
 }
@@ -152,19 +148,18 @@ void DirectionReader::parseValues()
 {
     if (myDirection)
     {
-        for (const auto &dtPtr : myDirection->getDirectionTypeSet())
+        for (const auto &dt : myDirection->directionType())
         {
-            const auto &dt = *dtPtr;
             parseDirectionType(dt);
         }
     }
     else if (myHarmony)
     {
-        for (const auto &hPtr : myHarmony->getHarmonyChordGroupSet())
+        for (const auto &hcg : myHarmony->harmonyChord())
         {
-            if (hPtr->getChoice() == core::HarmonyChordGroup::Choice::root)
+            if (hcg.choice().isRoot())
             {
-                parseHarmony(*myHarmony, *hPtr);
+                parseHarmony(*myHarmony, hcg);
             }
         }
     }
@@ -192,93 +187,100 @@ void DirectionReader::appendOrderedComponent(api::DirectionComponentKind kind, i
 
 void DirectionReader::parseDirectionType(const core::DirectionType &directionType)
 {
-    switch (directionType.getChoice())
+    const auto &ch = directionType.choice();
+    using K = core::DirectionTypeChoice::Kind;
+
+    switch (ch.kind())
     {
-    case core::DirectionType::Choice::rehearsal: {
+    case K::rehearsal: {
         parseRehearsal(directionType);
         break;
     }
-    case core::DirectionType::Choice::segno: {
+    case K::segno: {
         parseSegno(directionType);
         break;
     }
-    case core::DirectionType::Choice::words: {
+    case K::choice: {
         parseWords(directionType);
         break;
     }
-    case core::DirectionType::Choice::coda: {
+    case K::coda: {
         parseCoda(directionType);
         break;
     }
-    case core::DirectionType::Choice::wedge: {
+    case K::wedge: {
         parseWedge(directionType);
         break;
     }
-    case core::DirectionType::Choice::dynamics: {
+    case K::dynamics: {
         parseDynamics(directionType);
         break;
     }
-    case core::DirectionType::Choice::dashes: {
+    case K::dashes: {
         parseDashes(directionType);
         break;
     }
-    case core::DirectionType::Choice::bracket: {
+    case K::bracket: {
         parseBracket(directionType);
         break;
     }
-    case core::DirectionType::Choice::pedal: {
+    case K::pedal: {
         parsePedal(directionType);
         break;
     }
-    case core::DirectionType::Choice::metronome: {
+    case K::metronome: {
         parseMetronome(directionType);
         break;
     }
-    case core::DirectionType::Choice::octaveShift: {
+    case K::octaveShift: {
         parseOctaveShift(directionType);
         break;
     }
-    case core::DirectionType::Choice::harpPedals: {
+    case K::harpPedals: {
         parseHarpPedals(directionType);
         break;
     }
-    case core::DirectionType::Choice::damp: {
+    case K::damp: {
         parseDamp(directionType);
         break;
     }
-    case core::DirectionType::Choice::dampAll: {
+    case K::dampAll: {
         parseDampAll(directionType);
         break;
     }
-    case core::DirectionType::Choice::eyeglasses: {
+    case K::eyeglasses: {
         parseEyeglasses(directionType);
         break;
     }
-    case core::DirectionType::Choice::stringMute: {
+    case K::stringMute: {
         parseStringMute(directionType);
         break;
     }
-    case core::DirectionType::Choice::scordatura: {
+    case K::scordatura: {
         parseScordatura(directionType);
         break;
     }
-    case core::DirectionType::Choice::image: {
+    case K::image: {
         parseImage(directionType);
         break;
     }
-    case core::DirectionType::Choice::principalVoice: {
+    case K::principalVoice: {
         parsePrincipalVoice(directionType);
         break;
     }
-    case core::DirectionType::Choice::accordionRegistration: {
+    case K::accordionRegistration: {
         parseAccordionRegistration(directionType);
         break;
     }
-    case core::DirectionType::Choice::percussion: {
+    case K::percussion: {
         parsePercussion(directionType);
         break;
     }
-    case core::DirectionType::Choice::otherDirection: {
+    case K::staffDivide: {
+        /* unhandled - new in MusicXML 4.0 */
+        break;
+    }
+    case K::otherDirection: {
         parseOtherDirection(directionType);
         break;
     }
@@ -289,42 +291,43 @@ void DirectionReader::parseDirectionType(const core::DirectionType &directionTyp
 
 void DirectionReader::parseRehearsal(const core::DirectionType &directionType)
 {
-    const auto &rehearsalSet = directionType.getRehearsalSet();
+    const auto &rehearsalSet = directionType.choice().asRehearsal();
 
-    for (const auto &rehearsalPtr : rehearsalSet)
+    for (const auto &rehearsal : rehearsalSet.items())
     {
         api::RehearsalData outRehearsal;
-        const auto &attr = *rehearsalPtr->getAttributes();
-        outRehearsal.text = rehearsalPtr->getValue().getValue();
-        outRehearsal.positionData = getPositionData(attr);
-        outRehearsal.colorData = getColor(attr);
-        if (attr.hasEnclosure)
+        outRehearsal.text = rehearsal.value();
+        outRehearsal.positionData = getPositionData(rehearsal);
+        outRehearsal.colorData = getColor(rehearsal);
+        if (rehearsal.enclosure().has_value())
         {
-            switch (attr.enclosure)
+            switch (rehearsal.enclosure()->tag())
             {
-            case core::EnclosureShape::rectangle:
+            case core::EnclosureShape::Tag::rectangle:
                 outRehearsal.enclosure = api::RehearsalEnclosure::rectangle;
                 break;
-            case core::EnclosureShape::square:
+            case core::EnclosureShape::Tag::square:
                 outRehearsal.enclosure = api::RehearsalEnclosure::square;
                 break;
-            case core::EnclosureShape::oval:
+            case core::EnclosureShape::Tag::oval:
                 outRehearsal.enclosure = api::RehearsalEnclosure::oval;
                 break;
-            case core::EnclosureShape::circle:
+            case core::EnclosureShape::Tag::circle:
                 outRehearsal.enclosure = api::RehearsalEnclosure::circle;
                 break;
-            case core::EnclosureShape::bracket:
+            case core::EnclosureShape::Tag::bracket:
                 outRehearsal.enclosure = api::RehearsalEnclosure::bracket;
                 break;
-            case core::EnclosureShape::triangle:
+            case core::EnclosureShape::Tag::triangle:
                 outRehearsal.enclosure = api::RehearsalEnclosure::triangle;
                 break;
-            case core::EnclosureShape::diamond:
+            case core::EnclosureShape::Tag::diamond:
                 outRehearsal.enclosure = api::RehearsalEnclosure::diamond;
                 break;
-            case core::EnclosureShape::none:
+            case core::EnclosureShape::Tag::none:
                 outRehearsal.enclosure = api::RehearsalEnclosure::none;
+                break;
+            default:
                 break;
             }
         }
@@ -332,20 +335,17 @@ void DirectionReader::parseRehearsal(const core::DirectionType &directionType)
         appendOrderedComponent(api::DirectionComponentKind::rehearsal,
                                static_cast<int>(myOutDirectionData.rehearsals.size()) - 1);
     }
-
-    MX_UNUSED(directionType);
 }
 
 void DirectionReader::parseSegno(const core::DirectionType &directionType)
 {
-    const auto &segnoSet = directionType.getSegnoSet();
+    const auto &segnoSet = directionType.choice().asSegno();
 
-    for (const auto &segnoPtr : segnoSet)
+    for (const auto &segno : segnoSet.items())
     {
         api::SegnoData outSegno;
-        const auto &attr = *segnoPtr->getAttributes();
-        outSegno.positionData = getPositionData(attr);
-        outSegno.colorData = getColor(attr);
+        outSegno.positionData = getPositionData(segno);
+        outSegno.colorData = getColor(segno);
         myOutDirectionData.segnos.emplace_back(std::move(outSegno));
         appendOrderedComponent(api::DirectionComponentKind::segno,
                                static_cast<int>(myOutDirectionData.segnos.size()) - 1);
@@ -354,43 +354,51 @@ void DirectionReader::parseSegno(const core::DirectionType &directionType)
 
 void DirectionReader::parseWords(const core::DirectionType &directionType)
 {
-    const auto &wordSet = directionType.getWordsSet();
+    // In the new core, "words" is inside the `choice` (DirectionTypeChoiceChoice) alternative.
+    // Each element is either words (FormattedTextID) or symbol (FormattedSymbolID).
+    const auto &choiceItems = directionType.choice().asChoice();
 
-    for (const auto &wordPtr : wordSet)
+    for (const auto &item : choiceItems.items())
     {
-        api::WordsData outWords;
-        const auto &attr = *wordPtr->getAttributes();
-        outWords.text = wordPtr->getValue().getValue();
-        outWords.positionData = getPositionData(attr);
-        outWords.colorData = getColor(attr);
-        outWords.fontData = getFontData(attr);
-        if (attr.hasEnclosure)
+        if (!item.isWords())
         {
-            switch (attr.enclosure)
+            continue;
+        }
+        const auto &wordEl = item.asWords();
+        api::WordsData outWords;
+        outWords.text = wordEl.value();
+        outWords.positionData = getPositionData(wordEl);
+        outWords.colorData = getColor(wordEl);
+        outWords.fontData = getFontData(wordEl);
+        if (wordEl.enclosure().has_value())
+        {
+            switch (wordEl.enclosure()->tag())
             {
-            case core::EnclosureShape::rectangle:
+            case core::EnclosureShape::Tag::rectangle:
                 outWords.enclosure = api::RehearsalEnclosure::rectangle;
                 break;
-            case core::EnclosureShape::square:
+            case core::EnclosureShape::Tag::square:
                 outWords.enclosure = api::RehearsalEnclosure::square;
                 break;
-            case core::EnclosureShape::oval:
+            case core::EnclosureShape::Tag::oval:
                 outWords.enclosure = api::RehearsalEnclosure::oval;
                 break;
-            case core::EnclosureShape::circle:
+            case core::EnclosureShape::Tag::circle:
                 outWords.enclosure = api::RehearsalEnclosure::circle;
                 break;
-            case core::EnclosureShape::bracket:
+            case core::EnclosureShape::Tag::bracket:
                 outWords.enclosure = api::RehearsalEnclosure::bracket;
                 break;
-            case core::EnclosureShape::triangle:
+            case core::EnclosureShape::Tag::triangle:
                 outWords.enclosure = api::RehearsalEnclosure::triangle;
                 break;
-            case core::EnclosureShape::diamond:
+            case core::EnclosureShape::Tag::diamond:
                 outWords.enclosure = api::RehearsalEnclosure::diamond;
                 break;
-            case core::EnclosureShape::none:
+            case core::EnclosureShape::Tag::none:
                 outWords.enclosure = api::RehearsalEnclosure::none;
+                break;
+            default:
                 break;
             }
         }
@@ -402,14 +410,13 @@ void DirectionReader::parseWords(const core::DirectionType &directionType)
 
 void DirectionReader::parseCoda(const core::DirectionType &directionType)
 {
-    const auto &codaSet = directionType.getCodaSet();
+    const auto &codaSet = directionType.choice().asCoda();
 
-    for (const auto &codaPtr : codaSet)
+    for (const auto &coda : codaSet.items())
     {
         api::CodaData outCoda;
-        const auto &attr = *codaPtr->getAttributes();
-        outCoda.positionData = getPositionData(attr);
-        outCoda.colorData = getColor(attr);
+        outCoda.positionData = getPositionData(coda);
+        outCoda.colorData = getColor(coda);
         myOutDirectionData.codas.emplace_back(std::move(outCoda));
         appendOrderedComponent(api::DirectionComponentKind::coda,
                                static_cast<int>(myOutDirectionData.codas.size()) - 1);
@@ -418,21 +425,20 @@ void DirectionReader::parseCoda(const core::DirectionType &directionType)
 
 void DirectionReader::parseWedge(const core::DirectionType &directionType)
 {
-    const auto &wedge = *directionType.getWedge();
-    const auto &attr = *wedge.getAttributes();
-    const auto wedgeType = myConverter.convert(attr.type);
-    const bool isSpreadSpecified = attr.hasSpread;
-    const long double spread = attr.spread.getValue();
-    auto positionData = getPositionData(attr);
-    auto lineData = getLineData(attr);
-    auto colorData = getColor(attr);
+    const auto &wedge = directionType.choice().asWedge();
+    const auto wedgeType = myConverter.convert(wedge.type());
+    const bool isSpreadSpecified = wedge.spread().has_value();
+    const double spread = isSpreadSpecified ? static_cast<double>(wedge.spread()->value().value()) : 0.0;
+    auto positionData = getPositionData(wedge);
+    auto lineData = getLineData(wedge);
+    auto colorData = getColor(wedge);
 
-    if (attr.type == core::WedgeType::stop)
+    if (wedge.type().tag() == core::WedgeType::Tag::stop)
     {
         api::WedgeStop stop;
-        if (attr.hasNumber)
+        if (wedge.number().has_value())
         {
-            stop.numberLevel = attr.number.getValue();
+            stop.numberLevel = wedge.number()->value();
         }
         if (isSpreadSpecified)
         {
@@ -448,9 +454,9 @@ void DirectionReader::parseWedge(const core::DirectionType &directionType)
     else
     {
         api::WedgeStart start;
-        if (attr.hasNumber)
+        if (wedge.number().has_value())
         {
-            start.numberLevel = attr.number.getValue();
+            start.numberLevel = wedge.number()->value();
         }
         if (isSpreadSpecified)
         {
@@ -470,11 +476,10 @@ void DirectionReader::parseWedge(const core::DirectionType &directionType)
 void DirectionReader::parseDynamics(const core::DirectionType &directionType)
 {
     const auto markCountBefore = myOutDirectionData.marks.size();
-    for (const auto &dynamic : directionType.getDynamicsSet())
+    for (const auto &dynamic : directionType.choice().asDynamics().items())
     {
-        DynamicsReader reader{*dynamic, myCursor};
+        DynamicsReader reader{dynamic, myCursor};
         reader.parseDynamics(myOutDirectionData.marks);
-        // parseDynamic( *dynamic );
     }
     for (auto i = markCountBefore; i < myOutDirectionData.marks.size(); ++i)
     {
@@ -485,10 +490,30 @@ void DirectionReader::parseDynamics(const core::DirectionType &directionType)
 void DirectionReader::parseDynamic(const core::Dynamics &dynamic)
 {
     auto mark = api::MarkData{};
-    const auto valueObject = dynamic.getValue();
-    mark.markType = myConverter.convertDynamic(valueObject.getValue());
-    mark.name = valueObject.getValueString();
-    impl::parseMarkDataAttributes(*dynamic.getAttributes(), mark);
+    const auto &choices = dynamic.choice();
+    if (choices.empty())
+    {
+        return;
+    }
+    const auto &firstChoice = choices.front();
+    const auto kind = firstChoice.kind();
+    mark.markType = myConverter.convertDynamic(kind);
+    if (kind == core::DynamicsChoice::Kind::otherDynamics)
+    {
+        mark.name = firstChoice.asOtherDynamics().value();
+    }
+    else
+    {
+        // use the DynamicsReader helper for consistent name
+        DynamicsReader reader{dynamic, myCursor};
+        std::vector<api::MarkData> tmp;
+        reader.parseDynamics(tmp);
+        if (!tmp.empty())
+        {
+            mark.name = tmp.front().name;
+        }
+    }
+    impl::parseMarkDataAttributes(dynamic, mark);
 
     auto placement = mark.positionData.placement;
 
@@ -497,28 +522,26 @@ void DirectionReader::parseDynamic(const core::Dynamics &dynamic)
         placement = myOutDirectionData.placement;
     }
 
-    mark.name = valueObject.getValueString();
     myOutDirectionData.marks.emplace_back(std::move(mark));
     appendOrderedComponent(api::DirectionComponentKind::mark, static_cast<int>(myOutDirectionData.marks.size()) - 1);
 }
 
 void DirectionReader::parseDashes(const core::DirectionType &directionType)
 {
-    const auto &dashes = *directionType.getDashes();
-    const auto &attr = *dashes.getAttributes();
+    const auto &dashes = directionType.choice().asDashes();
 
-    if (attr.type == core::StartStopContinue::stop)
+    if (dashes.type().tag() == core::StartStopContinue::Tag::stop)
     {
-        auto stop = impl::getSpannerStop(attr);
+        auto stop = impl::getSpannerStop(dashes);
         stop.tickTimePosition = myCursor.tickTimePosition;
         myOutDirectionData.dashesStops.emplace_back(std::move(stop));
         appendOrderedComponent(api::DirectionComponentKind::dashesStop,
                                static_cast<int>(myOutDirectionData.dashesStops.size()) - 1);
         return;
     }
-    else if (attr.type == core::StartStopContinue::start)
+    else if (dashes.type().tag() == core::StartStopContinue::Tag::start)
     {
-        auto start = impl::getSpannerStart(attr);
+        auto start = impl::getSpannerStart(dashes);
         start.tickTimePosition = myCursor.tickTimePosition;
         if (start.lineData.lineType == api::LineType::unspecified)
         {
@@ -533,38 +556,37 @@ void DirectionReader::parseDashes(const core::DirectionType &directionType)
 
 void DirectionReader::parseBracket(const core::DirectionType &directionType)
 {
-    const auto &bracket = *directionType.getBracket();
-    const auto &attr = *bracket.getAttributes();
+    const auto &bracket = directionType.choice().asBracket();
 
     const auto makeBracketLineData = [&]() {
         api::LineData lineData{};
-        lineData.lineHook = myConverter.convert(attr.lineEnd);
+        lineData.lineHook = myConverter.convert(bracket.lineEnd());
 
-        if (attr.hasLineType)
+        if (bracket.lineType().has_value())
         {
-            lineData.lineType = myConverter.convert(attr.lineType);
+            lineData.lineType = myConverter.convert(*bracket.lineType());
         }
-        if (attr.hasEndLength)
+        if (bracket.endLength().has_value())
         {
             lineData.isStopLengthSpecified = true;
-            lineData.endLength = attr.endLength.getValue();
+            lineData.endLength = static_cast<double>(bracket.endLength()->value().value());
         }
-        if (attr.hasDashLength)
+        if (bracket.dashLength().has_value())
         {
             lineData.isDashLengthSpecified = true;
-            lineData.dashLength = attr.dashLength.getValue();
+            lineData.dashLength = static_cast<double>(bracket.dashLength()->value().value());
         }
-        if (attr.hasSpaceLength)
+        if (bracket.spaceLength().has_value())
         {
             lineData.isSpaceLengthSpecified = true;
-            lineData.spaceLength = attr.spaceLength.getValue();
+            lineData.spaceLength = static_cast<double>(bracket.spaceLength()->value().value());
         }
         return lineData;
     };
 
-    if (attr.type == core::StartStopContinue::stop)
+    if (bracket.type().tag() == core::StartStopContinue::Tag::stop)
     {
-        auto stop = impl::getSpannerStop(attr);
+        auto stop = impl::getSpannerStop(bracket);
         stop.tickTimePosition = myCursor.tickTimePosition;
         stop.lineData = makeBracketLineData();
         myOutDirectionData.bracketStops.emplace_back(std::move(stop));
@@ -572,14 +594,14 @@ void DirectionReader::parseBracket(const core::DirectionType &directionType)
                                static_cast<int>(myOutDirectionData.bracketStops.size()) - 1);
         return;
     }
-    else if (attr.type == core::StartStopContinue::start)
+    else if (bracket.type().tag() == core::StartStopContinue::Tag::start)
     {
         api::SpannerStart start;
         start.tickTimePosition = myCursor.tickTimePosition;
-        start.numberLevel = impl::checkNumber(&attr);
-        start.positionData = this->parsePositionData(attr);
+        start.numberLevel = impl::checkNumber(&bracket);
+        start.positionData = this->parsePositionData(bracket);
         start.lineData = makeBracketLineData();
-        start.printData = impl::getPrintData(attr);
+        start.printData = impl::getPrintData(bracket);
         myOutDirectionData.bracketStarts.emplace_back(std::move(start));
         appendOrderedComponent(api::DirectionComponentKind::bracketStart,
                                static_cast<int>(myOutDirectionData.bracketStarts.size()) - 1);
@@ -589,29 +611,28 @@ void DirectionReader::parseBracket(const core::DirectionType &directionType)
 
 void DirectionReader::parsePedal(const core::DirectionType &directionType)
 {
-    const auto &pedalPtr = *directionType.getPedal();
-    const auto &attr = *pedalPtr.getAttributes();
+    const auto &pedal = directionType.choice().asPedal();
 
-    if (attr.type != core::StartStopChangeContinue::start && attr.type != core::StartStopChangeContinue::stop)
+    if (pedal.type().tag() != core::PedalType::Tag::start && pedal.type().tag() != core::PedalType::Tag::stop)
     {
         return;
     }
 
     const auto placement =
-        myDirection->getAttributes()->hasPlacement
-            ? (myDirection->getAttributes()->placement == core::AboveBelow::above ? api::Placement::above
-                                                                                  : api::Placement::below)
+        (myDirection && myDirection->placement().has_value())
+            ? (myDirection->placement()->tag() == core::AboveBelow::Tag::above ? api::Placement::above
+                                                                               : api::Placement::below)
             : api::Placement::unspecified;
 
     myOutDirectionData.placement = placement;
 
-    if (attr.hasLine && attr.line == core::YesNo::yes)
+    if (pedal.line().has_value() && pedal.line()->tag() == core::YesNo::Tag::yes)
     {
-        if (attr.type == core::StartStopChangeContinue::start)
+        if (pedal.type().tag() == core::PedalType::Tag::start)
         {
             api::SpannerStart start;
             start.tickTimePosition = myOutDirectionData.tickTimePosition;
-            start.positionData = getPositionData(attr);
+            start.positionData = getPositionData(pedal);
             start.positionData.placement = placement;
             start.lineData.lineType = api::LineType::solid;
             start.lineData.lineHook = api::LineHook::none;
@@ -619,11 +640,11 @@ void DirectionReader::parsePedal(const core::DirectionType &directionType)
             appendOrderedComponent(api::DirectionComponentKind::pedalStart,
                                    static_cast<int>(myOutDirectionData.pedalStarts.size()) - 1);
         }
-        else if (attr.type == core::StartStopChangeContinue::stop)
+        else if (pedal.type().tag() == core::PedalType::Tag::stop)
         {
             api::SpannerStop stop;
             stop.tickTimePosition = myOutDirectionData.tickTimePosition;
-            stop.positionData = getPositionData(attr);
+            stop.positionData = getPositionData(pedal);
             stop.positionData.placement = placement;
             stop.lineData.lineType = api::LineType::solid;
             stop.lineData.lineHook = api::LineHook::down;
@@ -638,13 +659,13 @@ void DirectionReader::parsePedal(const core::DirectionType &directionType)
 
     auto pedalType = api::MarkType::pedal;
 
-    if (attr.type == core::StartStopChangeContinue::stop)
+    if (pedal.type().tag() == core::PedalType::Tag::stop)
     {
         pedalType = api::MarkType::damp;
     }
 
     auto mark = api::MarkData{placement, pedalType};
-    mark.positionData = getPositionData(attr);
+    mark.positionData = getPositionData(pedal);
     mark.positionData.placement = placement;
     myOutDirectionData.marks.emplace_back(std::move(mark));
     appendOrderedComponent(api::DirectionComponentKind::mark, static_cast<int>(myOutDirectionData.marks.size()) - 1);
@@ -652,27 +673,27 @@ void DirectionReader::parsePedal(const core::DirectionType &directionType)
 
 void DirectionReader::parseMetronome(const core::DirectionType &directionType)
 {
-    const auto &metronome = *directionType.getMetronome();
-    MetronomeReader reader{metronome};
+    const auto &metronome = directionType.choice().asMetronome();
+    MetronomeReaderParameters params{metronome};
+    MetronomeReader reader{std::move(params)};
     myOutDirectionData.tempos.emplace_back(reader.getTempoData());
     appendOrderedComponent(api::DirectionComponentKind::tempo, static_cast<int>(myOutDirectionData.tempos.size()) - 1);
 }
 
 void DirectionReader::parseOctaveShift(const core::DirectionType &directionType)
 {
-    const auto &octaveShift = *directionType.getOctaveShift();
-    auto &attr = *octaveShift.getAttributes();
+    const auto &octaveShift = directionType.choice().asOctaveShift();
 
-    if (attr.type == core::UpDownStopContinue::continue_)
+    if (octaveShift.type().tag() == core::UpDownStopContinue::Tag::continue_)
     {
         // not supported
         return;
     }
 
-    bool isStop = attr.type == core::UpDownStopContinue::stop;
+    bool isStop = octaveShift.type().tag() == core::UpDownStopContinue::Tag::stop;
     if (isStop)
     {
-        auto stop = impl::getSpannerStop(attr);
+        auto stop = impl::getSpannerStop(octaveShift);
         stop.tickTimePosition = myCursor.tickTimePosition;
         myOutDirectionData.ottavaStops.emplace_back(std::move(stop));
         appendOrderedComponent(api::DirectionComponentKind::ottavaStop,
@@ -683,12 +704,12 @@ void DirectionReader::parseOctaveShift(const core::DirectionType &directionType)
     auto ottavaType = api::OttavaType::unspecified;
     int amount = 8;
 
-    if (attr.hasSize)
+    if (octaveShift.size().has_value())
     {
-        amount = attr.size.getValue();
+        amount = *octaveShift.size();
     }
 
-    bool isUp = attr.type == core::UpDownStopContinue::up;
+    bool isUp = octaveShift.type().tag() == core::UpDownStopContinue::Tag::up;
 
     if (isUp && amount > 8)
     {
@@ -708,7 +729,7 @@ void DirectionReader::parseOctaveShift(const core::DirectionType &directionType)
     }
 
     api::OttavaStart start;
-    start.spannerStart = impl::getSpannerStart(attr);
+    start.spannerStart = impl::getSpannerStart(octaveShift);
     start.ottavaType = ottavaType;
     start.spannerStart.tickTimePosition = myCursor.tickTimePosition;
     myOutDirectionData.ottavaStarts.emplace_back(std::move(start));
@@ -774,26 +795,26 @@ void DirectionReader::parseOtherDirection(const core::DirectionType &directionTy
 void DirectionReader::parseHarmony(const core::Harmony &inHarmony, const core::HarmonyChordGroup &inGrp)
 {
     mx::api::ChordData chord;
-    chord.root = myConverter.convert(inGrp.getRoot()->getRootStep()->getValue());
+    const auto &root = inGrp.choice().asRoot();
+    chord.root = myConverter.convert(root.rootStep().value());
 
-    if (inGrp.getRoot()->getHasRootAlter())
+    if (root.rootAlter().has_value())
     {
-        chord.rootAlter =
-            mx::utility::roundTo<core::DecimalType, int>(inGrp.getRoot()->getRootAlter()->getValue().getValue());
+        chord.rootAlter = mx::utility::roundTo<double, int>(root.rootAlter()->value().value().value());
     }
 
-    const auto &kind = *inGrp.getKind();
+    const auto &kind = inGrp.kind();
 
-    chord.chordKind = myConverter.convert(kind.getValue());
+    chord.chordKind = myConverter.convert(kind.value());
 
-    if (kind.getAttributes()->hasText)
+    if (kind.text().has_value())
     {
-        chord.text = kind.getAttributes()->text.getValue();
+        chord.text = *kind.text();
     }
 
-    if (kind.getAttributes()->hasUseSymbols)
+    if (kind.useSymbols().has_value())
     {
-        if (kind.getAttributes()->useSymbols == mx::core::YesNo::yes)
+        if (kind.useSymbols()->tag() == mx::core::YesNo::Tag::yes)
         {
             chord.useSymbols = api::Bool::yes;
         }
@@ -803,38 +824,37 @@ void DirectionReader::parseHarmony(const core::Harmony &inHarmony, const core::H
         }
     }
 
-    if (inGrp.getHasBass())
+    if (inGrp.bass().has_value())
     {
-        const auto &bass = *inGrp.getBass();
-        chord.bass = myConverter.convert(bass.getBassStep()->getValue());
+        const auto &bass = *inGrp.bass();
+        chord.bass = myConverter.convert(bass.bassStep().value());
 
-        if (bass.getHasBassAlter())
+        if (bass.bassAlter().has_value())
         {
-            chord.bassAlter = mx::utility::roundTo<core::DecimalType, int>(bass.getBassAlter()->getValue().getValue());
+            chord.bassAlter = mx::utility::roundTo<double, int>(bass.bassAlter()->value().value().value());
         }
     }
 
-    const auto &degrees = inGrp.getDegreeSet();
+    const auto &degrees = inGrp.degree();
 
     for (const auto &degree : degrees)
     {
         api::Extension extension;
         bool doAddExtension = true;
 
-        const auto type = degree->getDegreeType()->getValue();
-        const auto alter =
-            mx::utility::roundTo<core::DecimalType, int>(degree->getDegreeAlter()->getValue().getValue());
-        const auto value = degree->getDegreeValue()->getValue().getValue();
+        const auto typeVal = degree.degreeType().value();
+        const auto alter = mx::utility::roundTo<double, int>(degree.degreeAlter().value().value().value());
+        const auto value = degree.degreeValue().value();
 
-        switch (type)
+        switch (typeVal.tag())
         {
-        case core::DegreeTypeValue::alter:
+        case core::DegreeTypeValue::Tag::alter:
             extension.extensionType = api::ExtensionType::alter;
             break;
-        case core::DegreeTypeValue::add:
+        case core::DegreeTypeValue::Tag::add:
             extension.extensionType = api::ExtensionType::add;
             break;
-        case core::DegreeTypeValue::subtract:
+        case core::DegreeTypeValue::Tag::subtract:
             extension.extensionType = api::ExtensionType::remove;
             break;
         default:
@@ -899,9 +919,9 @@ void DirectionReader::parseHarmony(const core::Harmony &inHarmony, const core::H
             break;
         }
 
-        if (degree->getAttributes()->hasPrintObject)
+        if (degree.printObject().has_value())
         {
-            if (degree->getAttributes()->printObject == core::YesNo::yes)
+            if (degree.printObject()->tag() == core::YesNo::Tag::yes)
             {
                 extension.printObject = api::Bool::yes;
             }
@@ -917,66 +937,59 @@ void DirectionReader::parseHarmony(const core::Harmony &inHarmony, const core::H
         }
     }
 
-    for (const auto &pi : inHarmony.getProcessingInstructions())
-    {
-        mx::api::MiscData misc;
-        misc.name = pi.getName();
-        misc.data = pi.getData();
-        chord.miscData.push_back(misc);
-    }
+    // ProcessingInstructions are not available in the new generated core — skip.
 
-    if (inHarmony.getHasFrame())
+    if (inHarmony.frame().has_value())
     {
         chord.hasFrameData = true;
-        const auto frame = inHarmony.getFrame();
-        chord.frameData.stringCount = static_cast<int>(frame->getFrameStrings()->getValue().getValue());
-        chord.frameData.fretCount = static_cast<int>(frame->getFrameFrets()->getValue().getValue());
+        const auto &frame = *inHarmony.frame();
+        chord.frameData.stringCount = frame.frameStrings();
+        chord.frameData.fretCount = frame.frameFrets();
 
-        if (frame->getHasFirstFret())
+        if (frame.firstFret().has_value())
         {
             chord.frameData.isFirstFretSpecified = true;
-            chord.frameData.firstFret = static_cast<int>(frame->getFirstFret()->getValue().getValue());
+            chord.frameData.firstFret = frame.firstFret()->value();
         }
 
-        for (const auto &frameNotePtr : frame->getFrameNoteSet())
+        for (const auto &frameNote : frame.frameNote())
         {
-            api::FrameNoteData frameNote;
-            frameNote.stringNumber = static_cast<int>(frameNotePtr->getString()->getValue().getValue());
-            frameNote.fretNumber = static_cast<int>(frameNotePtr->getFret()->getValue().getValue());
+            api::FrameNoteData frameNoteData;
+            frameNoteData.stringNumber = frameNote.string().value().value();
+            frameNoteData.fretNumber = frameNote.fret().value();
 
-            if (frameNotePtr->getHasFingering())
+            if (frameNote.fingering().has_value())
             {
-                const auto fingeringText = frameNotePtr->getFingering()->getValue().getValue();
+                const auto fingeringText = frameNote.fingering()->value();
                 try
                 {
-                    frameNote.fingering = std::stoi(fingeringText);
-                    frameNote.isFingeringSpecified = true;
+                    frameNoteData.fingering = std::stoi(fingeringText);
+                    frameNoteData.isFingeringSpecified = true;
                 }
                 catch (...)
                 {
                 }
             }
 
-            if (frameNotePtr->getHasBarre())
+            if (frameNote.barre().has_value())
             {
-                const auto barreType = frameNotePtr->getBarre()->getAttributes()->type;
-                switch (barreType)
+                const auto barreType = frameNote.barre()->type();
+                switch (barreType.tag())
                 {
-                case core::StartStop::start:
-                    frameNote.barre = api::FrameBarre::start;
+                case core::StartStop::Tag::start:
+                    frameNoteData.barre = api::FrameBarre::start;
                     break;
-                case core::StartStop::stop:
-                    frameNote.barre = api::FrameBarre::stop;
+                case core::StartStop::Tag::stop:
+                    frameNoteData.barre = api::FrameBarre::stop;
                     break;
                 }
             }
 
-            chord.frameData.notes.push_back(frameNote);
+            chord.frameData.notes.push_back(frameNoteData);
         }
     }
 
-    const auto &attr = *inHarmony.getAttributes();
-    chord.positionData = getPositionData(attr);
+    chord.positionData = getPositionData(inHarmony);
 
     myOutDirectionData.chords.push_back(chord);
     appendOrderedComponent(api::DirectionComponentKind::chord, static_cast<int>(myOutDirectionData.chords.size()) - 1);

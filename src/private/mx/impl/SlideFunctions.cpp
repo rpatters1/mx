@@ -4,7 +4,7 @@
 
 #include "mx/impl/SlideFunctions.h"
 #include "mx/api/SpannerData.h"
-#include "mx/core/elements/Slide.h"
+#include "mx/core/generated/Slide.h"
 #include "mx/impl/MarkDataFunctions.h"
 
 namespace mx

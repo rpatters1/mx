@@ -1,0 +1,100 @@
+// {{generated_banner}}
+
+#pragma once
+
+{{#roots}}
+#include "mx/core/generated/{{ident}}.h"
+{{/roots}}
+#include "mx/core/Result.h"
+
+#include <cassert>
+#include <string>
+#include <variant>
+#include <vector>
+
+namespace pugi
+{
+class xml_document;
+}
+
+namespace {{vars.namespace}}
+{
+
+/// A namespace declaration preserved verbatim from the parsed root element
+/// (xmlns, xmlns:xlink, ...): document plumbing, not schema data, but
+/// round-trip parity requires writing it back.
+struct RootNamespace
+{
+    std::string name;
+    std::string value;
+
+    bool operator==(const RootNamespace &) const = default;
+};
+
+/// A MusicXML document: exactly one root by construction.
+class Document final
+{
+public:
+    using Root = std::variant<{{#roots}}{{ident}}{{^is_last}}, {{/is_last}}{{/roots}}>;
+
+    /// The natural zero: a default {{#roots}}{{#is_first}}{{ident}}{{/is_first}}{{/roots}}.
+    Document() = default;
+
+{{#roots}}
+    explicit Document({{ident}} root) : m_root{std::in_place_index<{{index0}}>, std::move(root)}
+    {
+    }
+
+{{/roots}}
+{{#roots}}
+    bool is{{ident}}() const noexcept
+    {
+        return m_root.index() == {{index0}};
+    }
+
+    /// Precondition: is{{ident}}().
+    const {{ident}} &as{{ident}}() const noexcept
+    {
+        assert(is{{ident}}());
+        return *std::get_if<{{index0}}>(&m_root);
+    }
+
+{{/roots}}
+    const Root &root() const noexcept
+    {
+        return m_root;
+    }
+
+    void setRoot(Root value)
+    {
+        m_root = std::move(value);
+    }
+
+    const std::vector<RootNamespace> &rootNamespaces() const noexcept
+    {
+        return m_rootNamespaces;
+    }
+
+    void setRootNamespaces(std::vector<RootNamespace> value)
+    {
+        m_rootNamespaces = std::move(value);
+    }
+
+    bool operator==(const Document &other) const = default;
+
+private:
+    Root m_root;
+    std::vector<RootNamespace> m_rootNamespaces;
+};
+
+/// The parse error boundary (plan §2.5): strict on names and structure,
+/// lenient on values; a root declaring a version newer than
+/// SupportedMusicXMLVersion is rejected with unsupportedVersion.
+Result<Document> parse(const pugi::xml_document &doc);
+
+/// Total for every Document (§1.1 guarantees validity): writes the XML
+/// declaration, the matching DOCTYPE, the preserved root namespace
+/// declarations, and the typed tree.
+void serialize(const Document &d, pugi::xml_document &out);
+
+} // namespace {{vars.namespace}}

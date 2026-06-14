@@ -14,15 +14,13 @@ namespace mx
 {
 namespace core
 {
-class ElementInterface;
 class PartwiseMeasure;
 class MusicDataChoice;
 class Note;
-using NotePtr = std::shared_ptr<Note>;
 class Backup;
 class Forward;
 class Direction;
-class Properties;
+class Attributes;
 class Harmony;
 class FiguredBass;
 class Print;
@@ -32,8 +30,6 @@ class Grouping;
 class Link;
 class Bookmark;
 class Clef;
-using ClefPtr = std::shared_ptr<Clef>;
-using ClefSet = std::vector<ClefPtr>;
 } // namespace core
 
 namespace impl
@@ -80,31 +76,30 @@ class MeasureReader
     /// this function (as far as I can tell), the transpose info is returned up the call
     /// stack if measure index is zero and time index is zero.
     std::optional<api::TransposeData> parseMusicDataChoice(const core::MusicDataChoice &mdc,
-                                                           const core::NotePtr &nextNotePtr) const;
+                                                           const core::Note *nextNotePtr) const;
 
-    void parseNote(const core::Note &inMxNote, const core::NotePtr &nextNotePtr) const;
+    void parseNote(const core::Note &inMxNote, const core::Note *nextNotePtr) const;
     void parseBackup(const core::Backup &inMxBackup) const;
     void parseForward(const core::Forward &inMxForward) const;
-    void parseDirection(std::shared_ptr<const core::Direction> inDirection) const;
+    void parseDirection(const core::Direction &inDirection) const;
 
-    /// Parses the measure 'properties' (i.e. the `<attributes>` element) and writes data to
+    /// Parses the measure 'attributes' (i.e. the `<attributes>` element) and writes data to
     /// myOutMeasureData. In mx::api, the first transposition at the zero position of the
     /// first measure is considered a property of the part (not the measure). Since we don't
     /// have access to the part in this function (as far as I can tell), the transpose info
     /// is returned up the call stack if measure index is zero and time index is zero.
-    std::optional<api::TransposeData> parseProperties(const core::Properties &inMxProperties) const;
+    std::optional<api::TransposeData> parseAttributes(const core::Attributes &inMxAttributes) const;
 
-    void parseHarmony(std::shared_ptr<const core::Harmony> inHarmony) const;
-    void parseFiguredBass(const core::FiguredBass &inMxFiguredBass, const core::NotePtr &nextNotePtr) const;
+    void parseHarmony(const core::Harmony &inHarmony) const;
+    void parseFiguredBass(const core::FiguredBass &inMxFiguredBass, const core::Note *nextNotePtr) const;
     void parsePrint(const core::Print &inMxPrint) const;
     void parseSound(const core::Sound &inMxSound) const;
     void parseBarline(const core::Barline &inMxBarline) const;
     void parseGrouping(const core::Grouping &inMxGrouping) const;
     void parseLink(const core::Link &inMxLink) const;
     void parseBookmark(const core::Bookmark &inMxBookmark) const;
-    void coutItemNotSupported(const core::ElementInterface &element) const;
-    void importStaffDetails(const core::Properties &inMxProperties) const;
-    void importClefs(const core::ClefSet &inClefs) const;
+    void importStaffDetails(const core::Attributes &inMxAttributes) const;
+    void importClefs(std::span<const core::Clef> inClefs) const;
     void importClef(const core::Clef &inClef) const;
     void insertNoteData(api::NoteData &&noteData, int staff, int voice) const;
     void insertClef(api::ClefData &&clefData, int staff) const;

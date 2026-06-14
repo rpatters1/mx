@@ -1,0 +1,123 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include <utility>
+
+namespace {{vars.namespace}}
+{
+
+{{ident}}::{{ident}}()
+{
+    repair();
+}
+
+{{ident}}::{{ident}}(std::vector<std::string> items) : m_items{std::move(items)}
+{
+    repair();
+}
+
+void {{ident}}::setItems(std::vector<std::string> items)
+{
+    m_items = std::move(items);
+    m_text.clear();
+    repair();
+}
+
+void {{ident}}::addItem(std::string item)
+{
+    m_items.push_back(std::move(item));
+    m_text.clear();
+    repair();
+}
+
+void {{ident}}::repair()
+{
+    std::vector<std::string> cleaned;
+    cleaned.reserve(m_items.size());
+    for (auto &item : m_items)
+    {
+        for (auto &c : item)
+        {
+            if (c == ',')
+            {
+                c = ' ';
+            }
+        }
+        if (!item.empty())
+        {
+            cleaned.push_back(std::move(item));
+        }
+    }
+    if (cleaned.empty())
+    {
+        cleaned.emplace_back("-");
+    }
+    m_items = std::move(cleaned);
+}
+
+std::string {{ident}}::toString() const
+{
+    if (!m_text.empty())
+    {
+        return m_text;
+    }
+    std::string out;
+    for (const auto &item : m_items)
+    {
+        if (!out.empty())
+        {
+            out += ", ";
+        }
+        out += item;
+    }
+    return out;
+}
+
+bool {{ident}}::tryParse(std::string_view text, {{ident}} &out)
+{
+    if (text.empty())
+    {
+        return false;
+    }
+    std::vector<std::string> items;
+    std::size_t start = 0;
+    while (true)
+    {
+        const std::size_t comma = text.find(',', start);
+        std::string_view item =
+            comma == std::string_view::npos ? text.substr(start) : text.substr(start, comma - start);
+        // The pattern allows one optional space after each comma.
+        if (start > 0 && !item.empty() && item.front() == ' ')
+        {
+            item.remove_prefix(1);
+        }
+        if (item.empty())
+        {
+            return false;
+        }
+        items.emplace_back(item);
+        if (comma == std::string_view::npos)
+        {
+            break;
+        }
+        start = comma + 1;
+    }
+    out = {{ident}}{std::move(items)};
+    out.m_text.assign(text);
+    return true;
+}
+
+{{ident}} {{ident}}::parse(std::string_view text)
+{
+    {{ident}} out;
+    if (!tryParse(text, out))
+    {
+        std::vector<std::string> items;
+        items.emplace_back(text);
+        out = {{ident}}{std::move(items)};
+    }
+    return out;
+}
+
+} // namespace {{vars.namespace}}

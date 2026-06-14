@@ -3,21 +3,12 @@
 // Distributed under the MIT License
 
 #include "mx/impl/OrnamentsFunctions.h"
-#include "mx/core/elements/DelayedInvertedTurn.h"
-#include "mx/core/elements/DelayedTurn.h"
-#include "mx/core/elements/InvertedMordent.h"
-#include "mx/core/elements/InvertedTurn.h"
-#include "mx/core/elements/Mordent.h"
-#include "mx/core/elements/Ornaments.h"
-#include "mx/core/elements/OrnamentsChoice.h"
-#include "mx/core/elements/OtherOrnament.h"
-#include "mx/core/elements/Schleifer.h"
-#include "mx/core/elements/Shake.h"
-#include "mx/core/elements/Tremolo.h"
-#include "mx/core/elements/TrillMark.h"
-#include "mx/core/elements/Turn.h"
-#include "mx/core/elements/VerticalTurn.h"
-#include "mx/core/elements/WavyLine.h"
+#include "mx/core/generated/Mordent.h"
+#include "mx/core/generated/Ornaments.h"
+#include "mx/core/generated/OrnamentsGroup.h"
+#include "mx/core/generated/OrnamentsGroupChoice.h"
+#include "mx/core/generated/Tremolo.h"
+#include "mx/core/generated/TremoloType.h"
 #include "mx/impl/AccidentalMarkFunctions.h"
 #include "mx/impl/MarkDataFunctions.h"
 
@@ -27,27 +18,26 @@ namespace impl
 {
 namespace
 {
-template <typename ATTRIBUTES_TYPE>
-void parseMordentSpecificAttributes(const ATTRIBUTES_TYPE &attr, api::MarkData &outMark)
+void parseMordentSpecificAttributes(const core::Mordent &m, api::MarkData &outMark)
 {
     Converter converter;
 
-    if (attr.hasLong)
+    if (m.long_().has_value())
     {
         outMark.hasMordentLong = true;
-        outMark.mordentLong = converter.convert(attr.long_);
+        outMark.mordentLong = converter.convert(*m.long_());
     }
 
-    if (attr.hasApproach)
+    if (m.approach().has_value())
     {
         outMark.hasMordentApproach = true;
-        outMark.mordentApproach = converter.convert(attr.approach);
+        outMark.mordentApproach = converter.convert(*m.approach());
     }
 
-    if (attr.hasDeparture)
+    if (m.departure().has_value())
     {
         outMark.hasMordentDeparture = true;
-        outMark.mordentDeparture = converter.convert(attr.departure);
+        outMark.mordentDeparture = converter.convert(*m.departure());
     }
 }
 } // namespace
@@ -65,14 +55,14 @@ void OrnamentsFunctions::parseOrnaments(std::vector<api::MarkData> &outMarks) co
 
 void OrnamentsFunctions::parseOrnamentsSet(std::vector<api::MarkData> &outMarks) const
 {
-    for (const auto &ornament : myOrnaments.getOrnamentsChoiceSet())
+    for (const auto &group : myOrnaments.group())
     {
-        const auto ornamentType = ornament->getChoice();
+        const auto &choiceObj = group.choice();
         Converter converter;
-        const auto markType = converter.convertOrnament(ornamentType);
+        const auto markType = converter.convertOrnament(choiceObj.kind());
         auto markData = api::MarkData{};
         markData.markType = markType;
-        parseOrnament(*ornament, markData);
+        parseOrnament(choiceObj, markData);
         markData.tickTimePosition = myCursor.tickTimePosition;
 
         if ((markData.markType == api::MarkType::otherOrnament) ||
@@ -90,90 +80,97 @@ void OrnamentsFunctions::parseOrnamentsSet(std::vector<api::MarkData> &outMarks)
 
 void OrnamentsFunctions::parseAccidentalMarkSet(std::vector<api::MarkData> &outMarks) const
 {
-    for (const auto &am : myOrnaments.getAccidentalMarkSet())
+    for (const auto &group : myOrnaments.group())
     {
-        AccidentalMarkFunctions funcs{*am, myCursor};
-        outMarks.emplace_back(funcs.parseAccidentalMark());
+        for (const auto &am : group.accidentalMark())
+        {
+            AccidentalMarkFunctions funcs{am, myCursor};
+            outMarks.emplace_back(funcs.parseAccidentalMark());
+        }
     }
 }
 
-void OrnamentsFunctions::parseOrnament(const core::OrnamentsChoice &choiceObj, api::MarkData &outMark) const
+void OrnamentsFunctions::parseOrnament(const core::OrnamentsGroupChoice &choiceObj, api::MarkData &outMark) const
 {
-    switch (choiceObj.getChoice())
+    switch (choiceObj.kind())
     {
-    case core::OrnamentsChoice::Choice::trillMark: {
+    case core::OrnamentsGroupChoice::Kind::trillMark: {
         outMark.name = "trill-mark";
-        parseMarkDataAttributes(*choiceObj.getTrillMark()->getAttributes(), outMark);
+        parseMarkDataAttributes(choiceObj.asTrillMark(), outMark);
         break;
     }
-    case core::OrnamentsChoice::Choice::turn: {
+    case core::OrnamentsGroupChoice::Kind::turn: {
         outMark.name = "turn";
-        parseMarkDataAttributes(*choiceObj.getTurn()->getAttributes(), outMark);
+        parseMarkDataAttributes(choiceObj.asTurn(), outMark);
         break;
     }
-    case core::OrnamentsChoice::Choice::delayedTurn: {
+    case core::OrnamentsGroupChoice::Kind::delayedTurn: {
         outMark.name = "delayed-turn";
-        parseMarkDataAttributes(*choiceObj.getDelayedTurn()->getAttributes(), outMark);
+        parseMarkDataAttributes(choiceObj.asDelayedTurn(), outMark);
         break;
     }
-    case core::OrnamentsChoice::Choice::invertedTurn: {
+    case core::OrnamentsGroupChoice::Kind::invertedTurn: {
         outMark.name = "inverted-turn";
-        parseMarkDataAttributes(*choiceObj.getInvertedTurn()->getAttributes(), outMark);
+        parseMarkDataAttributes(choiceObj.asInvertedTurn(), outMark);
         break;
     }
-    case core::OrnamentsChoice::Choice::delayedInvertedTurn: {
+    case core::OrnamentsGroupChoice::Kind::delayedInvertedTurn: {
         outMark.name = "delayed-inverted-turn";
-        parseMarkDataAttributes(*choiceObj.getDelayedInvertedTurn()->getAttributes(), outMark);
+        parseMarkDataAttributes(choiceObj.asDelayedInvertedTurn(), outMark);
         break;
     }
-    case core::OrnamentsChoice::Choice::verticalTurn: {
+    case core::OrnamentsGroupChoice::Kind::verticalTurn: {
         outMark.name = "vertical-turn";
-        parseMarkDataAttributes(*choiceObj.getVerticalTurn()->getAttributes(), outMark);
+        parseMarkDataAttributes(choiceObj.asVerticalTurn(), outMark);
         break;
     }
-    case core::OrnamentsChoice::Choice::shake: {
+    case core::OrnamentsGroupChoice::Kind::invertedVerticalTurn: {
+        outMark.name = "inverted-vertical-turn";
+        parseMarkDataAttributes(choiceObj.asInvertedVerticalTurn(), outMark);
+        break;
+    }
+    case core::OrnamentsGroupChoice::Kind::shake: {
         outMark.name = "shake";
-        parseMarkDataAttributes(*choiceObj.getShake()->getAttributes(), outMark);
+        parseMarkDataAttributes(choiceObj.asShake(), outMark);
         break;
     }
-    case core::OrnamentsChoice::Choice::wavyLine: {
+    case core::OrnamentsGroupChoice::Kind::wavyLine: {
         outMark.name = "wavy-line";
-        parseMarkDataAttributes(*choiceObj.getWavyLine()->getAttributes(), outMark);
+        parseMarkDataAttributes(choiceObj.asWavyLine(), outMark);
         break;
     }
-    case core::OrnamentsChoice::Choice::mordent: {
+    case core::OrnamentsGroupChoice::Kind::mordent: {
         outMark.name = "mordent";
-        const auto &attr = *choiceObj.getMordent()->getAttributes();
-        parseMarkDataAttributes(attr, outMark);
-        parseMordentSpecificAttributes(attr, outMark);
+        const auto &m = choiceObj.asMordent();
+        parseMarkDataAttributes(m, outMark);
+        parseMordentSpecificAttributes(m, outMark);
         break;
     }
-    case core::OrnamentsChoice::Choice::invertedMordent: {
+    case core::OrnamentsGroupChoice::Kind::invertedMordent: {
         outMark.name = "inverted-mordent";
-        const auto &attr = *choiceObj.getInvertedMordent()->getAttributes();
-        parseMarkDataAttributes(attr, outMark);
-        parseMordentSpecificAttributes(attr, outMark);
+        const auto &m = choiceObj.asInvertedMordent();
+        parseMarkDataAttributes(m, outMark);
+        parseMordentSpecificAttributes(m, outMark);
         break;
     }
-    case core::OrnamentsChoice::Choice::schleifer: {
+    case core::OrnamentsGroupChoice::Kind::schleifer: {
         outMark.name = "schleifer";
-        parseMarkDataAttributes(*choiceObj.getSchleifer()->getAttributes(), outMark);
+        parseMarkDataAttributes(choiceObj.asSchleifer(), outMark);
         break;
     }
-    case core::OrnamentsChoice::Choice::tremolo: {
-        const auto &attr = *choiceObj.getTremolo()->getAttributes();
-        if (attr.type != core::StartStopSingle::single)
+    case core::OrnamentsGroupChoice::Kind::tremolo: {
+        const auto &tremolo = choiceObj.asTremolo();
+        const bool isSingle = !tremolo.type().has_value() || *tremolo.type() == core::TremoloType::single();
+        if (!isSingle)
         {
             outMark.name = "this tremolo is not a mark";
             outMark.markType = api::MarkType::unknownOrnament;
-            // MX_LOG( "This tremolo is not supported because it starts and stops on different notes." );
             return;
         }
 
         outMark.name = "tremolo";
-        parseMarkDataAttributes(attr, outMark);
-        const auto &tremolo = choiceObj.getTremolo();
-        const auto numSlashes = tremolo->getValue().getValue();
+        parseMarkDataAttributes(tremolo, outMark);
+        const auto numSlashes = tremolo.value().value();
 
         if (numSlashes == 0)
         {
@@ -202,9 +199,15 @@ void OrnamentsFunctions::parseOrnament(const core::OrnamentsChoice &choiceObj, a
 
         break;
     }
-    case core::OrnamentsChoice::Choice::otherOrnament: {
-        const auto value = choiceObj.getOtherOrnament()->getValue().getValue();
-        parseMarkDataAttributes(*choiceObj.getOtherOrnament()->getAttributes(), outMark);
+    case core::OrnamentsGroupChoice::Kind::haydn: {
+        outMark.name = "haydn";
+        parseMarkDataAttributes(choiceObj.asHaydn(), outMark);
+        break;
+    }
+    case core::OrnamentsGroupChoice::Kind::otherOrnament: {
+        const auto &oa = choiceObj.asOtherOrnament();
+        parseMarkDataAttributes(oa, outMark);
+        const auto &value = oa.value();
 
         if (value.empty())
         {

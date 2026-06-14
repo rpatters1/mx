@@ -1,0 +1,377 @@
+# C++ generator target configuration.
+# The generator reads this to know which schema to read and where/how to emit.
+# C++ is the primary target: MusicXML 4.0, with the sounds.xml companion.
+#
+# The generator is language agnostic (the cardinal rule): everything C++-shaped
+# about this target lives here and in its templates (when they are written),
+# never in generator code.
+
+[input]
+# MusicXML XSD this target generates from, relative to this config file.
+xsd = "../../docs/musicxml-4.0-ed15c23.xsd"
+
+[output]
+# Directory for generated source files, relative to this config file. The
+# `generated/` leaf keeps generator-owned code distinguishable from the
+# hand-written runtime beside it (src/private/mx/core/*.h) by directory
+# alone; the namespace (mx::core) is shared.
+dir = "../../src/private/mx/core/generated"
+
+[sounds]
+# Companion sounds file (vendored under docs/, version-matched to the XSD).
+# Folds the standard instrument-sound identifiers into the IR as a sound-id
+# enum unioned with an open string. Comment out to disable.
+xml = "../../docs/sounds-4.0-ed15c23.xml"
+
+[target]
+# enum class scopes its constants inside the type, so they stay bare.
+variant-scope = "bare"
+
+[vars]
+# Freeform, passed verbatim to this target's templates.
+namespace = "mx::core"
+# The DOCTYPE values mx::core's serializer writes (version-matched to the
+# pinned XSD; update on retarget).
+# (Spelled with escaped quotes: vars pass to templates verbatim, and these
+# land inside C++ string literals.)
+doctype-partwise = 'score-partwise PUBLIC \"-//Recordare//DTD MusicXML 4.0 Partwise//EN\" \"http://www.musicxml.org/dtds/partwise.dtd\"'
+doctype-timewise = 'score-timewise PUBLIC \"-//Recordare//DTD MusicXML 4.0 Timewise//EN\" \"http://www.musicxml.org/dtds/timewise.dtd\"'
+
+[naming]
+extends = "../naming.base.toml"  # schema-forced renames shared by all targets
+# Modern accessor style (plan §2.6): camelCase accessors `step()` /
+# `setStep(...)`; the templates spell private members `m_{{ident}}`.
+field-convention   = "camel"
+# Variant identifiers are the named-factory spellings on the enum wrapper
+# classes (`AboveBelow::above()`), scoped by the class ([target]
+# variant-scope = "bare"), so they share the field casing.
+variant-convention = "camel"
+# The default set minus "smufl": the official spelling is mixed-case SMuFL,
+# so neither SMUFL (acronym casing) nor Smufl (plain word) is "right";
+# SmuflCodaGlyphName reads best and matches the legacy mx spelling.
+acronyms = ["midi", "id", "xml", "css", "uri", "url"]
+
+[types]
+# IR primitive -> C++ spelling. Decimal is mx::core's own wrapper class: a
+# target decision, which is exactly why it lives here.
+string               = "std::string"
+token                = "std::string"
+date                 = "std::string"
+# The NCName-derived identity primitives get hand-written repairing wrappers
+# (valid-by-construction, plan §2.2): a lexically invalid id/idref/nmtoken
+# cannot exist through the public API. Token enforces NCName (xs:ID/IDREF);
+# NameToken enforces the wider xs:NMTOKEN (leading digits allowed).
+nmtoken              = "NameToken"
+id                   = "Token"
+idref                = "Token"
+decimal              = "Decimal"
+integer              = "int"
+positive_integer     = "int"
+non_negative_integer = "int"
+
+[reserved]
+# C++ keywords (including alternative tokens) a generated identifier must not be.
+words = [
+    "alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand",
+    "bitor", "bool", "break", "case", "catch", "char", "char8_t",
+    "char16_t", "char32_t", "class", "compl", "concept", "const",
+    "consteval", "constexpr", "constinit", "const_cast", "continue",
+    "co_await", "co_return", "co_yield", "decltype", "default", "delete",
+    "do", "double", "dynamic_cast", "else", "enum", "explicit", "export",
+    "extern", "false", "float", "for", "friend", "goto", "if", "inline",
+    "int", "long", "mutable", "namespace", "new", "noexcept", "not",
+    "not_eq", "nullptr", "operator", "or", "or_eq", "private",
+    "protected", "public", "register", "reinterpret_cast", "requires",
+    "return", "short", "signed", "sizeof", "static", "static_assert",
+    "static_cast", "struct", "switch", "template", "this", "thread_local",
+    "throw", "true", "try", "typedef", "typeid", "typename", "union",
+    "unsigned", "using", "virtual", "void", "volatile", "wchar_t",
+    "while", "xor", "xor_eq",
+]
+
+# Semantic names for the synthesized content types the §2.9 projection
+# hoists out of anonymous nested particles (mechanical wires like
+# `note-choice-group-2` stay addressable; these give the high-traffic note
+# and lyric structures their domain names).
+[rename.type]
+"note-choice-group" = "grace-note-group"
+"note-choice-group-choice" = "grace-note-choice"
+"note-choice-group-choice-group" = "grace-normal-note-group"
+"note-choice-group-choice-group-2" = "grace-cue-note-group"
+"note-choice-group-2" = "cue-note-group"
+"note-choice-group-3" = "normal-note-group"
+"lyric-choice-group" = "lyric-text-group"
+"lyric-choice-group-group" = "lyric-syllable-group"
+"lyric-choice-group-group-group" = "elision-syllabic-group"
+
+[import]
+# Import-policy repairs (plan §2.4): a required attribute missing from a
+# document gets the configured default injected by the parser; missing with
+# no entry is a parse error. xml:lang on lyric-language defaults to BCP 47
+# "und" (undetermined).
+[import.attribute-defaults]
+"lyric-language" = { "xml:lang" = "und" }
+
+# ---- the render manifest: which templates produce which files ----------- #
+# One template per shape (value shapes here; the complex/group/choice shapes
+# land with the W2 templates). Bespoke rows give individual value types the
+# structural representations of mx-core-plan.md §2.2.
+
+[render]
+dir = "templates"
+# clang-format runs over the rendered output before the writer's
+# idempotence diff; the repo style file is copied beside the scratch files
+# so the style resolves outside the repo tree.
+format = ["sh", "-c", "cp .clang-format '{dir}'/ && clang-format -i '{dir}'/*.h '{dir}'/*.cpp && rm '{dir}'/.clang-format"]
+
+[[render.type]]
+strategies = ["enum-class"]
+template   = "enum.h.tmpl"
+output     = "{pascal}.h"
+
+[[render.type]]
+strategies = ["enum-class"]
+template   = "enum.cpp.tmpl"
+output     = "{pascal}.cpp"
+
+[[render.type]]
+strategies = ["numeric-wrapper"]
+template   = "number.h.tmpl"
+output     = "{pascal}.h"
+
+[[render.type]]
+strategies = ["numeric-wrapper"]
+template   = "number.cpp.tmpl"
+output     = "{pascal}.cpp"
+
+[[render.type]]
+strategies = ["string-wrapper"]
+template   = "string.h.tmpl"
+output     = "{pascal}.h"
+
+[[render.type]]
+strategies = ["string-wrapper"]
+template   = "string.cpp.tmpl"
+output     = "{pascal}.cpp"
+
+[[render.type]]
+strategies = ["tagged-variant"]
+template   = "union.h.tmpl"
+output     = "{pascal}.h"
+
+[[render.type]]
+strategies = ["tagged-variant"]
+template   = "union.cpp.tmpl"
+output     = "{pascal}.cpp"
+
+# ---- bespoke structural value types (plan §2.2) -------------------------- #
+
+[[render.type]]
+types    = ["color"]
+template = "color.h.tmpl"
+output   = "{pascal}.h"
+
+[[render.type]]
+types    = ["color"]
+template = "color.cpp.tmpl"
+output   = "{pascal}.cpp"
+
+[[render.type]]
+types    = ["yyyy-mm-dd"]
+template = "yyyy_mm_dd.h.tmpl"
+output   = "{pascal}.h"
+
+[[render.type]]
+types    = ["yyyy-mm-dd"]
+template = "yyyy_mm_dd.cpp.tmpl"
+output   = "{pascal}.cpp"
+
+# comma-separated-text and font-family share one pattern and therefore one
+# structural shape: a never-empty item list.
+[[render.type]]
+types    = ["comma-separated-text", "font-family"]
+template = "comma_separated_text.h.tmpl"
+output   = "{pascal}.h"
+
+[[render.type]]
+types    = ["comma-separated-text", "font-family"]
+template = "comma_separated_text.cpp.tmpl"
+output   = "{pascal}.cpp"
+
+[[render.type]]
+types    = ["time-only"]
+template = "time_only.h.tmpl"
+output   = "{pascal}.h"
+
+[[render.type]]
+types    = ["time-only"]
+template = "time_only.cpp.tmpl"
+output   = "{pascal}.cpp"
+
+[[render.type]]
+types    = ["ending-number"]
+template = "ending_number.h.tmpl"
+output   = "{pascal}.h"
+
+[[render.type]]
+types    = ["ending-number"]
+template = "ending_number.cpp.tmpl"
+output   = "{pascal}.cpp"
+
+# The literal-prefixed SMuFL glyph-name vocabularies: the prefix facets are
+# projected data (StringPlate.prefixes), so one template serves all five.
+[[render.type]]
+types = [
+    "smufl-accidental-glyph-name", "smufl-coda-glyph-name",
+    "smufl-lyrics-glyph-name", "smufl-pictogram-glyph-name",
+    "smufl-segno-glyph-name",
+]
+template = "smufl_prefixed.h.tmpl"
+output   = "{pascal}.h"
+
+[[render.type]]
+types = [
+    "smufl-accidental-glyph-name", "smufl-coda-glyph-name",
+    "smufl-lyrics-glyph-name", "smufl-pictogram-glyph-name",
+    "smufl-segno-glyph-name",
+]
+template = "smufl_prefixed.cpp.tmpl"
+output   = "{pascal}.cpp"
+
+# smufl-glyph-name has no pattern facet (open vocabulary) but its base is
+# xs:NMTOKEN: whitespace and the empty string are lexically invalid, so it
+# repairs to name characters rather than passing through as a plain string.
+[[render.type]]
+types    = ["smufl-glyph-name"]
+template = "nmtoken_string.h.tmpl"
+output   = "{pascal}.h"
+
+[[render.type]]
+types    = ["smufl-glyph-name"]
+template = "nmtoken_string.cpp.tmpl"
+output   = "{pascal}.cpp"
+
+# The wavy-line vocabulary has two structurally different branches
+# (wiggle<suffix> | guitar<middle>VibratoStroke); it gets its own shape.
+[[render.type]]
+types    = ["smufl-wavy-line-glyph-name"]
+template = "smufl_wavy.h.tmpl"
+output   = "{pascal}.h"
+
+[[render.type]]
+types    = ["smufl-wavy-line-glyph-name"]
+template = "smufl_wavy.cpp.tmpl"
+output   = "{pascal}.cpp"
+
+# ---- the complex shapes (one template per shape) -------------------------- #
+
+[[render.type]]
+strategies = ["flag"]
+template   = "empty.h.tmpl"
+output     = "{pascal}.h"
+
+[[render.type]]
+strategies = ["flag"]
+template   = "empty.cpp.tmpl"
+output     = "{pascal}.cpp"
+
+[[render.type]]
+strategies = ["attrs-class"]
+template   = "attrs.h.tmpl"
+output     = "{pascal}.h"
+
+[[render.type]]
+strategies = ["attrs-class"]
+template   = "attrs.cpp.tmpl"
+output     = "{pascal}.cpp"
+
+[[render.type]]
+strategies = ["value-class"]
+template   = "value_class.h.tmpl"
+output     = "{pascal}.h"
+
+[[render.type]]
+strategies = ["value-class"]
+template   = "value_class.cpp.tmpl"
+output     = "{pascal}.cpp"
+
+[[render.type]]
+strategies = ["composite-class"]
+template   = "composite.h.tmpl"
+output     = "{pascal}.h"
+
+[[render.type]]
+strategies = ["composite-class"]
+template   = "composite.cpp.tmpl"
+output     = "{pascal}.cpp"
+
+[[render.type]]
+strategies = ["inherit"]
+template   = "derived.h.tmpl"
+output     = "{pascal}.h"
+
+[[render.type]]
+strategies = ["inherit"]
+template   = "derived.cpp.tmpl"
+output     = "{pascal}.cpp"
+
+[[render.type]]
+strategies = ["group-class"]
+template   = "group.h.tmpl"
+output     = "{pascal}.h"
+
+[[render.type]]
+strategies = ["group-class"]
+template   = "group.cpp.tmpl"
+output     = "{pascal}.cpp"
+
+[[render.type]]
+strategies = ["choice-class"]
+template   = "choice.h.tmpl"
+output     = "{pascal}.h"
+
+[[render.type]]
+strategies = ["choice-class"]
+template   = "choice.cpp.tmpl"
+output     = "{pascal}.cpp"
+
+# Measure music-data is the known large-alternative repeated choice (plan
+# §2.3): its alternatives are boxed so a by-value variant does not size
+# every slot at the largest alternative. Which types box is this manifest
+# data, not template hardcode.
+[[render.type]]
+types    = ["music-data-choice"]
+template = "choice_boxed.h.tmpl"
+output   = "{pascal}.h"
+
+[[render.type]]
+types    = ["music-data-choice"]
+template = "choice_boxed.cpp.tmpl"
+output   = "{pascal}.cpp"
+
+# ---- once-per-target outputs --------------------------------------------- #
+
+[[render.once]]
+template = "version.h.tmpl"
+output   = "Version.h"
+
+[[render.once]]
+template = "document.h.tmpl"
+output   = "Document.h"
+
+[[render.once]]
+template = "document.cpp.tmpl"
+output   = "Document.cpp"
+
+[[render.once]]
+template = "defaults.h.tmpl"
+output   = "DefaultsProbe.h"
+
+[[render.once]]
+template = "defaults.cpp.tmpl"
+output   = "DefaultsProbe.cpp"
+
+[[render.once]]
+template = "sources.cmake.tmpl"
+output   = "sources.cmake"
+

@@ -7,8 +7,8 @@
 #ifdef MX_COMPILE_IMPL_TESTS
 
 #include "cpul/cpulTestHarness.h"
-#include "mx/core/elements/DynamicsAttributes.h"
-#include "mx/core/elements/FermataAttributes.h"
+#include "mx/core/generated/Dynamics.h"
+#include "mx/core/generated/Fermata.h"
 #include "mx/impl/PrintFunctions.h"
 
 using namespace mx;
@@ -16,12 +16,8 @@ using namespace mx::impl;
 
 TEST(getColor, PrintFunctions)
 {
-    core::FermataAttributes attr;
-    attr.hasColor = true;
-    attr.color.setRed(1);
-    attr.color.setGreen(2);
-    attr.color.setBlue(3);
-    attr.color.setColorType(core::Color::ColorType::RGB);
+    core::Fermata attr;
+    attr.setColor(core::Color{1, 2, 3});
     auto printData = impl::getPrintData(attr);
     auto colorData = printData.color;
     CHECK(printData.isColorSpecified);
@@ -35,13 +31,9 @@ T_END
 
 TEST(getColorAlpha, PrintFunctions)
 {
-    core::FermataAttributes attr;
-    attr.hasColor = true;
-    attr.color.setRed(4);
-    attr.color.setGreen(3);
-    attr.color.setBlue(2);
-    attr.color.setColorType(core::Color::ColorType::ARGB);
-    attr.color.setAlpha(1);
+    core::Fermata attr;
+    // Color(alpha, red, green, blue)
+    attr.setColor(core::Color{1, 4, 3, 2});
     auto printData = impl::getPrintData(attr);
     auto colorData = printData.color;
     CHECK(printData.isColorSpecified);
@@ -56,13 +48,8 @@ T_END
 
 TEST(getColorFalse, PrintFunctions)
 {
-    core::FermataAttributes attr;
-    attr.hasColor = false;
-    attr.color.setRed(4);
-    attr.color.setGreen(3);
-    attr.color.setBlue(2);
-    attr.color.setColorType(core::Color::ColorType::ARGB);
-    attr.color.setAlpha(1);
+    core::Fermata attr;
+    // color not set — has_value() == false
     auto printData = impl::getPrintData(attr);
     auto colorData = printData.color;
     CHECK(!printData.isColorSpecified);
@@ -86,15 +73,15 @@ TEST(setColor, PrintFunctions)
     api::PrintData printData;
     printData.isColorSpecified = true;
     printData.color = color;
-    core::FermataAttributes attr;
+    core::Fermata attr;
     impl::setAttributesFromPrintData(printData, attr);
-    CHECK(attr.hasColor);
-    const auto &core = attr.color;
-    CHECK_EQUAL(1, static_cast<int>(core.getRed()));
-    CHECK_EQUAL(2, static_cast<int>(core.getGreen()));
-    CHECK_EQUAL(3, static_cast<int>(core.getBlue()));
-    CHECK(core::Color::ColorType::RGB == core.getColorType());
-    CHECK_EQUAL(255, static_cast<int>(core.getAlpha()));
+    CHECK(attr.color().has_value());
+    const auto &coreColor = *attr.color();
+    CHECK_EQUAL(1, static_cast<int>(coreColor.red()));
+    CHECK_EQUAL(2, static_cast<int>(coreColor.green()));
+    CHECK_EQUAL(3, static_cast<int>(coreColor.blue()));
+    CHECK(!coreColor.alpha().has_value());
+    CHECK_EQUAL(255, static_cast<int>(255));
 }
 
 T_END
@@ -110,15 +97,15 @@ TEST(setColorAlpha, PrintFunctions)
     api::PrintData printData;
     printData.isColorSpecified = true;
     printData.color = color;
-    core::FermataAttributes attr;
+    core::Fermata attr;
     impl::setAttributesFromPrintData(printData, attr);
-    CHECK(attr.hasColor);
-    const auto &core = attr.color;
-    CHECK_EQUAL(4, static_cast<int>(core.getRed()));
-    CHECK_EQUAL(3, static_cast<int>(core.getGreen()));
-    CHECK_EQUAL(2, static_cast<int>(core.getBlue()));
-    CHECK(core::Color::ColorType::ARGB == core.getColorType());
-    CHECK_EQUAL(1, static_cast<int>(core.getAlpha()));
+    CHECK(attr.color().has_value());
+    const auto &coreColor = *attr.color();
+    CHECK_EQUAL(4, static_cast<int>(coreColor.red()));
+    CHECK_EQUAL(3, static_cast<int>(coreColor.green()));
+    CHECK_EQUAL(2, static_cast<int>(coreColor.blue()));
+    CHECK(coreColor.alpha().has_value());
+    CHECK_EQUAL(1, static_cast<int>(*coreColor.alpha()));
 }
 
 T_END
@@ -134,15 +121,9 @@ TEST(setColorFalse, PrintFunctions)
     api::PrintData printData;
     printData.isColorSpecified = false;
     printData.color = color;
-    core::FermataAttributes attr;
+    core::Fermata attr;
     impl::setAttributesFromPrintData(printData, attr);
-    CHECK(!attr.hasColor);
-    const auto &core = attr.color;
-    CHECK_EQUAL(255, static_cast<int>(core.getRed()));
-    CHECK_EQUAL(255, static_cast<int>(core.getGreen()));
-    CHECK_EQUAL(255, static_cast<int>(core.getBlue()));
-    CHECK(core::Color::ColorType::RGB == core.getColorType());
-    CHECK_EQUAL(255, static_cast<int>(core.getAlpha()));
+    CHECK(!attr.color().has_value());
 }
 
 T_END
@@ -159,49 +140,39 @@ TEST(everythingSet, PrintFunctions)
     p.fontData.weight = api::FontWeight::bold;
     p.fontData.fontFamily.emplace_back("z");
     p.fontData.fontFamily.emplace_back("ABC");
-    core::DynamicsAttributes attr;
+    core::Dynamics attr;
     impl::setAttributesFromPrintData(p, attr);
-    CHECK(attr.hasLineThrough);
-    CHECK_EQUAL(1, attr.lineThrough.getValue());
-    CHECK(attr.hasOverline);
-    CHECK_EQUAL(2, attr.overline.getValue());
-    CHECK(attr.hasUnderline);
-    CHECK_EQUAL(3, attr.underline.getValue());
-    CHECK(attr.hasFontSize);
-    CHECK(attr.fontSize.getIsDecimal());
-    CHECK_DOUBLES_EQUAL(2.0, attr.fontSize.getValueDecimal().getValue(), 0.01);
-    CHECK(attr.hasFontStyle);
-    CHECK(core::FontStyle::italic == attr.fontStyle);
-    CHECK(attr.hasFontWeight);
-    CHECK(core::FontWeight::bold == attr.fontWeight);
-    CHECK(attr.hasFontFamily);
-    CHECK_EQUAL(2, attr.fontFamily.getValues().size());
-    CHECK_EQUAL("z", attr.fontFamily.getValues().front().getValue());
-    CHECK_EQUAL("ABC", attr.fontFamily.getValues().back().getValue());
+    CHECK(attr.lineThrough().has_value());
+    CHECK_EQUAL(1, attr.lineThrough()->value());
+    CHECK(attr.overline().has_value());
+    CHECK_EQUAL(2, attr.overline()->value());
+    CHECK(attr.underline().has_value());
+    CHECK_EQUAL(3, attr.underline()->value());
+    CHECK(attr.fontSize().has_value());
+    CHECK(attr.fontSize()->isDecimal());
+    CHECK_DOUBLES_EQUAL(2.0, attr.fontSize()->asDecimal().value(), 0.01);
+    CHECK(attr.fontStyle().has_value());
+    CHECK(core::FontStyle::italic() == *attr.fontStyle());
+    CHECK(attr.fontWeight().has_value());
+    CHECK(core::FontWeight::bold() == *attr.fontWeight());
+    CHECK(attr.fontFamily().has_value());
+    CHECK_EQUAL(2, attr.fontFamily()->items().size());
+    CHECK_EQUAL("z", attr.fontFamily()->items().front());
+    CHECK_EQUAL("ABC", attr.fontFamily()->items().back());
 }
 
 T_END
 
 TEST(everythingGet, PrintFunctions)
 {
-    core::DynamicsAttributes attr;
-    attr.hasLineThrough = true;
-    attr.lineThrough.setValue(1);
-    attr.hasOverline = true;
-    attr.overline.setValue(2);
-    attr.hasUnderline = true;
-    attr.underline.setValue(3);
-    attr.hasFontSize = true;
-    attr.fontSize.setDecimal(core::Decimal{2.0});
-    attr.hasFontStyle = true;
-    attr.fontStyle = core::FontStyle::italic;
-    attr.hasFontWeight = true;
-    attr.fontWeight = core::FontWeight::bold;
-    attr.hasFontFamily = true;
-    core::XsTokenSet values;
-    values.emplace_back("z");
-    values.emplace_back("ABC");
-    attr.fontFamily.setValues(values);
+    core::Dynamics attr;
+    attr.setLineThrough(core::NumberOfLines{1});
+    attr.setOverline(core::NumberOfLines{2});
+    attr.setUnderline(core::NumberOfLines{3});
+    attr.setFontSize(core::FontSize::decimal(core::Decimal{2.0}));
+    attr.setFontStyle(core::FontStyle::italic());
+    attr.setFontWeight(core::FontWeight::bold());
+    attr.setFontFamily(core::FontFamily{{"z", "ABC"}});
     auto p = impl::getPrintData(attr);
     CHECK_EQUAL(1, p.fontData.lineThrough);
     CHECK_EQUAL(2, p.fontData.overline);

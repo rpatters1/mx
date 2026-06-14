@@ -3,35 +3,17 @@
 // Distributed under the MIT License
 
 #include "mx/impl/ArticulationsFunctions.h"
-#include "mx/core/elements/Accent.h"
-#include "mx/core/elements/ArticulationsChoice.h"
-#include "mx/core/elements/BreathMark.h"
-#include "mx/core/elements/Caesura.h"
-#include "mx/core/elements/DetachedLegato.h"
-#include "mx/core/elements/Doit.h"
-#include "mx/core/elements/Falloff.h"
-#include "mx/core/elements/OtherArticulation.h"
-#include "mx/core/elements/Plop.h"
-#include "mx/core/elements/Scoop.h"
-#include "mx/core/elements/Spiccato.h"
-#include "mx/core/elements/Staccatissimo.h"
-#include "mx/core/elements/Staccato.h"
-#include "mx/core/elements/Stress.h"
-#include "mx/core/elements/StrongAccent.h"
-#include "mx/core/elements/Tenuto.h"
-#include "mx/core/elements/Unstress.h"
+#include "mx/core/generated/ArticulationsChoice.h"
 #include "mx/impl/Converter.h"
 #include "mx/impl/MarkDataFunctions.h"
 #include "mx/impl/PositionFunctions.h"
 #include "mx/impl/PrintFunctions.h"
 
-#include <mutex>
-
 namespace mx
 {
 namespace impl
 {
-ArticulationsFunctions::ArticulationsFunctions(const core::ArticulationsChoiceSet &inArticulations,
+ArticulationsFunctions::ArticulationsFunctions(std::span<const core::ArticulationsChoice> inArticulations,
                                                impl::Cursor inCursor)
     : myArticulations{inArticulations}, myCursor{inCursor}
 {
@@ -41,14 +23,13 @@ void ArticulationsFunctions::parseArticulations(std::vector<api::MarkData> &outM
 {
     for (const auto &articulation : myArticulations)
     {
-        const auto articulationType = articulation->getChoice();
         Converter converter;
-        const auto markType = converter.convertArticulation(articulationType);
+        const auto markType = converter.convertArticulation(articulation.kind());
         auto markData = api::MarkData{};
         markData.markType = markType;
         markData.tickTimePosition = myCursor.tickTimePosition;
 
-        parseArticulation(*articulation, markData);
+        parseArticulation(articulation, markData);
         outMarks.emplace_back(std::move(markData));
     }
 }
@@ -56,89 +37,94 @@ void ArticulationsFunctions::parseArticulations(std::vector<api::MarkData> &outM
 void ArticulationsFunctions::parseArticulation(const core::ArticulationsChoice &inArticulation,
                                                api::MarkData &outMark) const
 {
-    switch (inArticulation.getChoice())
+    switch (inArticulation.kind())
     {
-    case core::ArticulationsChoice::Choice::accent: {
-        parseMarkDataAttributes(*inArticulation.getAccent()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::accent: {
+        parseMarkDataAttributes(inArticulation.asAccent(), outMark);
         outMark.name = "accent";
         break;
     }
-    case core::ArticulationsChoice::Choice::strongAccent: {
-        parseMarkDataAttributes(*inArticulation.getStrongAccent()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::strongAccent: {
+        parseMarkDataAttributes(inArticulation.asStrongAccent(), outMark);
         outMark.name = "strong-accent";
         break;
     }
-    case core::ArticulationsChoice::Choice::staccato: {
-        parseMarkDataAttributes(*inArticulation.getStaccato()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::staccato: {
+        parseMarkDataAttributes(inArticulation.asStaccato(), outMark);
         outMark.name = "staccato";
         break;
     }
-    case core::ArticulationsChoice::Choice::tenuto: {
-        parseMarkDataAttributes(*inArticulation.getTenuto()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::tenuto: {
+        parseMarkDataAttributes(inArticulation.asTenuto(), outMark);
         outMark.name = "tenuto";
         break;
     }
-    case core::ArticulationsChoice::Choice::detachedLegato: {
-        parseMarkDataAttributes(*inArticulation.getDetachedLegato()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::detachedLegato: {
+        parseMarkDataAttributes(inArticulation.asDetachedLegato(), outMark);
         outMark.name = "detached-legato";
         break;
     }
-    case core::ArticulationsChoice::Choice::staccatissimo: {
-        parseMarkDataAttributes(*inArticulation.getStaccatissimo()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::staccatissimo: {
+        parseMarkDataAttributes(inArticulation.asStaccatissimo(), outMark);
         outMark.name = "staccatissimo";
         break;
     }
-    case core::ArticulationsChoice::Choice::spiccato: {
-        parseMarkDataAttributes(*inArticulation.getSpiccato()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::spiccato: {
+        parseMarkDataAttributes(inArticulation.asSpiccato(), outMark);
         outMark.name = "spiccato";
         break;
     }
-    case core::ArticulationsChoice::Choice::scoop: {
-        parseMarkDataAttributes(*inArticulation.getScoop()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::scoop: {
+        parseMarkDataAttributes(inArticulation.asScoop(), outMark);
         outMark.name = "scoop";
         break;
     }
-    case core::ArticulationsChoice::Choice::plop: {
-        parseMarkDataAttributes(*inArticulation.getPlop()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::plop: {
+        parseMarkDataAttributes(inArticulation.asPlop(), outMark);
         outMark.name = "plop";
         break;
     }
-    case core::ArticulationsChoice::Choice::doit: {
-        parseMarkDataAttributes(*inArticulation.getDoit()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::doit: {
+        parseMarkDataAttributes(inArticulation.asDoit(), outMark);
         outMark.name = "doit";
         break;
     }
-    case core::ArticulationsChoice::Choice::falloff: {
-        parseMarkDataAttributes(*inArticulation.getFalloff()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::falloff: {
+        parseMarkDataAttributes(inArticulation.asFalloff(), outMark);
         outMark.name = "falloff";
         break;
     }
-    case core::ArticulationsChoice::Choice::breathMark: {
-        parseMarkDataAttributes(*inArticulation.getBreathMark()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::breathMark: {
+        parseMarkDataAttributes(inArticulation.asBreathMark(), outMark);
         outMark.name = "breath-mark";
         break;
     }
-    case core::ArticulationsChoice::Choice::caesura: {
-        parseMarkDataAttributes(*inArticulation.getCaesura()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::caesura: {
+        parseMarkDataAttributes(inArticulation.asCaesura(), outMark);
         outMark.name = "caesura";
         break;
     }
-    case core::ArticulationsChoice::Choice::stress: {
-        parseMarkDataAttributes(*inArticulation.getStress()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::stress: {
+        parseMarkDataAttributes(inArticulation.asStress(), outMark);
         outMark.name = "stress";
         break;
     }
-    case core::ArticulationsChoice::Choice::unstress: {
-        parseMarkDataAttributes(*inArticulation.getUnstress()->getAttributes(), outMark);
+    case core::ArticulationsChoice::Kind::unstress: {
+        parseMarkDataAttributes(inArticulation.asUnstress(), outMark);
         outMark.name = "unstress";
         break;
     }
-    case core::ArticulationsChoice::Choice::otherArticulation: {
-        parseMarkDataAttributes(*inArticulation.getOtherArticulation()->getAttributes(), outMark);
-        outMark.name = inArticulation.getOtherArticulation()->getValue().getValue();
+    case core::ArticulationsChoice::Kind::softAccent: {
+        parseMarkDataAttributes(inArticulation.asSoftAccent(), outMark);
+        outMark.name = "soft-accent";
+        break;
+    }
+    case core::ArticulationsChoice::Kind::otherArticulation: {
+        const auto &oa = inArticulation.asOtherArticulation();
+        parseMarkDataAttributes(oa, outMark);
+        outMark.name = oa.value();
 
         const auto possibleCustomMarkType = mx::api::getMarkTypeFromCustomString(outMark.name);
-
         if (possibleCustomMarkType != mx::api::MarkType::customErrorUnknown)
         {
             outMark.markType = possibleCustomMarkType;

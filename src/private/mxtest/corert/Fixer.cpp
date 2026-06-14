@@ -4,13 +4,7 @@
 
 #include "mxtest/corert/Fixer.h"
 
-#include "ezxml/XAttribute.h"
-#include "ezxml/XAttributeIterator.h"
-#include "ezxml/XElement.h"
-#include "ezxml/XElementIterator.h"
-#include "ezxml/XFactory.h"
-
-#include <filesystem>
+#include <string_view>
 
 namespace mxtest
 {
@@ -20,114 +14,49 @@ namespace corert
 namespace
 {
 
-constexpr const char *const kFixupSuffix = ".fixup.xml";
-// The extension passed to `path::replace_extension`. It accepts the leading
-// dot but treats the rest as the literal extension; `.fixup.xml` is
-// effectively a multi-part extension that the function appends as-is.
-constexpr const char *const kRootName = "fixups";
-constexpr const char *const kReplaceName = "replace";
-constexpr const char *const kTypeName = "type";
-constexpr const char *const kNameName = "name";
-constexpr const char *const kValueName = "value";
-constexpr const char *const kReplacementValueName = "replacement-value";
-constexpr const char *const kTypeElement = "element";
-constexpr const char *const kTypeAttribute = "attribute";
-
-bool parseReplace(const ::ezxml::XElement &replace, Fixup &out)
+std::string sidecarPath(const std::string &inputPath)
 {
-    bool gotType = false;
-    bool gotName = false;
-    bool gotValue = false;
-    bool gotReplacement = false;
-    for (auto it = replace.begin(); it != replace.end(); ++it)
+    const auto dot = inputPath.find_last_of('.');
+    if (dot == std::string::npos)
     {
-        const std::string &childName = it->getName();
-        const std::string childValue = it->getValue();
-        if (childName == kTypeName)
-        {
-            if (childValue == kTypeElement)
-            {
-                out.type = Fixup::Type::Element;
-                gotType = true;
-            }
-            else if (childValue == kTypeAttribute)
-            {
-                out.type = Fixup::Type::Attribute;
-                gotType = true;
-            }
-        }
-        else if (childName == kNameName)
-        {
-            out.name = childValue;
-            gotName = true;
-        }
-        else if (childName == kValueName)
-        {
-            out.value = childValue;
-            gotValue = true;
-        }
-        else if (childName == kReplacementValueName)
-        {
-            out.replacementValue = childValue;
-            gotReplacement = true;
-        }
+        return {};
     }
-    return gotType && gotName && gotValue && gotReplacement;
+    return inputPath.substr(0, dot) + ".fixup.xml";
 }
 
-void applyToElement(::ezxml::XElement &element, const std::vector<Fixup> &fixups)
+void applyRecursive(const std::vector<Fixup> &fixups, pugi::xml_node el)
 {
-    const ::ezxml::XElementType etype = element.getType();
-
-    if (etype == ::ezxml::XElementType::text)
+    for (const Fixup &fx : fixups)
     {
-        const std::string name = element.getName();
-        const std::string value = element.getValue();
-        for (const auto &fix : fixups)
+        if (fx.type == Fixup::Type::Element)
         {
-            if (fix.type == Fixup::Type::Element && fix.name == name && fix.value == value)
+            if (std::string_view{el.name()} == fx.name)
             {
-                element.setValue(fix.replacementValue);
-                break;
+                // Match the element's direct text (an empty-element leaf
+                // matches only an empty fixup value, so intentionally-empty
+                // markers sharing a name with a clamped leaf are safe).
+                if (std::string_view{el.text().get()} == fx.value)
+                {
+                    el.text().set(fx.replacementValue.c_str());
+                }
+            }
+        }
+        else
+        {
+            for (pugi::xml_attribute a : el.attributes())
+            {
+                if (std::string_view{a.name()} == fx.name && std::string_view{a.value()} == fx.value)
+                {
+                    a.set_value(fx.replacementValue.c_str());
+                }
             }
         }
     }
-    else if (etype == ::ezxml::XElementType::empty)
+    for (pugi::xml_node c = el.first_child(); c; c = c.next_sibling())
     {
-        // Empty leaves (no text, no children) are treated as text with value
-        // "". Only match Element fixups whose own `value` is empty; matching
-        // arbitrary fixup values would spuriously rewrite intentionally-empty
-        // marker elements (e.g. <fermata/>) that happen to share a name.
-        const std::string name = element.getName();
-        for (const auto &fix : fixups)
+        if (c.type() == pugi::node_element)
         {
-            if (fix.type == Fixup::Type::Element && fix.name == name && fix.value.empty())
-            {
-                element.setValue(fix.replacementValue);
-                break;
-            }
-        }
-    }
-
-    for (auto attrIt = element.attributesBegin(); attrIt != element.attributesEnd(); ++attrIt)
-    {
-        const std::string aName = attrIt->getName();
-        const std::string aValue = attrIt->getValue();
-        for (const auto &fix : fixups)
-        {
-            if (fix.type == Fixup::Type::Attribute && fix.name == aName && fix.value == aValue)
-            {
-                attrIt->setValue(fix.replacementValue);
-                break;
-            }
-        }
-    }
-
-    if (etype == ::ezxml::XElementType::element)
-    {
-        for (auto childIt = element.begin(); childIt != element.end(); ++childIt)
-        {
-            applyToElement(*childIt, fixups);
+            applyRecursive(fixups, c);
         }
     }
 }
@@ -136,56 +65,56 @@ void applyToElement(::ezxml::XElement &element, const std::vector<Fixup> &fixups
 
 Fixer::Fixer(const std::string &inputFilePath)
 {
-    // Sidecar lives next to the input with the `.xml` or `.musicxml`
-    // extension replaced by `.fixup.xml`. Example:
-    // `data/foo/example.xml` -> `data/foo/example.fixup.xml`.
-    std::filesystem::path inputPath(inputFilePath);
-    const std::filesystem::path fixupPath = inputPath.replace_extension(kFixupSuffix);
-    std::error_code ec;
-    if (!std::filesystem::exists(fixupPath, ec))
+    const std::string path = sidecarPath(inputFilePath);
+    if (path.empty())
     {
         return;
     }
-
-    auto xdoc = ::ezxml::XFactory::makeXDoc();
-    xdoc->loadFile(fixupPath.string());
-    const auto root = xdoc->getRoot();
-    if (!root || root->getName() != kRootName)
+    pugi::xml_document doc;
+    if (!doc.load_file(path.c_str()))
     {
         return;
     }
-
-    for (auto it = root->begin(); it != root->end(); ++it)
+    pugi::xml_node root = doc.document_element();
+    if (!root || std::string_view{root.name()} != "fixups")
     {
-        if (it->getName() != kReplaceName)
+        return;
+    }
+    for (pugi::xml_node replace = root.child("replace"); replace; replace = replace.next_sibling("replace"))
+    {
+        Fixup fx;
+        const std::string_view type = replace.child("type").text().get();
+        if (type == "element")
+        {
+            fx.type = Fixup::Type::Element;
+        }
+        else if (type == "attribute")
+        {
+            fx.type = Fixup::Type::Attribute;
+        }
+        else
+        {
+            continue; // unknown operation flavors are skipped, not errors
+        }
+        fx.name = replace.child("name").text().get();
+        fx.value = replace.child("value").text().get();
+        pugi::xml_node replacement = replace.child("replacement-value");
+        if (fx.name.empty() || !replacement)
         {
             continue;
         }
-        Fixup fix;
-        if (parseReplace(*it, fix))
-        {
-            myFixups.push_back(std::move(fix));
-        }
+        fx.replacementValue = replacement.text().get();
+        myFixups.push_back(std::move(fx));
     }
 }
 
-bool Fixer::hasFixups() const
+void Fixer::applyToExpected(pugi::xml_document &expected) const
 {
-    return !myFixups.empty();
-}
-
-void Fixer::applyToExpected(const ::ezxml::XDocPtr &expectedXDoc) const
-{
-    if (myFixups.empty() || !expectedXDoc)
+    if (myFixups.empty() || !expected.document_element())
     {
         return;
     }
-    const auto root = expectedXDoc->getRoot();
-    if (!root)
-    {
-        return;
-    }
-    applyToElement(*root, myFixups);
+    applyRecursive(myFixups, expected.document_element());
 }
 
 } // namespace corert

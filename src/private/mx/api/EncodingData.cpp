@@ -3,7 +3,8 @@
 // Distributed under the MIT License
 
 #include "mx/api/EncodingData.h"
-#include "mx/core/Date.h"
+
+#include <ctime>
 
 namespace mx
 {
@@ -16,11 +17,13 @@ namespace api
 
 EncodingDate EncodingDate::today()
 {
-    const auto d = mx::core::Date::today();
+    // (the old core's Date::today, inlined: local time, 1-based month/day)
+    std::time_t t = std::time(nullptr);
+    struct tm *now = std::localtime(&t);
     mx::api::EncodingDate result{};
-    result.year = d.getYear();
-    result.month = d.getMonth();
-    result.day = d.getDay();
+    result.year = static_cast<int>(now->tm_year + 1900);
+    result.month = static_cast<int>(now->tm_mon + 1);
+    result.day = static_cast<int>(now->tm_mday);
     return result;
 }
 

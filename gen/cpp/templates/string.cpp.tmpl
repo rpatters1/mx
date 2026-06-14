@@ -1,0 +1,54 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include <utility>
+
+namespace {{vars.namespace}}
+{
+
+namespace
+{
+
+std::string repaired(std::string v)
+{
+{{#min_length}}
+    // Deterministic repair to the schema's minLength (plan §2.2.2): pad
+    // with '-' so a too-short value is unrepresentable.
+    while (v.size() < {{min_length}})
+    {
+        v.push_back('-');
+    }
+{{/min_length}}
+    return v;
+}
+
+} // namespace
+
+{{#min_length}}
+{{ident}}::{{ident}}() : m_value{repaired(std::string{})}
+{
+}
+
+{{/min_length}}
+{{ident}}::{{ident}}(std::string value) : m_value{repaired(std::move(value))}
+{
+}
+
+void {{ident}}::setValue(std::string value)
+{
+    m_value = repaired(std::move(value));
+}
+
+bool {{ident}}::tryParse(std::string_view text, {{ident}} &out)
+{
+    out = {{ident}}{std::string{text}};
+    return true;
+}
+
+{{ident}} {{ident}}::parse(std::string_view text)
+{
+    return {{ident}}{std::string{text}};
+}
+
+} // namespace {{vars.namespace}}

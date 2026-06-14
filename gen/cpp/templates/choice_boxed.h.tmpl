@@ -1,0 +1,96 @@
+// {{generated_banner}}
+
+#pragma once
+
+{{#deps}}
+#include "mx/core/generated/{{ident}}.h"
+{{/deps}}
+
+#include <cassert>
+#include <memory>
+#include <variant>
+
+namespace pugi
+{
+class xml_node;
+}
+
+namespace {{vars.namespace}}
+{
+
+{{#doc_lines}}
+/// {{value}}
+{{/doc_lines}}
+/// A repeated heterogeneous choice with large alternatives: each is boxed
+/// so a by-value variant does not size every slot at the largest
+/// alternative (plan §2.3). The API stays value-like; copies clone.
+class {{ident}} final
+{
+public:
+    enum class Kind
+    {
+{{#alternatives}}
+        {{ident}},
+{{/alternatives}}
+    };
+
+    /// The natural zero: the first alternative, default-constructed.
+    {{ident}}();
+
+    {{ident}}(const {{ident}} &other);
+    {{ident}} &operator=(const {{ident}} &other);
+    {{ident}}({{ident}} &&) noexcept = default;
+    {{ident}} &operator=({{ident}} &&) noexcept = default;
+    ~{{ident}}() = default;
+
+{{#alternatives}}
+    static {{type.ident}} {{ident}}({{type_ref.ident}} value);
+{{/alternatives}}
+
+    Kind kind() const noexcept
+    {
+        return static_cast<Kind>(m_value.index());
+    }
+
+{{#alternatives}}
+    bool is{{name.pascal}}() const noexcept
+    {
+        return m_value.index() == {{index0}};
+    }
+
+    /// Precondition: is{{name.pascal}}().
+    const {{type_ref.ident}} &as{{name.pascal}}() const noexcept
+    {
+        assert(is{{name.pascal}}());
+        return **std::get_if<{{index0}}>(&m_value);
+    }
+
+{{/alternatives}}
+    bool operator==(const {{ident}} &other) const;
+
+    bool operator!=(const {{ident}} &other) const
+    {
+        return !(*this == other);
+    }
+
+private:
+    using Storage = std::variant<
+{{#alternatives}}
+        std::unique_ptr<{{type_ref.ident}}>{{^is_last}},{{/is_last}}
+{{/alternatives}}
+        >;
+
+    explicit {{ident}}(Storage value) : m_value{std::move(value)}
+    {
+    }
+
+    Storage m_value;
+};
+
+/// Consumes one alternative starting at `cursor` (which advances); `el` is
+/// the enclosing element, for error paths.
+{{ident}} parse{{ident}}(pugi::xml_node el, pugi::xml_node &cursor);
+
+void serialize{{ident}}(const {{ident}} &v, pugi::xml_node el);
+
+} // namespace {{vars.namespace}}

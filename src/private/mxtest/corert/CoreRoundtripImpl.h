@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include "ezxml/XDoc.h"
-#include "ezxml/XElement.h"
-
 #include <string>
 #include <vector>
 
@@ -19,44 +16,32 @@ namespace corert
 struct CoreRoundtripResult
 {
     bool ok = false;
+    bool skipped = false; // declares a MusicXML version newer than supported
     std::string message;
-    // Populated on failure (and only on failure) so the caller can diff. Each
-    // is the corresponding XDoc serialized to a string after the full
-    // normalization pipeline has been applied.
+    // Populated on failure (and only on failure) so the caller can diff:
+    // the corresponding documents serialized after normalization.
     std::string expectedXml;
     std::string actualXml;
 };
 
-// Discover all eligible MusicXML inputs under `data/`.
-//
-// Scans `MX_REPO_ROOT_PATH "/data"` recursively, collects regular files with
-// extension `.xml` or `.musicxml`, and excludes any path containing a
-// directory segment named `expected`, `testOutput`, `generalxml`, or `smufl`.
-// Returns absolute paths.
-//
-// Not used by the Phase B hardcoded test case; declared here so Phase C can
-// pick it up without further header changes.
+// Discover all eligible MusicXML inputs under `data/` (see AGENTS.md "The
+// corert test"): regular `.xml`/`.musicxml` files, excluding the expected/
+// testOutput/generalxml/smufl directories, `*.fixup.xml` sidecars, and
+// files with a `.invalid` sibling marker. Returns absolute paths, sorted.
 std::vector<std::string> discoverInputFiles();
 
-// Convert an absolute path under `data/` into the relative test name used as
-// the Catch2 case name (e.g., `lysuite/ly01a_Pitches_Pitches.xml`). If the
-// path is not under the data root the absolute path is returned unchanged.
+// Convert an absolute path under `data/` into the relative test name used
+// as the test case name (e.g. `lysuite/ly01a_Pitches_Pitches.xml`).
 std::string toTestName(const std::string &absolutePath);
 
-// Run the per-file core roundtrip flow described in design §3.
-//
-// Steps: load via ezxml; set version attribute on root; fromXDoc into a
-// mx::core::Document; toXDoc back out; normalize both the actual and a
-// fresh-loaded expected; depth-first compare. Result is a structured value;
-// the caller is responsible for emitting Catch2 FAIL / passing assertions and
-// writing debug files. The function does not throw — any exception from the
-// pipeline is caught and reported via `CoreRoundtripResult::message`.
+// Run the per-file core roundtrip flow: load via pugixml; pin the root
+// version attribute to the harness baseline; mx::core::parse; serialize
+// back; normalize both the actual and a fresh-loaded expected; apply
+// fixups to the expected; depth-first compare. Does not throw.
 CoreRoundtripResult runCoreRoundtrip(const std::string &absoluteInputPath);
 
 // Write a pair of `.expected.xml` / `.actual.xml` debug files to
-// `data/testOutput/corert/`. Creates the directory if it does not exist.
-// `testName` is the path relative to `data/`; directory separators are
-// replaced with `_` to flatten into a single directory. Both strings are the
+// `data/testOutput/corert/` (flattened name). Both strings are the
 // already-normalized XML payloads.
 void writeFailureFiles(const std::string &testName, const std::string &expectedXml, const std::string &actualXml);
 

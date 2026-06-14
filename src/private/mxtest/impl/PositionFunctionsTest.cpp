@@ -6,9 +6,8 @@
 #ifdef MX_COMPILE_IMPL_TESTS
 
 #include "cpul/cpulTestHarness.h"
-#include "mx/core/elements/BracketAttributes.h"
-#include "mx/core/elements/CreditWordsAttributes.h"
-#include "mx/core/elements/DirectionAttributes.h"
+#include "mx/core/generated/Bracket.h"
+#include "mx/core/generated/Direction.h"
 #include "mx/impl/PositionFunctions.h"
 
 using namespace mx;
@@ -16,7 +15,7 @@ using namespace mx::impl;
 
 TEST(setAttributesFromPositionDataBracket, PositionFunctions)
 {
-    core::BracketAttributes attr;
+    core::Bracket attr;
     api::PositionData positionData;
 
     positionData.isDefaultXSpecified = true;
@@ -31,17 +30,17 @@ TEST(setAttributesFromPositionDataBracket, PositionFunctions)
 
     impl::setAttributesFromPositionData(positionData, attr);
 
-    CHECK(attr.hasDefaultX);
-    CHECK_DOUBLES_EQUAL(0.1, attr.defaultX.getValue(), 0.0001);
+    CHECK(attr.defaultX().has_value());
+    CHECK_DOUBLES_EQUAL(0.1, attr.defaultX()->value().value(), 0.0001);
 
-    CHECK(attr.hasDefaultY);
-    CHECK_DOUBLES_EQUAL(0.2, attr.defaultY.getValue(), 0.0001);
+    CHECK(attr.defaultY().has_value());
+    CHECK_DOUBLES_EQUAL(0.2, attr.defaultY()->value().value(), 0.0001);
 
-    CHECK(attr.hasRelativeX);
-    CHECK_DOUBLES_EQUAL(0.3, attr.relativeX.getValue(), 0.0001);
+    CHECK(attr.relativeX().has_value());
+    CHECK_DOUBLES_EQUAL(0.3, attr.relativeX()->value().value(), 0.0001);
 
-    CHECK(attr.hasRelativeY);
-    CHECK_DOUBLES_EQUAL(0.4, attr.relativeY.getValue(), 0.0001);
+    CHECK(attr.relativeY().has_value());
+    CHECK_DOUBLES_EQUAL(0.4, attr.relativeY()->value().value(), 0.0001);
 }
 
 T_END
@@ -64,15 +63,15 @@ T_END
 
 TEST(setAttributesFromPositionDataDirectionAttributes, PositionFunctions)
 {
-    core::DirectionAttributes attr;
+    core::Direction attr;
     api::PositionData positionData;
 
     positionData.placement = api::Placement::below;
 
     impl::setAttributesFromPositionData(positionData, attr);
 
-    CHECK(attr.hasPlacement);
-    CHECK(attr.placement == core::AboveBelow::below);
+    CHECK(attr.placement().has_value());
+    CHECK(attr.placement() == core::AboveBelow::below());
 }
 
 T_END

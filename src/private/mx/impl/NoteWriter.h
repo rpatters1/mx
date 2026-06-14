@@ -5,23 +5,17 @@
 #pragma once
 
 #include "mx/api/NoteData.h"
+#include "mx/core/generated/FullNoteGroup.h"
+#include "mx/core/generated/Notations.h"
+#include "mx/core/generated/NotationsChoice.h"
+#include "mx/core/generated/Note.h"
 #include "mx/impl/Converter.h"
 #include "mx/impl/MeasureCursor.h"
 
+#include <vector>
+
 namespace mx
 {
-namespace core
-{
-class Note;
-using NotePtr = std::shared_ptr<Note>;
-class NoteChoice;
-using NoteChoicePtr = std::shared_ptr<NoteChoice>;
-class FullNoteGroup;
-using FullNoteGroupPtr = std::shared_ptr<FullNoteGroup>;
-class FullNoteTypeChoice;
-using FullNoteTypeChoicePtr = std::shared_ptr<FullNoteTypeChoice>;
-} // namespace core
-
 namespace impl
 {
 class ScoreWriter;
@@ -32,7 +26,7 @@ class NoteWriter
     NoteWriter(const api::NoteData &inNoteData, const MeasureCursor &inCursor, const ScoreWriter &inScoreWriter,
                bool isPreviousNoteAChordMember, const std::vector<mx::api::NoteData> &inSiblingNotes, int inNoteIndex);
 
-    core::NotePtr getNote(bool isStartOfChord) const;
+    core::Note getNote(bool isStartOfChord) const;
 
   private:
     const api::NoteData &myNoteData;
@@ -42,20 +36,22 @@ class NoteWriter
     const bool myIsPreviousNoteAChordMember;
     const std::vector<mx::api::NoteData> &mySiblingNotes;
     const int myNoteIndex;
-    mutable core::NotePtr myOutNote;
-    mutable core::NoteChoicePtr myOutNoteChoice;
-    mutable core::FullNoteGroupPtr myOutFullNoteGroup;
-    mutable core::FullNoteTypeChoicePtr myOutFullNoteTypeChoice;
+    mutable core::Note myOutNote;
+    mutable core::FullNoteGroup myOutFullNoteGroup;
+    mutable std::vector<core::Tie> myOutTies;
+    mutable std::vector<core::NotationsChoice> myOutTieNotationsChoices;
 
   private:
+    void addTie(bool isStart) const;
     void setNoteChoiceAndFullNoteGroup(bool isStartOfChord) const;
+    void assembleNoteChoice() const;
     void setFullNoteTypeChoice() const;
     void setStaffAndVoice() const;
     void setDurationNameAndDots() const;
     void setNotehead() const;
     void setStemDirection() const;
     void setMiscData() const;
-    bool findNormalNameAndDots(mx::api::DurationName &ioName, int &ioDots, long double inTickLength) const;
+    bool findNormalNameAndDots(mx::api::DurationName &ioName, int &ioDots, double inTickLength) const;
 };
 } // namespace impl
 } // namespace mx

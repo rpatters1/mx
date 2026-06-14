@@ -3,50 +3,34 @@
 // Distributed under the MIT License
 
 #include "mx/impl/PartReader.h"
-#include "mx/core/elements/AccidentalText.h"
-#include "mx/core/elements/Direction.h"
-#include "mx/core/elements/DisplayText.h"
-#include "mx/core/elements/DisplayTextOrAccidentalText.h"
-#include "mx/core/elements/Elevation.h"
-#include "mx/core/elements/Ensemble.h"
-#include "mx/core/elements/Forward.h"
-#include "mx/core/elements/Harmony.h"
-#include "mx/core/elements/InstrumentAbbreviation.h"
-#include "mx/core/elements/InstrumentName.h"
-#include "mx/core/elements/InstrumentSound.h"
-#include "mx/core/elements/MidiBank.h"
-#include "mx/core/elements/MidiChannel.h"
-#include "mx/core/elements/MidiDevice.h"
-#include "mx/core/elements/MidiDeviceInstrumentGroup.h"
-#include "mx/core/elements/MidiInstrument.h"
-#include "mx/core/elements/MidiName.h"
-#include "mx/core/elements/MidiProgram.h"
-#include "mx/core/elements/MidiUnpitched.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/MusicDataGroup.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/Pan.h"
-#include "mx/core/elements/PartAbbreviation.h"
-#include "mx/core/elements/PartGroupOrScorePart.h"
-#include "mx/core/elements/PartList.h"
-#include "mx/core/elements/PartName.h"
-#include "mx/core/elements/PartNameDisplay.h"
-#include "mx/core/elements/PartwisePart.h"
-#include "mx/core/elements/Properties.h"
-#include "mx/core/elements/ScoreHeaderGroup.h"
-#include "mx/core/elements/ScoreInstrument.h"
-#include "mx/core/elements/ScorePart.h"
-#include "mx/core/elements/ScorePartwise.h"
-#include "mx/core/elements/Solo.h"
-#include "mx/core/elements/SoloOrEnsembleChoice.h"
-#include "mx/core/elements/Staff.h"
-#include "mx/core/elements/Staves.h"
-#include "mx/core/elements/VirtualInstrument.h"
-#include "mx/core/elements/VirtualLibrary.h"
-#include "mx/core/elements/VirtualName.h"
-#include "mx/core/elements/Volume.h"
+#include "mx/core/generated/AccidentalText.h"
+#include "mx/core/generated/AccidentalValue.h"
+#include "mx/core/generated/FormattedText.h"
+#include "mx/core/generated/InstrumentSound.h"
+#include "mx/core/generated/MIDIDevice.h"
+#include "mx/core/generated/MIDIInstrument.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/NameDisplay.h"
+#include "mx/core/generated/NameDisplayChoice.h"
+#include "mx/core/generated/PartList.h"
+#include "mx/core/generated/PartListChoice.h"
+#include "mx/core/generated/PartName.h"
+#include "mx/core/generated/PartwiseMeasure.h"
+#include "mx/core/generated/PartwisePart.h"
+#include "mx/core/generated/ScoreHeaderGroup.h"
+#include "mx/core/generated/ScoreInstrument.h"
+#include "mx/core/generated/ScorePart.h"
+#include "mx/core/generated/ScorePartMIDIGroup.h"
+#include "mx/core/generated/ScorePartwise.h"
+#include "mx/core/generated/SoundID.h"
+#include "mx/core/generated/VirtualInstrument.h"
+#include "mx/core/generated/VirtualInstrumentDataGroup.h"
+#include "mx/core/generated/VirtualInstrumentDataGroupChoice.h"
+#include "mx/impl/Converter.h"
 #include "mx/impl/MeasureReader.h"
 #include "mx/impl/PrintFunctions.h"
+#include "mx/utility/Throw.h"
+#include "mx/utility/Unused.h"
 
 #include <sstream>
 
@@ -60,8 +44,8 @@ PartReader::PartReader(const core::ScorePart &inScorePart, const core::PartwiseP
       myGlobalTicksPerMeasure{globalTicksPerMeasure}, myScore{inScore}, myPartIndex{-1},
       myConstructedDivisionsValue{inDivisionsValue}
 {
-    const auto ppId = myPartwisePart.getAttributes()->id.getValue();
-    const auto spId = myScorePart.getAttributes()->id.getValue();
+    const auto ppId = myPartwisePart.id().value();
+    const auto spId = myScorePart.id().value();
     if (ppId != spId)
     {
         MX_THROW("the partwise-part id must match the score-part id");
@@ -88,9 +72,8 @@ api::PartData PartReader::getPartData()
 
     myPreviousCursor = myCurrentCursor;
 
-    for (const auto &mxMeasurePtr : myPartwisePart.getPartwiseMeasureSet())
+    for (const auto &mxMeasure : myPartwisePart.measure())
     {
-        const auto &mxMeasure = *mxMeasurePtr;
         MeasureReader reader{mxMeasure, myCurrentCursor, myPreviousCursor};
         // the reader returns the measure data and any data that needs to be written at
         // the part-level (e.g. transposition). currently this is done as a pair.
@@ -124,32 +107,29 @@ int PartReader::calculateNumStaves() const
 {
     int numStaves = 1;
 
-    for (const auto &measure : myPartwisePart.getPartwiseMeasureSet())
+    for (const auto &measure : myPartwisePart.measure())
     {
-        for (const auto &mdc : measure->getMusicDataGroup()->getMusicDataChoiceSet())
+        for (const auto &mdc : measure.musicData())
         {
-            const auto choiceType = mdc->getChoice();
-
-            switch (choiceType)
+            switch (mdc.kind())
             {
-            case core::MusicDataChoice::Choice::note: {
-                updateNumStaves(*mdc->getNote(), numStaves);
+            case core::MusicDataChoice::Kind::note: {
+                updateNumStaves(mdc.asNote(), numStaves);
                 break;
             }
-
-            case core::MusicDataChoice::Choice::forward: {
-                updateNumStaves(*mdc->getForward(), numStaves);
+            case core::MusicDataChoice::Kind::forward: {
+                updateNumStaves(mdc.asForward(), numStaves);
                 break;
             }
-            case core::MusicDataChoice::Choice::direction: {
-                updateNumStaves(*mdc->getDirection(), numStaves);
+            case core::MusicDataChoice::Kind::direction: {
+                updateNumStaves(mdc.asDirection(), numStaves);
                 break;
             }
-            case core::MusicDataChoice::Choice::properties: {
-                const auto &properties = *mdc->getProperties();
-                if (properties.getHasStaves())
+            case core::MusicDataChoice::Kind::attributes: {
+                const auto &attributes = mdc.asAttributes();
+                if (attributes.staves().has_value())
                 {
-                    int temp = properties.getStaves()->getValue().getValue();
+                    int temp = *attributes.staves();
                     if (temp > numStaves)
                     {
                         numStaves = temp;
@@ -157,19 +137,20 @@ int PartReader::calculateNumStaves() const
                 }
                 break;
             }
-            case core::MusicDataChoice::Choice::harmony: {
-                updateNumStaves(*mdc->getHarmony(), numStaves);
+            case core::MusicDataChoice::Kind::harmony: {
+                updateNumStaves(mdc.asHarmony(), numStaves);
                 break;
             }
             // these are not specific to a staff number
-            case core::MusicDataChoice::Choice::backup:
-            case core::MusicDataChoice::Choice::figuredBass:
-            case core::MusicDataChoice::Choice::print:
-            case core::MusicDataChoice::Choice::sound:
-            case core::MusicDataChoice::Choice::barline:
-            case core::MusicDataChoice::Choice::grouping:
-            case core::MusicDataChoice::Choice::link:
-            case core::MusicDataChoice::Choice::bookmark:
+            case core::MusicDataChoice::Kind::backup:
+            case core::MusicDataChoice::Kind::figuredBass:
+            case core::MusicDataChoice::Kind::print:
+            case core::MusicDataChoice::Kind::sound:
+            case core::MusicDataChoice::Kind::listening:
+            case core::MusicDataChoice::Kind::barline:
+            case core::MusicDataChoice::Kind::grouping:
+            case core::MusicDataChoice::Kind::link:
+            case core::MusicDataChoice::Kind::bookmark:
             default:
                 break;
             }
@@ -181,53 +162,51 @@ int PartReader::calculateNumStaves() const
 
 void PartReader::parseScorePart() const
 {
-    myOutPartData.uniqueId = myScorePart.getAttributes()->id.getValue();
-    myOutPartData.name = myScorePart.getPartName()->getValue().getValue();
+    myOutPartData.uniqueId = myScorePart.id().value();
+    myOutPartData.name = myScorePart.partName().value();
 
-    if (myScorePart.getHasPartNameDisplay())
+    if (myScorePart.partNameDisplay().has_value())
     {
-        myOutPartData.displayName =
-            extractDisplayText(myScorePart.getPartNameDisplay()->getDisplayTextOrAccidentalTextSet());
+        myOutPartData.displayName = extractDisplayText(*myScorePart.partNameDisplay());
     }
 
-    if (myScorePart.getHasPartAbbreviation())
+    if (myScorePart.partAbbreviation().has_value())
     {
-        myOutPartData.abbreviation = myScorePart.getPartAbbreviation()->getValue().getValue();
+        myOutPartData.abbreviation = myScorePart.partAbbreviation()->value();
     }
 
-    if (myScorePart.getHasPartAbbreviationDisplay())
+    if (myScorePart.partAbbreviationDisplay().has_value())
     {
-        myOutPartData.displayAbbreviation =
-            extractDisplayText(myScorePart.getPartNameDisplay()->getDisplayTextOrAccidentalTextSet());
+        myOutPartData.displayAbbreviation = extractDisplayText(*myScorePart.partAbbreviationDisplay());
     }
 
-    if (myScorePart.getScoreInstrumentSet().size() > 0)
+    if (!myScorePart.scoreInstrument().empty())
     {
-        parseScoreInstrument(**myScorePart.getScoreInstrumentSet().cbegin());
+        parseScoreInstrument(myScorePart.scoreInstrument().front());
     }
 
-    if (myScorePart.getMidiDeviceInstrumentGroupSet().size() > 0)
+    if (!myScorePart.midiGroup().empty())
     {
-        parseMidiDeviceInstrumentGroup(**myScorePart.getMidiDeviceInstrumentGroupSet().cbegin());
+        parseMidiDeviceInstrumentGroup(myScorePart.midiGroup().front());
     }
 }
 
-std::string PartReader::extractDisplayText(const core::DisplayTextOrAccidentalTextSet &items) const
+std::string PartReader::extractDisplayText(const core::NameDisplay &nameDisplay) const
 {
     std::stringstream ss;
-    for (const auto &c : items)
+    for (const auto &c : nameDisplay.choice())
     {
-        if (c->getChoice() == core::DisplayTextOrAccidentalText::Choice::displayText)
+        if (c.isDisplayText())
         {
-            ss << c->getDisplayText()->getValue().getValue();
+            ss << c.asDisplayText().value();
         }
-        else if (c->getChoice() == core::DisplayTextOrAccidentalText::Choice::accidentalText)
+        else if (c.isAccidentalText())
         {
-            if (c->getAccidentalText()->getValue() == core::AccidentalValue::flat)
+            if (c.asAccidentalText().value().tag() == core::AccidentalValue::Tag::flat)
             {
                 ss << "b"; // TODO - support accidental text correctly
             }
-            else if (c->getAccidentalText()->getValue() == core::AccidentalValue::flat)
+            else if (c.asAccidentalText().value().tag() == core::AccidentalValue::Tag::sharp)
             {
                 ss << "#";
             }
@@ -238,139 +217,135 @@ std::string PartReader::extractDisplayText(const core::DisplayTextOrAccidentalTe
 
 void PartReader::parseScoreInstrument(const core::ScoreInstrument &scoreInstrument) const
 {
-    myOutPartData.instrumentData.uniqueId = scoreInstrument.getAttributes()->id.getValue();
-    myOutPartData.instrumentData.name = scoreInstrument.getInstrumentName()->getValue().getValue();
+    myOutPartData.instrumentData.uniqueId = scoreInstrument.id().value();
+    myOutPartData.instrumentData.name = scoreInstrument.instrumentName();
 
-    if (scoreInstrument.getHasInstrumentAbbreviation())
+    if (scoreInstrument.instrumentAbbreviation().has_value())
     {
-        myOutPartData.instrumentData.abbreviation = scoreInstrument.getInstrumentAbbreviation()->getValue().getValue();
+        myOutPartData.instrumentData.abbreviation = *scoreInstrument.instrumentAbbreviation();
     }
 
-    if (scoreInstrument.getHasSoloOrEnsembleChoice())
+    const auto &vidg = scoreInstrument.virtualInstrumentData();
+
+    if (vidg.choice().has_value())
     {
-        const auto &soec = *scoreInstrument.getSoloOrEnsembleChoice();
-        if (soec.getChoice() == core::SoloOrEnsembleChoice::Choice::ensemble)
+        const auto &choice = *vidg.choice();
+        if (choice.isEnsemble())
         {
             myOutPartData.instrumentData.soloOrEnsemble = api::SoloOrEnsemble::ensemble;
         }
-        else if (soec.getChoice() == core::SoloOrEnsembleChoice::Choice::solo)
+        else if (choice.isSolo())
         {
             myOutPartData.instrumentData.soloOrEnsemble = api::SoloOrEnsemble::solo;
         }
     }
 
-    if (scoreInstrument.getHasInstrumentSound())
+    if (vidg.instrumentSound().has_value())
     {
-        const auto psValue = scoreInstrument.getInstrumentSound()->getValue().getValue();
-        if (psValue != core::PlaybackSound::other)
+        const auto &instrSound = *vidg.instrumentSound();
+        if (instrSound.isSoundID())
         {
             Converter c;
-            myOutPartData.instrumentData.soundID = c.convert(psValue);
+            myOutPartData.instrumentData.soundID = c.convert(instrSound.asSoundID());
         }
     }
 
-    if (scoreInstrument.getHasVirtualInstrument())
+    if (vidg.virtualInstrument().has_value())
     {
-        parseVirtualInstrument(*scoreInstrument.getVirtualInstrument());
+        parseVirtualInstrument(*vidg.virtualInstrument());
     }
 }
 
 void PartReader::parseVirtualInstrument(const core::VirtualInstrument &virtualInstrument) const
 {
-    if (virtualInstrument.getHasVirtualName())
+    if (virtualInstrument.virtualName().has_value())
     {
-        myOutPartData.instrumentData.midiData.virtualName = virtualInstrument.getVirtualName()->getValue().getValue();
+        myOutPartData.instrumentData.midiData.virtualName = *virtualInstrument.virtualName();
     }
 
-    if (virtualInstrument.getHasVirtualLibrary())
+    if (virtualInstrument.virtualLibrary().has_value())
     {
-        myOutPartData.instrumentData.midiData.virtualLibrary =
-            virtualInstrument.getVirtualLibrary()->getValue().getValue();
-    }
-}
-
-void PartReader::parseMidiDeviceInstrumentGroup(const core::MidiDeviceInstrumentGroup &grp) const
-{
-    if (grp.getHasMidiDevice())
-    {
-        myOutPartData.instrumentData.midiData.device = grp.getMidiDevice()->getValue().getValue();
-    }
-
-    if (grp.getHasMidiInstrument())
-    {
-        parseMidiInstrument(*grp.getMidiInstrument());
+        myOutPartData.instrumentData.midiData.virtualLibrary = *virtualInstrument.virtualLibrary();
     }
 }
 
-void PartReader::parseMidiInstrument(const core::MidiInstrument &inst) const
+void PartReader::parseMidiDeviceInstrumentGroup(const core::ScorePartMIDIGroup &grp) const
 {
-    if (inst.getHasMidiChannel())
+    if (grp.midiDevice().has_value())
     {
-        myOutPartData.instrumentData.midiData.channel = inst.getMidiChannel()->getValue().getValue();
+        myOutPartData.instrumentData.midiData.device = grp.midiDevice()->value();
     }
 
-    if (inst.getHasMidiName())
+    if (grp.midiInstrument().has_value())
     {
-        myOutPartData.instrumentData.midiData.name = inst.getMidiName()->getValue().getValue();
+        parseMidiInstrument(*grp.midiInstrument());
+    }
+}
+
+void PartReader::parseMidiInstrument(const core::MIDIInstrument &inst) const
+{
+    if (inst.midiChannel().has_value())
+    {
+        myOutPartData.instrumentData.midiData.channel = inst.midiChannel()->value();
     }
 
-    if (inst.getHasMidiChannel())
+    if (inst.midiName().has_value())
     {
-        myOutPartData.instrumentData.midiData.channel = inst.getMidiChannel()->getValue().getValue();
+        myOutPartData.instrumentData.midiData.name = *inst.midiName();
     }
 
-    if (inst.getHasMidiBank())
+    if (inst.midiBank().has_value())
     {
-        myOutPartData.instrumentData.midiData.bank = inst.getMidiBank()->getValue().getValue();
+        myOutPartData.instrumentData.midiData.bank = inst.midiBank()->value();
     }
 
-    if (inst.getHasMidiProgram())
+    if (inst.midiProgram().has_value())
     {
-        myOutPartData.instrumentData.midiData.program = inst.getMidiProgram()->getValue().getValue();
+        myOutPartData.instrumentData.midiData.program = inst.midiProgram()->value();
     }
 
-    if (inst.getHasMidiUnpitched())
+    if (inst.midiUnpitched().has_value())
     {
-        myOutPartData.instrumentData.midiData.unpitched = inst.getMidiUnpitched()->getValue().getValue();
+        myOutPartData.instrumentData.midiData.unpitched = inst.midiUnpitched()->value();
     }
 
-    if (inst.getHasVolume())
+    if (inst.volume().has_value())
     {
         myOutPartData.instrumentData.midiData.isVolumeSpecified = true;
-        myOutPartData.instrumentData.midiData.volume = inst.getVolume()->getValue().getValue();
+        myOutPartData.instrumentData.midiData.volume = inst.volume()->value().value();
     }
 
-    if (inst.getHasPan())
+    if (inst.pan().has_value())
     {
         myOutPartData.instrumentData.midiData.isPanSpecified = true;
-        myOutPartData.instrumentData.midiData.pan = inst.getPan()->getValue().getValue();
+        myOutPartData.instrumentData.midiData.pan = inst.pan()->value().value();
     }
 
-    if (inst.getHasElevation())
+    if (inst.elevation().has_value())
     {
         myOutPartData.instrumentData.midiData.isElevationSpecified = true;
-        myOutPartData.instrumentData.midiData.elevation = inst.getElevation()->getValue().getValue();
+        myOutPartData.instrumentData.midiData.elevation = inst.elevation()->value().value();
     }
 }
 
 int PartReader::findPartIndex(const std::string &inPartId) const
 {
-    const auto &partList = *myScore.getScoreHeaderGroup()->getPartList();
-    const auto &firstPart = *partList.getScorePart();
+    const auto &partList = myScore.scoreHeader().partList();
+    const auto &firstPart = partList.scorePart();
     int index = 0;
 
-    if (firstPart.getAttributes()->id.getValue() == inPartId)
+    if (firstPart.id().value() == inPartId)
     {
         return index;
     }
 
     ++index;
 
-    for (const auto &p : partList.getPartGroupOrScorePartSet())
+    for (const auto &p : partList.choice())
     {
-        if (p->getChoice() == core::PartGroupOrScorePart::Choice::scorePart)
+        if (p.isScorePart())
         {
-            if (p->getScorePart()->getAttributes()->id.getValue() == inPartId)
+            if (p.asScorePart().id().value() == inPartId)
             {
                 return index;
             }

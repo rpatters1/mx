@@ -1,0 +1,21 @@
+// {{generated_banner}}
+
+#pragma once
+
+#include <string_view>
+
+namespace {{vars.namespace}}
+{
+
+/// The MusicXML version of the schema this model was generated from
+/// (emitted from the pinned XSD's stem, so retargeting cannot leave it
+/// stale). A document declaring a NEWER version is rejected at parse with
+/// ErrorCode::unsupportedVersion.
+inline constexpr std::string_view SupportedMusicXMLVersion = "{{schema_version}}";
+
+/// The DOCTYPE values the document serializer writes, by root.
+inline constexpr std::string_view DoctypeScorePartwise = "{{vars.doctype-partwise}}";
+
+inline constexpr std::string_view DoctypeScoreTimewise = "{{vars.doctype-timewise}}";
+
+} // namespace {{vars.namespace}}

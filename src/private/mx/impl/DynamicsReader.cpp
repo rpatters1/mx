@@ -3,17 +3,16 @@
 // Distributed under the MIT License
 
 #include "mx/impl/DynamicsReader.h"
-#include "mx/core/Enums.h"
-#include "mx/core/elements/Dynamics.h"
+#include "mx/core/generated/Dynamics.h"
+#include "mx/core/generated/DynamicsChoice.h"
 #include "mx/impl/Converter.h"
 #include "mx/impl/MarkDataFunctions.h"
-
-#include <mutex>
 
 namespace mx
 {
 namespace impl
 {
+
 DynamicsReader::DynamicsReader(const core::Dynamics &inDynamic, impl::Cursor inCursor)
     : myDynamic{inDynamic}, myCursor{inCursor}
 {
@@ -21,14 +20,31 @@ DynamicsReader::DynamicsReader(const core::Dynamics &inDynamic, impl::Cursor inC
 
 void DynamicsReader::parseDynamics(std::vector<api::MarkData> &outMarks) const
 {
-    const auto dynamicType = myDynamic.getValue().getValue();
+    const auto &choices = myDynamic.choice();
+    if (choices.empty())
+    {
+        return;
+    }
+
+    const auto &firstChoice = choices.front();
+    const auto kind = firstChoice.kind();
     Converter converter;
-    const auto markType = converter.convertDynamic(dynamicType);
+    const auto markType = converter.convertDynamic(kind);
+
     auto markData = api::MarkData{};
     markData.markType = markType;
     markData.tickTimePosition = myCursor.tickTimePosition;
-    markData.name = myDynamic.getValue().getValueString();
-    markData.positionData = impl::getPositionData(*myDynamic.getAttributes());
+
+    if (kind == core::DynamicsChoice::Kind::otherDynamics)
+    {
+        markData.name = firstChoice.asOtherDynamics().value();
+    }
+    else
+    {
+        markData.name = dynamicsKindToName(kind);
+    }
+
+    markData.positionData = impl::getPositionData(myDynamic);
     outMarks.emplace_back(std::move(markData));
 }
 } // namespace impl

@@ -3,137 +3,78 @@
 // Distributed under the MIT License
 
 #include "mx/impl/PropertiesWriter.h"
-#include "mx/core/Elements.h"
-#include "mx/core/elements/Accidental.h"
-#include "mx/core/elements/Backup.h"
-#include "mx/core/elements/Beam.h"
-#include "mx/core/elements/BeatType.h"
-#include "mx/core/elements/Beats.h"
-#include "mx/core/elements/Cancel.h"
-#include "mx/core/elements/Clef.h"
-#include "mx/core/elements/ClefOctaveChange.h"
-#include "mx/core/elements/Cue.h"
-#include "mx/core/elements/CueNoteGroup.h"
-#include "mx/core/elements/Directive.h"
-#include "mx/core/elements/Divisions.h"
-#include "mx/core/elements/Dot.h"
-#include "mx/core/elements/Duration.h"
-#include "mx/core/elements/EditorialGroup.h"
-#include "mx/core/elements/EditorialVoiceGroup.h"
-#include "mx/core/elements/Fifths.h"
-#include "mx/core/elements/Footnote.h"
-#include "mx/core/elements/Forward.h"
-#include "mx/core/elements/FullNoteGroup.h"
-#include "mx/core/elements/FullNoteTypeChoice.h"
-#include "mx/core/elements/Grace.h"
-#include "mx/core/elements/GraceNoteGroup.h"
-#include "mx/core/elements/Instrument.h"
-#include "mx/core/elements/Instruments.h"
-#include "mx/core/elements/Key.h"
-#include "mx/core/elements/KeyAccidental.h"
-#include "mx/core/elements/KeyChoice.h"
-#include "mx/core/elements/LayoutGroup.h"
-#include "mx/core/elements/LeftMargin.h"
-#include "mx/core/elements/Level.h"
-#include "mx/core/elements/Line.h"
-#include "mx/core/elements/Lyric.h"
-#include "mx/core/elements/MeasureLayout.h"
-#include "mx/core/elements/MeasureNumbering.h"
-#include "mx/core/elements/MeasureStyle.h"
-#include "mx/core/elements/Mode.h"
-#include "mx/core/elements/MusicDataChoice.h"
-#include "mx/core/elements/MusicDataGroup.h"
-#include "mx/core/elements/NormalNoteGroup.h"
-#include "mx/core/elements/Notations.h"
-#include "mx/core/elements/Note.h"
-#include "mx/core/elements/NoteChoice.h"
-#include "mx/core/elements/Notehead.h"
-#include "mx/core/elements/NoteheadText.h"
-#include "mx/core/elements/PartAbbreviationDisplay.h"
-#include "mx/core/elements/PartNameDisplay.h"
-#include "mx/core/elements/PartSymbol.h"
-#include "mx/core/elements/PartwiseMeasure.h"
-#include "mx/core/elements/Pitch.h"
-#include "mx/core/elements/Play.h"
-#include "mx/core/elements/Print.h"
-#include "mx/core/elements/Properties.h"
-#include "mx/core/elements/Rest.h"
-#include "mx/core/elements/RightMargin.h"
-#include "mx/core/elements/Sign.h"
-#include "mx/core/elements/Staff.h"
-#include "mx/core/elements/StaffDetails.h"
-#include "mx/core/elements/StaffLines.h"
-#include "mx/core/elements/Staves.h"
-#include "mx/core/elements/Stem.h"
-#include "mx/core/elements/SystemDistance.h"
-#include "mx/core/elements/SystemDividers.h"
-#include "mx/core/elements/SystemLayout.h"
-#include "mx/core/elements/SystemMargins.h"
-#include "mx/core/elements/Tie.h"
-#include "mx/core/elements/Time.h"
-#include "mx/core/elements/TimeChoice.h"
-#include "mx/core/elements/TimeModification.h"
-#include "mx/core/elements/TimeSignatureGroup.h"
-#include "mx/core/elements/TopSystemDistance.h"
-#include "mx/core/elements/TraditionalKey.h"
-#include "mx/core/elements/Transpose.h"
-#include "mx/core/elements/Type.h"
-#include "mx/core/elements/Unpitched.h"
-#include "mx/core/elements/Voice.h"
+#include "mx/core/Decimal.h"
+#include "mx/core/OneOrMore.h"
+#include "mx/core/generated/Attributes.h"
+#include "mx/core/generated/AttributesChoice.h"
+#include "mx/core/generated/Cancel.h"
+#include "mx/core/generated/Clef.h"
+#include "mx/core/generated/ClefGroup.h"
+#include "mx/core/generated/Fifths.h"
+#include "mx/core/generated/Key.h"
+#include "mx/core/generated/KeyAccidental.h"
+#include "mx/core/generated/KeyChoice.h"
+#include "mx/core/generated/Mode.h"
+#include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/NonTraditionalKeyGroup.h"
+#include "mx/core/generated/PartwiseMeasure.h"
+#include "mx/core/generated/PositiveDivisions.h"
+#include "mx/core/generated/Semitones.h"
+#include "mx/core/generated/StaffDetails.h"
+#include "mx/core/generated/StaffDetailsGroup.h"
+#include "mx/core/generated/StaffLinePosition.h"
+#include "mx/core/generated/StaffNumber.h"
+#include "mx/core/generated/Time.h"
+#include "mx/core/generated/TimeChoice.h"
+#include "mx/core/generated/TimeChoiceGroup.h"
+#include "mx/core/generated/TimeSignatureGroup.h"
+#include "mx/core/generated/TimeSymbol.h"
+#include "mx/core/generated/TraditionalKeyGroup.h"
+#include "mx/core/generated/Transpose.h"
 #include "mx/impl/Converter.h"
-#include "mx/impl/NoteWriter.h"
-#include "mx/impl/ScoreWriter.h"
 
 namespace mx
 {
 namespace impl
 {
-PropertiesWriter::PropertiesWriter(const core::PartwiseMeasurePtr &inPartwiseMeasure)
-    : myProperties{nullptr}, myPartwiseMeasure{inPartwiseMeasure}
+
+PropertiesWriter::PropertiesWriter(core::PartwiseMeasure &inPartwiseMeasure)
+    : myAttributes{}, myHasContent{false}, myPartwiseMeasure{inPartwiseMeasure}
+{
+}
+
+void PropertiesWriter::clearBuffer()
 {
     allocate();
-    MX_ASSERT(myPartwiseMeasure != nullptr);
 }
 
 void PropertiesWriter::flushBuffer()
 {
     if (!isPropertiesEmpty())
     {
-        auto mdc = core::makeMusicDataChoice();
-        mdc->setChoice(core::MusicDataChoice::Choice::properties);
-        mdc->setProperties(myProperties);
-        myPartwiseMeasure->getMusicDataGroup()->addMusicDataChoice(mdc);
+        myPartwiseMeasure.addMusicData(core::MusicDataChoice::attributes(myAttributes));
     }
     allocate();
 }
 
 bool PropertiesWriter::isPropertiesEmpty()
 {
-    if (!myProperties)
-    {
-        allocate();
-        return false;
-    }
-    const bool hasContents = myProperties->hasContents();
-    return !hasContents;
+    return !myHasContent;
 }
 
 void PropertiesWriter::writeDivisions(int value)
 {
-    myProperties->setHasDivisions(true);
-    myProperties->getDivisions()->setValue(core::PositiveDivisionsValue{static_cast<long double>(value)});
+    myAttributes.setDivisions(core::PositiveDivisions{core::Decimal{static_cast<double>(value)}});
+    myHasContent = true;
 }
 
 void PropertiesWriter::writeKey(int staffIndex, const api::KeyData &inKeyData)
 {
-    // TODO - support placement and other attributes
-
-    auto key = core::makeKey();
+    core::Key key{};
 
     if (staffIndex >= 0)
     {
-        key->getAttributes()->hasNumber = true;
-        key->getAttributes()->number = core::StaffNumber{staffIndex + 1};
+        key.setNumber(core::StaffNumber{staffIndex + 1});
     }
 
     if (inKeyData.nonTraditional.empty())
@@ -145,145 +86,160 @@ void PropertiesWriter::writeKey(int staffIndex, const api::KeyData &inKeyData)
         writeNonTraditionalKey(inKeyData, key);
     }
 
-    myProperties->addKey(key);
+    myAttributes.addKey(key);
+    myHasContent = true;
 }
 
-void PropertiesWriter::writeNonTraditionalKey(const api::KeyData &inKeyData, mx::core::KeyPtr &key)
+void PropertiesWriter::writeNonTraditionalKey(const api::KeyData &inKeyData, core::Key &ioKey)
 {
     Converter converter;
-    key->getKeyChoice()->setChoice(core::KeyChoice::Choice::nonTraditionalKey);
+    std::vector<core::NonTraditionalKeyGroup> groups;
     for (const auto &keyComponent : inKeyData.nonTraditional)
     {
-        auto nt = core::makeNonTraditionalKey();
+        core::NonTraditionalKeyGroup nt{};
         if (keyComponent.accidental != api::Accidental::none)
         {
-            nt->setHasKeyAccidental(true);
-            const auto a = nt->getKeyAccidental();
-
-            a->setValue(converter.convert(keyComponent.accidental));
+            core::KeyAccidental ka{};
+            ka.setValue(converter.convert(keyComponent.accidental));
+            nt.setKeyAccidental(ka);
         }
-
-        const auto isUnknown = keyComponent.step == api::Step::unspecified; // || keyComponent.step == api::Step::count;
+        const auto isUnknown = keyComponent.step == api::Step::unspecified;
         const auto step = isUnknown ? api::Step::c : keyComponent.step;
-        nt->getKeyStep()->setValue(converter.convert(step));
-
+        nt.setKeyStep(converter.convert(step));
         const auto alter = Converter::convertToAlter(keyComponent.alter, keyComponent.cents);
-        nt->getKeyAlter()->setValue(core::Semitones{alter});
-        key->getKeyChoice()->addNonTraditionalKey(nt);
+        nt.setKeyAlter(core::Semitones{core::Decimal{alter}});
+        groups.push_back(std::move(nt));
     }
+    ioKey.setChoice(core::KeyChoice::nonTraditionalKey(std::move(groups)));
 }
 
-void PropertiesWriter::writeTraditionalKey(const api::KeyData &inKeyData, mx::core::KeyPtr &key)
+void PropertiesWriter::writeTraditionalKey(const api::KeyData &inKeyData, core::Key &ioKey)
 {
-    key->getKeyChoice()->setChoice(core::KeyChoice::Choice::traditionalKey);
-    auto traditionalKey = key->getKeyChoice()->getTraditionalKey();
-    traditionalKey->getFifths()->setValue(core::FifthsValue{inKeyData.fifths});
+    core::TraditionalKeyGroup tkg{};
+    tkg.setFifths(core::Fifths{inKeyData.fifths});
 
     if (inKeyData.cancel != 0)
     {
-        traditionalKey->setHasCancel(true);
-        traditionalKey->getCancel()->setValue(core::FifthsValue{inKeyData.cancel});
+        core::Cancel cancel{};
+        cancel.setValue(core::Fifths{inKeyData.cancel});
+        tkg.setCancel(cancel);
     }
 
     if (inKeyData.mode == api::KeyMode::major || inKeyData.mode == api::KeyMode::minor)
     {
-        traditionalKey->setHasMode(true);
-        traditionalKey->getMode()->setValue(
-            core::ModeValue{inKeyData.mode == api::KeyMode::major ? core::ModeEnum::major : core::ModeEnum::minor});
+        const auto modeStr = (inKeyData.mode == api::KeyMode::major) ? "major" : "minor";
+        tkg.setMode(core::Mode{modeStr});
     }
+
+    ioKey.setChoice(core::KeyChoice::traditionalKey(tkg));
 }
 
 void PropertiesWriter::writeTime(const api::TimeSignatureData &value)
 {
-    auto time = core::makeTime();
-    myProperties->addTime(time);
-    time->getTimeChoice()->setChoice(core::TimeChoice::Choice::timeSignature);
-    auto sigGrp = time->getTimeChoice()->getTimeSignatureGroupSet().front();
-    sigGrp->getBeats()->setValue(core::XsString{value.beats});
-    sigGrp->getBeatType()->setValue(core::XsString{value.beatType});
+    core::Time time{};
+
+    core::TimeSignatureGroup tsg{};
+    tsg.setBeats(value.beats);
+    tsg.setBeatType(value.beatType);
+
+    core::TimeChoiceGroup tcg{};
+    tcg.setTimeSignature(core::OneOrMore<core::TimeSignatureGroup>{tsg});
+
+    time.setChoice(core::TimeChoice::group(tcg));
 
     const auto symbol = value.symbol;
     if (symbol != api::TimeSignatureSymbol::unspecified)
     {
-        time->getAttributes()->hasSymbol = true;
         if (symbol == api::TimeSignatureSymbol::common)
         {
-            time->getAttributes()->symbol = core::TimeSymbol::common;
+            time.setSymbol(core::TimeSymbol::common());
         }
         else if (symbol == api::TimeSignatureSymbol::cut)
         {
-            time->getAttributes()->symbol = core::TimeSymbol::cut;
+            time.setSymbol(core::TimeSymbol::cut());
         }
         else if (symbol == api::TimeSignatureSymbol::singleNumber)
         {
-            time->getAttributes()->symbol = core::TimeSymbol::singleNumber;
+            time.setSymbol(core::TimeSymbol::singleNumber());
         }
     }
 
     Converter converter;
     if (value.display != api::Bool::unspecified)
     {
-        time->getAttributes()->hasPrintObject = true;
-        time->getAttributes()->printObject = converter.convert(value.display);
+        time.setPrintObject(converter.convert(value.display));
     }
+
+    myAttributes.addTime(time);
+    myHasContent = true;
 }
 
 void PropertiesWriter::writeNumStaves(int value)
 {
-    myProperties->setHasStaves(true);
-    myProperties->getStaves()->setValue(core::NonNegativeInteger{value});
+    myAttributes.setStaves(value);
+    myHasContent = true;
 }
 
 void PropertiesWriter::writeStaffDetails(int staffIndex, int staffLines)
 {
-    auto staffDetails = core::makeStaffDetails();
+    core::StaffDetails staffDetails{};
+
     if (staffIndex >= 0)
     {
-        staffDetails->getAttributes()->hasNumber = true;
-        staffDetails->getAttributes()->number = core::StaffNumber{staffIndex + 1};
+        staffDetails.setNumber(core::StaffNumber{staffIndex + 1});
     }
 
-    staffDetails->setHasStaffLines(true);
-    staffDetails->getStaffLines()->setValue(core::NonNegativeInteger{staffLines});
-    myProperties->addStaffDetails(staffDetails);
+    core::StaffDetailsGroup sdg{};
+    sdg.setStaffLines(staffLines);
+    staffDetails.setGroup(sdg);
+
+    myAttributes.addStaffDetails(staffDetails);
+    myHasContent = true;
 }
 
 void PropertiesWriter::writeClef(int staffIndex, const api::ClefData &inClefData)
 {
-    auto mxClef = core::makeClef();
+    core::Clef mxClef{};
 
     if (staffIndex >= 0)
     {
-        mxClef->getAttributes()->hasNumber = true;
-        mxClef->getAttributes()->number = core::StaffNumber{staffIndex + 1};
+        mxClef.setNumber(core::StaffNumber{staffIndex + 1});
     }
 
     Converter converter;
-    mxClef->getSign()->setValue(converter.convert(inClefData.symbol));
+    core::ClefGroup cg{};
+    cg.setSign(converter.convert(inClefData.symbol));
 
     if (inClefData.line >= 0)
     {
-        mxClef->setHasLine(true);
-        mxClef->getLine()->setValue(core::StaffLine{inClefData.line});
+        cg.setLine(core::StaffLinePosition{inClefData.line});
     }
 
     if (inClefData.octaveChange != 0)
     {
-        mxClef->setHasClefOctaveChange(true);
-        mxClef->getClefOctaveChange()->setValue(core::Integer{inClefData.octaveChange});
+        cg.setClefOctaveChange(inClefData.octaveChange);
     }
-    myProperties->addClef(mxClef);
+
+    mxClef.setClef(cg);
+    myAttributes.addClef(mxClef);
+    myHasContent = true;
 }
 
 void PropertiesWriter::writeTranspose(const api::TransposeData &inTransposeData)
 {
-    auto transposePtr = Converter::convertToTranspose(inTransposeData);
-    myProperties->addTranspose(transposePtr);
+    auto xpose = Converter::convertToTranspose(inTransposeData);
+    auto vec =
+        myAttributes.choice().isTranspose() ? myAttributes.choice().asTranspose() : std::vector<core::Transpose>{};
+    vec.push_back(std::move(xpose));
+    myAttributes.setChoice(core::AttributesChoice::transpose(std::move(vec)));
+    myHasContent = true;
 }
 
 void PropertiesWriter::allocate()
 {
-    myProperties = core::makeProperties();
+    myAttributes = core::Attributes{};
+    myHasContent = false;
 }
+
 } // namespace impl
 } // namespace mx

@@ -1,0 +1,95 @@
+{{#fields}}
+{{#is_required}}
+const {{type_ref.ident}} &{{type.ident}}::{{ident}}() const noexcept
+{
+    return m_{{ident}};
+}
+
+void {{type.ident}}::set{{name.pascal}}({{type_ref.ident}} value)
+{
+    m_{{ident}} = std::move(value);
+}
+
+{{/is_required}}
+{{#is_optional}}
+{{#presence}}
+bool {{type.ident}}::{{ident}}() const noexcept
+{
+    return m_{{ident}};
+}
+
+void {{type.ident}}::set{{name.pascal}}(bool value) noexcept
+{
+    m_{{ident}} = value;
+}
+
+{{/presence}}
+{{^presence}}
+const std::optional<{{type_ref.ident}}> &{{type.ident}}::{{ident}}() const noexcept
+{
+    return m_{{ident}};
+}
+
+void {{type.ident}}::set{{name.pascal}}(std::optional<{{type_ref.ident}}> value)
+{
+    m_{{ident}} = std::move(value);
+}
+
+{{/presence}}
+{{/is_optional}}
+{{#is_vector}}
+std::span<const {{type_ref.ident}}> {{type.ident}}::{{ident}}() const noexcept
+{
+{{#min1}}
+    return m_{{ident}}.items();
+{{/min1}}
+{{^min1}}
+    return m_{{ident}};
+{{/min1}}
+}
+
+{{#max}}
+Result<void> {{type.ident}}::add{{name.pascal}}({{type_ref.ident}} value)
+{
+    if (m_{{ident}}.size() >= {{max}})
+    {
+        return Error{ErrorCode::tooManyElements, {}, "at most {{max}} {{name.wire}} occurrences"};
+    }
+    m_{{ident}}.push_back(std::move(value));
+    return {};
+}
+
+void {{type.ident}}::clear{{name.pascal}}() noexcept
+{
+    m_{{ident}}.clear();
+}
+
+{{/max}}
+{{^max}}
+void {{type.ident}}::add{{name.pascal}}({{type_ref.ident}} value)
+{
+{{#min1}}
+    m_{{ident}}.add(std::move(value));
+{{/min1}}
+{{^min1}}
+    m_{{ident}}.push_back(std::move(value));
+{{/min1}}
+}
+
+{{#min1}}
+void {{type.ident}}::set{{name.pascal}}(OneOrMore<{{type_ref.ident}}> value)
+{
+    m_{{ident}} = std::move(value);
+}
+
+{{/min1}}
+{{^min1}}
+void {{type.ident}}::set{{name.pascal}}(std::vector<{{type_ref.ident}}> value)
+{
+    m_{{ident}} = std::move(value);
+}
+
+{{/min1}}
+{{/max}}
+{{/is_vector}}
+{{/fields}}

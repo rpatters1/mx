@@ -8,12 +8,9 @@
 #include "cpul/cpulTestHarness.h"
 #include "mx/api/DefaultsData.h"
 #include "mx/api/DocumentManager.h"
-#include "mx/core/Document.h"
-#include "mx/core/elements/BottomMargin.h"
-#include "mx/core/elements/LeftMargin.h"
-#include "mx/core/elements/PageMargins.h"
-#include "mx/core/elements/RightMargin.h"
-#include "mx/core/elements/TopMargin.h"
+#include "mx/core/generated/Document.h"
+#include "mx/core/generated/MarginType.h"
+#include "mx/core/generated/PageLayout.h"
 #include "mxtest/file/Path.h"
 
 using namespace std;
@@ -22,15 +19,17 @@ using namespace mx::api;
 inline int loadDoc()
 {
     auto &docMngr = DocumentManager::getInstance();
-    return docMngr.createFromFile(std::string{mxtest::getResourcesDirectoryPath()} +
-                                  std::string{"/recsuite/Dichterliebe01.xml"});
+    const auto r = docMngr.createFromFile(std::string{mxtest::getResourcesDirectoryPath()} +
+                                          std::string{"/recsuite/Dichterliebe01.xml"});
+    return r.ok() ? r.value() : -1;
 }
 
 inline int loadActorPreludeDoc()
 {
     auto &docMngr = DocumentManager::getInstance();
-    return docMngr.createFromFile(std::string{mxtest::getResourcesDirectoryPath()} +
-                                  std::string{"/recsuite/ActorPreludeSample.xml"});
+    const auto r = docMngr.createFromFile(std::string{mxtest::getResourcesDirectoryPath()} +
+                                          std::string{"/recsuite/ActorPreludeSample.xml"});
+    return r.ok() ? r.value() : -1;
 }
 
 inline void destroyDoc(int documentId)
@@ -41,18 +40,18 @@ inline void destroyDoc(int documentId)
 
 inline ScoreData getScore()
 {
-    auto documentId = loadDoc();
-    auto score = DocumentManager::getInstance().getData(documentId);
+    const int documentId = loadDoc();
+    const auto r = DocumentManager::getInstance().getData(documentId);
     destroyDoc(documentId);
-    return score;
+    return r.ok() ? r.value() : ScoreData{};
 }
 
 inline ScoreData getActorPreludeScore()
 {
-    auto documentId = loadActorPreludeDoc();
-    auto score = DocumentManager::getInstance().getData(documentId);
+    const int documentId = loadActorPreludeDoc();
+    const auto r = DocumentManager::getInstance().getData(documentId);
     destroyDoc(documentId);
-    return score;
+    return r.ok() ? r.value() : ScoreData{};
 }
 
 #if 0
@@ -306,11 +305,23 @@ TEST( Layout_PageMarginsBoth, DocumentManager )
     score.defaults.pageLayout.margins.even.value().top = top;
     score.defaults.pageLayout.margins.odd.value().bottom = bottom;
     score.defaults.pageLayout.margins.even.value().bottom = bottom;
-    auto docId = DocumentManager::getInstance().createFromScore( score );
+    const auto rDocId = DocumentManager::getInstance().createFromScore( score );
+    REQUIRE(rDocId.ok());
+    const int docId = rDocId.value();
     auto mxDoc = DocumentManager::getInstance().getDocument( docId );
-    const auto& pageMarginsSet = mxDoc->getScorePartwise()->getScoreHeaderGroup()->getDefaults()->getLayoutGroup()->getPageLayout()->getPageMarginsSet();
-    CHECK_EQUAL( 1, pageMarginsSet.size() );
-    CHECK( mx::core::MarginType::both == (*pageMarginsSet.cbegin())->getAttributes()->type );
+    REQUIRE(mxDoc != nullptr);
+    REQUIRE(mxDoc->isScorePartwise());
+    const auto& defaults = mxDoc->asScorePartwise().scoreHeader().defaults();
+    REQUIRE(defaults.has_value());
+    const auto& pageLayout = defaults->layout().pageLayout();
+    REQUIRE(pageLayout.has_value());
+    const auto& pageMarginsSpan = pageLayout->pageMargins();
+    CHECK_EQUAL( 1, pageMarginsSpan.size() );
+    if (!pageMarginsSpan.empty())
+    {
+        REQUIRE(pageMarginsSpan[0].type().has_value());
+        CHECK( mx::core::MarginType::Tag::both == pageMarginsSpan[0].type()->tag() );
+    }
 }
 T_END
 
@@ -330,14 +341,25 @@ TEST( Layout_PageMarginsEvenOdd, DocumentManager )
     score.defaults.pageLayout.margins.even.value().top = top;
     score.defaults.pageLayout.margins.odd.value().bottom = bottom;
     score.defaults.pageLayout.margins.even.value().bottom = bottom;
-    auto docId = DocumentManager::getInstance().createFromScore( score );
+    const auto rDocId = DocumentManager::getInstance().createFromScore( score );
+    REQUIRE(rDocId.ok());
+    const int docId = rDocId.value();
     auto mxDoc = DocumentManager::getInstance().getDocument( docId );
-    const auto& pageMarginsSet = mxDoc->getScorePartwise()->getScoreHeaderGroup()->getDefaults()->getLayoutGroup()->getPageLayout()->getPageMarginsSet();
-    CHECK_EQUAL( 2, pageMarginsSet.size() );
-    auto iter = pageMarginsSet.cbegin();
-    CHECK( mx::core::MarginType::odd == (*iter)->getAttributes()->type );
-    ++iter;
-    CHECK( mx::core::MarginType::even == (*iter)->getAttributes()->type );
+    REQUIRE(mxDoc != nullptr);
+    REQUIRE(mxDoc->isScorePartwise());
+    const auto& defaults = mxDoc->asScorePartwise().scoreHeader().defaults();
+    REQUIRE(defaults.has_value());
+    const auto& pageLayout = defaults->layout().pageLayout();
+    REQUIRE(pageLayout.has_value());
+    const auto& pageMarginsSpan = pageLayout->pageMargins();
+    CHECK_EQUAL( 2, pageMarginsSpan.size() );
+    if (pageMarginsSpan.size() >= 2)
+    {
+        REQUIRE(pageMarginsSpan[0].type().has_value());
+        CHECK( mx::core::MarginType::Tag::odd == pageMarginsSpan[0].type()->tag() );
+        REQUIRE(pageMarginsSpan[1].type().has_value());
+        CHECK( mx::core::MarginType::Tag::even == pageMarginsSpan[1].type()->tag() );
+    }
 }
 T_END
 

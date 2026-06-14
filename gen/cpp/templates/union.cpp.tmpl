@@ -1,0 +1,210 @@
+// {{generated_banner}}
+
+#include "mx/core/generated/{{name.pascal}}.h"
+
+#include "mx/core/Lexical.h"
+
+#include <utility>
+
+namespace {{vars.namespace}}
+{
+
+{{ident}}::{{ident}}()
+{
+{{#cases}}
+{{#is_first}}
+{{#is_literal}}
+    *this = {{ident}}::{{tag_ident}}();
+{{/is_literal}}
+{{^is_literal}}
+    *this = {{ident}}::{{tag_ident}}({{ref.ident}}{});
+{{/is_literal}}
+{{/is_first}}
+{{/cases}}
+}
+
+{{#cases}}
+{{#is_literal}}
+{{type.ident}} {{type.ident}}::{{tag_ident}}()
+{
+    return {{type.ident}}{Storage{std::in_place_index<{{index0}}>}};
+}
+
+{{/is_literal}}
+{{^is_literal}}
+{{type.ident}} {{type.ident}}::{{tag_ident}}({{ref.ident}} value)
+{
+{{#clamp}}
+    if (value {{op}} {{bound}})
+    {
+        value = {{replacement}};
+    }
+{{/clamp}}
+    return {{type.ident}}{Storage{std::in_place_index<{{index0}}>, std::move(value)}};
+}
+
+{{/is_literal}}
+{{/cases}}
+std::string {{ident}}::toString() const
+{
+    switch (m_value.index())
+    {
+{{#cases}}
+    case {{index0}}:
+{{#is_literal}}
+        return std::string({{wire_q}});
+{{/is_literal}}
+{{^is_literal}}
+{{#is_primitive_integer}}
+        return formatInt(*std::get_if<{{index0}}>(&m_value));
+{{/is_primitive_integer}}
+{{#is_primitive_string}}
+        return *std::get_if<{{index0}}>(&m_value);
+{{/is_primitive_string}}
+{{#is_primitive_decimal}}
+        return std::get_if<{{index0}}>(&m_value)->toString();
+{{/is_primitive_decimal}}
+{{#is_enum}}
+        return std::string{std::get_if<{{index0}}>(&m_value)->toString()};
+{{/is_enum}}
+{{#is_number}}
+        return std::get_if<{{index0}}>(&m_value)->toString();
+{{/is_number}}
+{{#is_string}}
+        return std::get_if<{{index0}}>(&m_value)->toString();
+{{/is_string}}
+{{#is_union}}
+        return std::get_if<{{index0}}>(&m_value)->toString();
+{{/is_union}}
+{{/is_literal}}
+{{/cases}}
+    default:
+        return {};
+    }
+}
+
+bool {{ident}}::tryParse(std::string_view text, {{ident}} &out)
+{
+{{#cases}}
+{{#is_literal}}
+    if (text == {{wire_q}})
+    {
+        out = {{ident}}::{{tag_ident}}();
+        return true;
+    }
+{{/is_literal}}
+{{^is_literal}}
+{{#is_primitive_integer}}
+    {
+        int v{};
+        if (tryParseInt(text, v))
+        {
+            out = {{ident}}::{{tag_ident}}(v);
+            return true;
+        }
+    }
+{{/is_primitive_integer}}
+{{#is_primitive_decimal}}
+    {
+        Decimal v;
+        if (Decimal::tryParse(text, v))
+        {
+            out = {{ident}}::{{tag_ident}}(std::move(v));
+            return true;
+        }
+    }
+{{/is_primitive_decimal}}
+{{#is_primitive_string}}
+    out = {{ident}}::{{tag_ident}}(std::string{text});
+    return true;
+{{/is_primitive_string}}
+{{#is_enum}}
+    {
+        {{ref.ident}} v;
+        if ({{ref.ident}}::tryParse(text, v))
+        {
+            out = {{ident}}::{{tag_ident}}(v);
+            return true;
+        }
+    }
+{{/is_enum}}
+{{#is_number}}
+    {
+        {{ref.ident}} v;
+        if ({{ref.ident}}::tryParse(text, v))
+        {
+            out = {{ident}}::{{tag_ident}}(std::move(v));
+            return true;
+        }
+    }
+{{/is_number}}
+{{#is_string}}
+    {
+        {{ref.ident}} v;
+        if ({{ref.ident}}::tryParse(text, v))
+        {
+            out = {{ident}}::{{tag_ident}}(std::move(v));
+            return true;
+        }
+    }
+{{/is_string}}
+{{#is_union}}
+    {
+        {{ref.ident}} v;
+        if ({{ref.ident}}::tryParse(text, v))
+        {
+            out = {{ident}}::{{tag_ident}}(std::move(v));
+            return true;
+        }
+    }
+{{/is_union}}
+{{/is_literal}}
+{{/cases}}
+{{#open_ended}}
+    return false; // unreachable: the open string member matched
+{{/open_ended}}
+{{^open_ended}}
+    return false;
+{{/open_ended}}
+}
+
+{{ident}} {{ident}}::parse(std::string_view text)
+{
+    {{ident}} out;
+    if (tryParse(text, out))
+    {
+        return out;
+    }
+{{#cases}}
+{{#is_first}}
+{{#is_literal}}
+    return {{ident}}::{{tag_ident}}();
+{{/is_literal}}
+{{^is_literal}}
+{{#is_primitive_integer}}
+    return {{ident}}::{{tag_ident}}(parseInt(text));
+{{/is_primitive_integer}}
+{{#is_primitive_decimal}}
+    return {{ident}}::{{tag_ident}}(Decimal::parse(text));
+{{/is_primitive_decimal}}
+{{#is_primitive_string}}
+    return {{ident}}::{{tag_ident}}(std::string{text});
+{{/is_primitive_string}}
+{{#is_enum}}
+    return {{ident}}::{{tag_ident}}({{ref.ident}}::parse(text));
+{{/is_enum}}
+{{#is_number}}
+    return {{ident}}::{{tag_ident}}({{ref.ident}}::parse(text));
+{{/is_number}}
+{{#is_string}}
+    return {{ident}}::{{tag_ident}}({{ref.ident}}::parse(text));
+{{/is_string}}
+{{#is_union}}
+    return {{ident}}::{{tag_ident}}({{ref.ident}}::parse(text));
+{{/is_union}}
+{{/is_literal}}
+{{/is_first}}
+{{/cases}}
+}
+
+} // namespace {{vars.namespace}}
