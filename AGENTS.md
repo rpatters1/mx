@@ -38,7 +38,16 @@ mx/
   gen/                  <- code generator system (see gen/README.md)
     test/go/            <- A toy Go implementation of MusicXML XSD for gen validation
     test/c/             <- A toy C implementation of MusicXML XSD for gen validation
+  audit/                <- MusicXML feature-audit tool (see audit/README.md); `make audit`
 ```
+
+## Feature audit (`audit/`)
+
+`python3 -m audit` (run via `make audit`) inventories which MusicXML features the corpus uses, so we
+can compare against what `mx::api` exposes. It writes a `*.features.xml` sidecar next to each corpus
+file and a `data/corpus.xml` aggregate (all checked in; the round-trip suites skip them). The
+`api-feature-audit` skill uses these to find enum bugs and feature gaps in `mx::api`. See
+`audit/README.md` and `data/README.md`.
 
 ## Build system
 

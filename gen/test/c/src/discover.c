@@ -30,12 +30,24 @@ static int has_xml_extension(const char *path) {
     return strcmp(dot, ".xml") == 0 || strcmp(dot, ".musicxml") == 0;
 }
 
-static int is_fixup_sidecar(const char *path) {
-    const char *suffix = ".fixup.xml";
+static int has_suffix(const char *path, const char *suffix) {
     size_t slen = strlen(suffix);
     size_t plen = strlen(path);
     if (plen < slen) return 0;
     return strcmp(path + plen - slen, suffix) == 0;
+}
+
+static int is_fixup_sidecar(const char *path) {
+    return has_suffix(path, ".fixup.xml");
+}
+
+/* Feature-audit outputs (python3 -m audit): the *.features.xml sidecars and the
+   corpus.xml aggregate. They share data/'s .xml extension but are not scores. */
+static int is_audit_artifact(const char *path) {
+    if (has_suffix(path, ".features.xml")) return 1;
+    const char *base = strrchr(path, '/');
+    base = base ? base + 1 : path;
+    return strcmp(base, "corpus.xml") == 0;
 }
 
 static int has_invalid_marker(const char *path) {
@@ -88,7 +100,8 @@ static void walk_dir(const char *dir, const char *data_root,
         if (*rel == '/') rel++;
 
         if (is_excluded_path(rel) || !has_xml_extension(path) ||
-            is_fixup_sidecar(path) || has_invalid_marker(path)) {
+            is_fixup_sidecar(path) || is_audit_artifact(path) ||
+            has_invalid_marker(path)) {
             free(path);
             continue;
         }

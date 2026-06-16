@@ -61,15 +61,28 @@ bool hasXmlExtension(const std::filesystem::path &p)
     return ext == ".xml" || ext == ".musicxml";
 }
 
-bool isFixupSidecar(const std::filesystem::path &p)
+bool hasSuffix(const std::string &filename, std::string_view suffix)
 {
-    const std::string filename = p.filename().string();
-    constexpr std::string_view kSuffix = ".fixup.xml";
-    if (filename.size() < kSuffix.size())
+    if (filename.size() < suffix.size())
     {
         return false;
     }
-    return filename.compare(filename.size() - kSuffix.size(), kSuffix.size(), kSuffix) == 0;
+    return filename.compare(filename.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+bool isFixupSidecar(const std::filesystem::path &p)
+{
+    return hasSuffix(p.filename().string(), ".fixup.xml");
+}
+
+// Artifacts written by the feature-audit tool (`python3 -m audit`): the
+// per-file `*.features.xml` sidecars and the top-level `corpus.xml` aggregate.
+// They live under `data/` with a `.xml` extension but are not MusicXML scores,
+// so the round-trip suite must skip them. See audit/discover.py.
+bool isAuditArtifact(const std::filesystem::path &p)
+{
+    const std::string filename = p.filename().string();
+    return hasSuffix(filename, ".features.xml") || filename == "corpus.xml";
 }
 
 bool hasInvalidMarker(const std::filesystem::path &p)
@@ -122,7 +135,8 @@ std::vector<std::string> discoverInputFiles()
         }
         const fs::path &p = entry.path();
         const fs::path relative = fs::relative(p, root);
-        if (isExcludedPath(relative) || !hasXmlExtension(p) || isFixupSidecar(p) || hasInvalidMarker(p))
+        if (isExcludedPath(relative) || !hasXmlExtension(p) || isFixupSidecar(p) || isAuditArtifact(p) ||
+            hasInvalidMarker(p))
         {
             continue;
         }
