@@ -15,7 +15,8 @@
 //
 //   discovery <dataRoot>
 //       Walk the whole corpus (same exclusion rules as corert: skip expected/,
-//       testOutput/, generalxml/, smufl/, *.fixup.xml, and *.invalid markers).
+//       testOutput/, generalxml/, smufl/, *.fixup.xml, *.features.xml and the
+//       corpus.xml audit artifacts, and *.invalid markers).
 //       Print one line per file: PASS|FAIL|SKIP<TAB>relpath<TAB>detail.
 //       Exit 0 always. Use to grow the pinned list.
 
@@ -72,11 +73,22 @@ void stripMxAttribution(pugi::xml_node node)
     }
 }
 
+bool hasSuffix(const std::string &name, std::string_view suffix)
+{
+    return name.size() >= suffix.size() && name.compare(name.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
 bool isFixupSidecar(const std::filesystem::path &p)
 {
+    return hasSuffix(p.filename().string(), ".fixup.xml");
+}
+
+// Skip the feature-audit tool's outputs (*.features.xml sidecars and the
+// corpus.xml aggregate): they share data/'s .xml extension but are not scores.
+bool isAuditArtifact(const std::filesystem::path &p)
+{
     const std::string name = p.filename().string();
-    constexpr std::string_view kSuffix = ".fixup.xml";
-    return name.size() >= kSuffix.size() && name.compare(name.size() - kSuffix.size(), kSuffix.size(), kSuffix) == 0;
+    return hasSuffix(name, ".features.xml") || name == "corpus.xml";
 }
 
 bool hasInvalidMarker(const std::filesystem::path &p)
@@ -104,7 +116,7 @@ std::vector<std::string> discoverFiles(const std::string &dataRoot)
         const std::string ext = p.extension().string();
         if (ext != ".xml" && ext != ".musicxml")
             continue;
-        if (isExcludedPath(rel) || isFixupSidecar(p) || hasInvalidMarker(p))
+        if (isExcludedPath(rel) || isFixupSidecar(p) || isAuditArtifact(p) || hasInvalidMarker(p))
             continue;
         result.push_back(p.string());
     }

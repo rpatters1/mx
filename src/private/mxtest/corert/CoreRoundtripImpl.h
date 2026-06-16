@@ -26,7 +26,8 @@ struct CoreRoundtripResult
 
 // Discover all eligible MusicXML inputs under `data/` (see AGENTS.md "The
 // corert test"): regular `.xml`/`.musicxml` files, excluding the expected/
-// testOutput/generalxml/smufl directories, `*.fixup.xml` sidecars, and
+// testOutput/generalxml/smufl directories, `*.fixup.xml` sidecars,
+// `*.features.xml` audit sidecars, the `corpus.xml` audit aggregate, and
 // files with a `.invalid` sibling marker. Returns absolute paths, sorted.
 std::vector<std::string> discoverInputFiles();
 

@@ -2,6 +2,22 @@
 
 MusicXML test inputs and expected-output fixtures.
 
+## Feature-audit artifacts (`*.features.xml`, `corpus.xml`)
+
+The `python3 -m audit` tool (`audit/`, run via `make audit`) inventories which MusicXML features the
+corpus uses, to compare against `mx::api` support:
+
+- `<name>.features.xml` -- a sidecar next to each corpus file listing every element and attribute
+  that file uses (the source extension is replaced, e.g. `Saltarello.xml` ->
+  `Saltarello.features.xml`, matching the `.fixup.xml` convention). Checked in.
+- `corpus.xml` -- a single top-level aggregate of feature usage across the whole corpus, ordered by
+  real-world ("wild") usage, distinguishing wild files from `synthetic/` files.
+
+Both are checked in and both have a `.xml` extension but are NOT MusicXML scores, so every
+corpus-walking test suite skips them (the `corert` C++/Go/C round-trip discoverers and the api
+corpus walker; see `audit/README.md`). The `api-feature-audit` skill consumes them and writes its
+own `api.features.xml` (also skipped).
+
 ## `.invalid` marker convention
 
 A file `foo.xml` (or `foo.musicxml`) that is **not** valid MusicXML must be accompanied by a sibling

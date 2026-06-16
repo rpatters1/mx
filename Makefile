@@ -68,6 +68,7 @@ FIND_CPP := find src \
         validate-cpp probe-cpp coverage-core-dev test-gen gen-check \
         gen-quality gen-lint \
         gen gen-cpp gen-go gen-c gen-schema \
+        audit audit-force \
         build-go build-c test-go test-c \
         lib dev test run-examples test-api-roundtrip discover-api-roundtrip coverage-api \
         clean clean-docker check-docker docker-volume
@@ -104,6 +105,10 @@ help:
 	@echo '  make gen-schema     Run the generator for the JSON Schema target.'
 	@echo '  make gen-quality    Score gen/ design quality; fail below the floor.'
 	@echo '  make gen-lint       Lint gen/ with pylint; fail below the floor.'
+	@echo ''
+	@echo '  Feature audit:'
+	@echo '  make audit          Write missing *.features.xml sidecars + rebuild data/corpus.xml.'
+	@echo '  make audit-force    Rewrite every *.features.xml sidecar (use after a format change).'
 	@echo ''
 	@echo '  Go test target:'
 	@echo '  make build-go       Build Go corert tests.'
@@ -344,6 +349,14 @@ gen-c:
 gen-schema:
 	python3 -m gen gen/schema/config.toml
 
+# Feature audit: inventory which MusicXML features the corpus uses, for comparing
+# against mx::api support. See audit/README.md and the api-feature-audit skill.
+audit:
+	python3 -m audit all
+
+audit-force:
+	python3 -m audit all --force
+
 build-go:
 	cd gen/test/go && MX_REPO_ROOT=$(CURDIR) go test -c -o build/corert-test ./corert/
 
@@ -454,6 +467,12 @@ gen-c: $(DOCKER_STAMP) docker-volume
 
 gen-schema: $(DOCKER_STAMP) docker-volume
 	$(DOCKER_RUN) make gen-schema
+
+audit: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make audit
+
+audit-force: $(DOCKER_STAMP) docker-volume
+	$(DOCKER_RUN) make audit-force
 
 build-go: $(DOCKER_STAMP) docker-volume
 	$(DOCKER_RUN) make build-go

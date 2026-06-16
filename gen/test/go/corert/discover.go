@@ -36,6 +36,9 @@ func DiscoverInputFiles(dataRoot string) ([]string, error) {
 		if isFixupSidecar(path) {
 			return nil
 		}
+		if isAuditArtifact(path) {
+			return nil
+		}
 		if hasInvalidMarker(path) {
 			return nil
 		}
@@ -73,6 +76,14 @@ func hasXMLExtension(path string) bool {
 
 func isFixupSidecar(path string) bool {
 	return strings.HasSuffix(path, ".fixup.xml")
+}
+
+// isAuditArtifact reports whether path is a feature-audit output (a
+// *.features.xml sidecar or the corpus.xml aggregate). They share data/'s .xml
+// extension but are not MusicXML scores, so the round-trip suite skips them.
+func isAuditArtifact(path string) bool {
+	return strings.HasSuffix(path, ".features.xml") ||
+		filepath.Base(path) == "corpus.xml"
 }
 
 func hasInvalidMarker(path string) bool {
