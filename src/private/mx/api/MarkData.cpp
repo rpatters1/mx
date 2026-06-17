@@ -65,6 +65,12 @@ std::string dynamicsKindToString(core::DynamicsChoice::Kind kind)
         return "sffz";
     case core::DynamicsChoice::Kind::fz:
         return "fz";
+    case core::DynamicsChoice::Kind::n:
+        return "n";
+    case core::DynamicsChoice::Kind::pf:
+        return "pf";
+    case core::DynamicsChoice::Kind::sfzp:
+        return "sfzp";
     default:
         return "other-dynamics";
     }
@@ -81,6 +87,7 @@ bool isMarkDynamic(MarkType markType)
            (markType == MarkType::sf) || (markType == MarkType::sfp) || (markType == MarkType::sfpp) ||
            (markType == MarkType::fp) || (markType == MarkType::rf) || (markType == MarkType::rfz) ||
            (markType == MarkType::sfz) || (markType == MarkType::sffz) || (markType == MarkType::fz) ||
+           (markType == MarkType::n) || (markType == MarkType::pf) || (markType == MarkType::sfzp) ||
            (markType == MarkType::otherDynamics);
 }
 
@@ -97,14 +104,16 @@ bool isMarkArticulation(MarkType markType)
            (markType == MarkType::staccatissimo) || (markType == MarkType::spiccato) || (markType == MarkType::scoop) ||
            (markType == MarkType::plop) || (markType == MarkType::doit) || (markType == MarkType::falloff) ||
            (markType == MarkType::breathMark) || (markType == MarkType::caesura) || (markType == MarkType::stress) ||
-           (markType == MarkType::unstress) || (markType == MarkType::otherArticulation);
+           (markType == MarkType::unstress) || (markType == MarkType::softAccent) ||
+           (markType == MarkType::otherArticulation);
 }
 
 bool isMarkOrnament(MarkType markType)
 {
     return (markType == MarkType::trillMark) || (markType == MarkType::turn) || (markType == MarkType::delayedTurn) ||
            (markType == MarkType::invertedTurn) || (markType == MarkType::delayedInvertedTurn) ||
-           (markType == MarkType::verticalTurn) || (markType == MarkType::shake) || (markType == MarkType::wavyLine) ||
+           (markType == MarkType::verticalTurn) || (markType == MarkType::invertedVerticalTurn) ||
+           (markType == MarkType::haydn) || (markType == MarkType::shake) || (markType == MarkType::wavyLine) ||
            (markType == MarkType::mordent) || (markType == MarkType::invertedMordent) ||
            (markType == MarkType::schleifer) || (markType == MarkType::tremoloSingleOne) ||
            (markType == MarkType::tremoloSingleTwo) || (markType == MarkType::tremoloSingleThree) ||
@@ -116,10 +125,13 @@ bool isMarkFermata(MarkType markType)
 {
     return (markType == MarkType::fermata) || (markType == MarkType::fermataNormal) ||
            (markType == MarkType::fermataAngled) || (markType == MarkType::fermataSquare) ||
-           (markType == MarkType::fermataUpright) || (markType == MarkType::fermataNormalUpright) ||
-           (markType == MarkType::fermataAngledUpright) || (markType == MarkType::fermataSquareUpright) ||
-           (markType == MarkType::fermataInverted) || (markType == MarkType::fermataNormalInverted) ||
-           (markType == MarkType::fermataAngledInverted) || (markType == MarkType::fermataSquareInverted);
+           (markType == MarkType::fermataDoubleAngled) || (markType == MarkType::fermataDoubleSquare) ||
+           (markType == MarkType::fermataDoubleDot) || (markType == MarkType::fermataHalfCurve) ||
+           (markType == MarkType::fermataCurlew) || (markType == MarkType::fermataUpright) ||
+           (markType == MarkType::fermataNormalUpright) || (markType == MarkType::fermataAngledUpright) ||
+           (markType == MarkType::fermataSquareUpright) || (markType == MarkType::fermataInverted) ||
+           (markType == MarkType::fermataNormalInverted) || (markType == MarkType::fermataAngledInverted) ||
+           (markType == MarkType::fermataSquareInverted);
 }
 
 bool isMarkNonArpeggiate(MarkType markType)
@@ -140,7 +152,10 @@ bool isMarkTechnical(MarkType markType)
            (markType == MarkType::stopped) || (markType == MarkType::snapPizzicato) || (markType == MarkType::fret) ||
            (markType == MarkType::string_) || (markType == MarkType::heel) || (markType == MarkType::toe) ||
            (markType == MarkType::fingernails) || (markType == MarkType::hole) || (markType == MarkType::arrow) ||
-           (markType == MarkType::handbell) || (markType == MarkType::otherTechnical);
+           (markType == MarkType::handbell) || (markType == MarkType::brassBend) || (markType == MarkType::flip) ||
+           (markType == MarkType::smear) || (markType == MarkType::open) || (markType == MarkType::halfMuted) ||
+           (markType == MarkType::harmonMute) || (markType == MarkType::golpe) ||
+           (markType == MarkType::otherTechnical);
 }
 
 bool isMarkTremolo(MarkType markType)

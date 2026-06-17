@@ -19,6 +19,7 @@
 #include "mx/core/generated/Fret.h"
 #include "mx/core/generated/Handbell.h"
 #include "mx/core/generated/HandbellValue.h"
+#include "mx/core/generated/HarmonMute.h"
 #include "mx/core/generated/Harmonic.h"
 #include "mx/core/generated/HeelToe.h"
 #include "mx/core/generated/Hole.h"
@@ -259,6 +260,26 @@ core::Notations NotationsWriter::getNotations() const
             else if (mark.markType == api::MarkType::fermataSquare)
             {
                 fermata.setValue(core::FermataShape::square());
+            }
+            else if (mark.markType == api::MarkType::fermataDoubleAngled)
+            {
+                fermata.setValue(core::FermataShape::doubleAngled());
+            }
+            else if (mark.markType == api::MarkType::fermataDoubleSquare)
+            {
+                fermata.setValue(core::FermataShape::doubleSquare());
+            }
+            else if (mark.markType == api::MarkType::fermataDoubleDot)
+            {
+                fermata.setValue(core::FermataShape::doubleDot());
+            }
+            else if (mark.markType == api::MarkType::fermataHalfCurve)
+            {
+                fermata.setValue(core::FermataShape::halfCurve());
+            }
+            else if (mark.markType == api::MarkType::fermataCurlew)
+            {
+                fermata.setValue(core::FermataShape::curlew());
             }
             else if (mark.markType == api::MarkType::fermataUpright)
             {
@@ -778,6 +799,47 @@ void NotationsWriter::addTechnical(const api::MarkData &mark, core::Technical &o
         core::Handbell handbell;
         handbell.setValue(value);
         outTechnical.addChoice(core::TechnicalChoice::handbell(handbell));
+        break;
+    }
+    case core::TechnicalChoice::Kind::brassBend: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outTechnical.addChoice(core::TechnicalChoice::brassBend(ep));
+        break;
+    }
+    case core::TechnicalChoice::Kind::flip: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outTechnical.addChoice(core::TechnicalChoice::flip(ep));
+        break;
+    }
+    case core::TechnicalChoice::Kind::smear: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outTechnical.addChoice(core::TechnicalChoice::smear(ep));
+        break;
+    }
+    case core::TechnicalChoice::Kind::open: {
+        core::EmptyPlacementSmufl eps;
+        setAttributesFromPositionData(mark.positionData, eps);
+        outTechnical.addChoice(core::TechnicalChoice::open(eps));
+        break;
+    }
+    case core::TechnicalChoice::Kind::halfMuted: {
+        core::EmptyPlacementSmufl eps;
+        setAttributesFromPositionData(mark.positionData, eps);
+        outTechnical.addChoice(core::TechnicalChoice::halfMuted(eps));
+        break;
+    }
+    case core::TechnicalChoice::Kind::harmonMute: {
+        core::HarmonMute hm;
+        outTechnical.addChoice(core::TechnicalChoice::harmonMute(hm));
+        break;
+    }
+    case core::TechnicalChoice::Kind::golpe: {
+        core::EmptyPlacement ep;
+        setAttributesFromPositionData(mark.positionData, ep);
+        outTechnical.addChoice(core::TechnicalChoice::golpe(ep));
         break;
     }
     case core::TechnicalChoice::Kind::otherTechnical: {

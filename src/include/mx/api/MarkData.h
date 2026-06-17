@@ -33,6 +33,7 @@ enum class MarkType
     caesura,
     stress,
     unstress,
+    softAccent,
     otherArticulation,
 
     // dynamics
@@ -59,6 +60,9 @@ enum class MarkType
     sfz,
     sffz,
     fz,
+    n,
+    pf,
+    sfzp,
     otherDynamics,
     unknownDynamics,
 
@@ -69,6 +73,8 @@ enum class MarkType
     invertedTurn,
     delayedInvertedTurn,
     verticalTurn,
+    invertedVerticalTurn,
+    haydn,
     shake,
     wavyLine,
     mordent,
@@ -101,6 +107,12 @@ enum class MarkType
     accidentalMarkNaturalUp,
     accidentalMarkFlatDown,
     accidentalMarkFlatUp,
+    accidentalMarkDoubleSharpDown,
+    accidentalMarkDoubleSharpUp,
+    accidentalMarkFlatFlatDown,
+    accidentalMarkFlatFlatUp,
+    accidentalMarkArrowDown,
+    accidentalMarkArrowUp,
     accidentalMarkTripleSharp,
     accidentalMarkTripleFlat,
     accidentalMarkSlashQuarterSharp,
@@ -143,14 +155,26 @@ enum class MarkType
     hole,
     arrow,
     handbell,
+    brassBend,
+    flip,
+    smear,
+    open,
+    halfMuted,
+    harmonMute,
+    golpe,
     otherTechnical,
     unknownTechnical,
 
     // fermata
-    fermata,       // <fermata/>
-    fermataNormal, // <fermata>normal</fermata>
-    fermataAngled, // <fermata>angled</fermata>
-    fermataSquare, // <fermata>square</fermata>
+    fermata,             // <fermata/>
+    fermataNormal,       // <fermata>normal</fermata>
+    fermataAngled,       // <fermata>angled</fermata>
+    fermataSquare,       // <fermata>square</fermata>
+    fermataDoubleAngled, // <fermata>double-angled</fermata> (MusicXML 4.0)
+    fermataDoubleSquare, // <fermata>double-square</fermata> (MusicXML 4.0)
+    fermataDoubleDot,    // <fermata>double-dot</fermata> (MusicXML 4.0)
+    fermataHalfCurve,    // <fermata>half-curve</fermata> (MusicXML 4.0)
+    fermataCurlew,       // <fermata>curlew</fermata> (MusicXML 4.0)
 
     // sadly, in MusicXML we do not have an 'above' 'below' attribute for the fermata.
     // instead it has an attribute 'type' that is either 'upright' or 'inverted'.

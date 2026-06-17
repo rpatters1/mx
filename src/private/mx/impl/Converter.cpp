@@ -66,6 +66,8 @@ const Converter::EnumMap<core::NoteheadValue, api::Notehead> Converter::notehead
     {core::NoteheadValue::la(), api::Notehead::la},
     {core::NoteheadValue::so(), api::Notehead::so},
     {core::NoteheadValue::ti(), api::Notehead::ti},
+    {core::NoteheadValue::circled(), api::Notehead::circled},
+    {core::NoteheadValue::other(), api::Notehead::other},
 };
 
 const Converter::EnumMap<core::BeamValue, api::Beam> Converter::beamMap = {
@@ -95,6 +97,12 @@ const Converter::EnumMap<core::AccidentalValue, api::Accidental> Converter::acci
     {core::AccidentalValue::naturalUp(), api::Accidental::naturalUp},
     {core::AccidentalValue::flatDown(), api::Accidental::flatDown},
     {core::AccidentalValue::flatUp(), api::Accidental::flatUp},
+    {core::AccidentalValue::doubleSharpDown(), api::Accidental::doubleSharpDown},
+    {core::AccidentalValue::doubleSharpUp(), api::Accidental::doubleSharpUp},
+    {core::AccidentalValue::flatFlatDown(), api::Accidental::flatFlatDown},
+    {core::AccidentalValue::flatFlatUp(), api::Accidental::flatFlatUp},
+    {core::AccidentalValue::arrowDown(), api::Accidental::arrowDown},
+    {core::AccidentalValue::arrowUp(), api::Accidental::arrowUp},
     {core::AccidentalValue::tripleSharp(), api::Accidental::tripleSharp},
     {core::AccidentalValue::tripleFlat(), api::Accidental::tripleFlat},
     {core::AccidentalValue::slashQuarterSharp(), api::Accidental::slashQuarterSharp},
@@ -166,6 +174,7 @@ const Converter::EnumMap<core::ArticulationsChoice::Kind, api::MarkType> Convert
     {core::ArticulationsChoice::Kind::caesura, api::MarkType::caesura},
     {core::ArticulationsChoice::Kind::stress, api::MarkType::stress},
     {core::ArticulationsChoice::Kind::unstress, api::MarkType::unstress},
+    {core::ArticulationsChoice::Kind::softAccent, api::MarkType::softAccent},
     {core::ArticulationsChoice::Kind::otherArticulation, api::MarkType::otherArticulation},
 };
 
@@ -193,6 +202,9 @@ const Converter::EnumMap<core::DynamicsChoice::Kind, api::MarkType> Converter::d
     {core::DynamicsChoice::Kind::sfz, api::MarkType::sfz},
     {core::DynamicsChoice::Kind::sffz, api::MarkType::sffz},
     {core::DynamicsChoice::Kind::fz, api::MarkType::fz},
+    {core::DynamicsChoice::Kind::n, api::MarkType::n},
+    {core::DynamicsChoice::Kind::pf, api::MarkType::pf},
+    {core::DynamicsChoice::Kind::sfzp, api::MarkType::sfzp},
     {core::DynamicsChoice::Kind::otherDynamics, api::MarkType::otherDynamics},
 };
 
@@ -203,6 +215,8 @@ const Converter::EnumMap<core::OrnamentsGroupChoice::Kind, api::MarkType> Conver
     {core::OrnamentsGroupChoice::Kind::invertedTurn, api::MarkType::invertedTurn},
     {core::OrnamentsGroupChoice::Kind::delayedInvertedTurn, api::MarkType::delayedInvertedTurn},
     {core::OrnamentsGroupChoice::Kind::verticalTurn, api::MarkType::verticalTurn},
+    {core::OrnamentsGroupChoice::Kind::invertedVerticalTurn, api::MarkType::invertedVerticalTurn},
+    {core::OrnamentsGroupChoice::Kind::haydn, api::MarkType::haydn},
     {core::OrnamentsGroupChoice::Kind::shake, api::MarkType::shake},
     {core::OrnamentsGroupChoice::Kind::wavyLine, api::MarkType::wavyLine},
     {core::OrnamentsGroupChoice::Kind::mordent, api::MarkType::mordent},
@@ -231,6 +245,12 @@ const Converter::EnumMap<core::AccidentalValue, api::MarkType> Converter::accide
     {core::AccidentalValue::naturalUp(), api::MarkType::accidentalMarkNaturalUp},
     {core::AccidentalValue::flatDown(), api::MarkType::accidentalMarkFlatDown},
     {core::AccidentalValue::flatUp(), api::MarkType::accidentalMarkFlatUp},
+    {core::AccidentalValue::doubleSharpDown(), api::MarkType::accidentalMarkDoubleSharpDown},
+    {core::AccidentalValue::doubleSharpUp(), api::MarkType::accidentalMarkDoubleSharpUp},
+    {core::AccidentalValue::flatFlatDown(), api::MarkType::accidentalMarkFlatFlatDown},
+    {core::AccidentalValue::flatFlatUp(), api::MarkType::accidentalMarkFlatFlatUp},
+    {core::AccidentalValue::arrowDown(), api::MarkType::accidentalMarkArrowDown},
+    {core::AccidentalValue::arrowUp(), api::MarkType::accidentalMarkArrowUp},
     {core::AccidentalValue::tripleSharp(), api::MarkType::accidentalMarkTripleSharp},
     {core::AccidentalValue::tripleFlat(), api::MarkType::accidentalMarkTripleFlat},
     {core::AccidentalValue::slashQuarterSharp(), api::MarkType::accidentalMarkSlashQuarterSharp},
@@ -294,6 +314,13 @@ const Converter::EnumMap<core::TechnicalChoice::Kind, api::MarkType> Converter::
     {core::TechnicalChoice::Kind::hole, api::MarkType::hole},
     {core::TechnicalChoice::Kind::arrow, api::MarkType::arrow},
     {core::TechnicalChoice::Kind::handbell, api::MarkType::handbell},
+    {core::TechnicalChoice::Kind::brassBend, api::MarkType::brassBend},
+    {core::TechnicalChoice::Kind::flip, api::MarkType::flip},
+    {core::TechnicalChoice::Kind::smear, api::MarkType::smear},
+    {core::TechnicalChoice::Kind::open, api::MarkType::open},
+    {core::TechnicalChoice::Kind::halfMuted, api::MarkType::halfMuted},
+    {core::TechnicalChoice::Kind::harmonMute, api::MarkType::harmonMute},
+    {core::TechnicalChoice::Kind::golpe, api::MarkType::golpe},
     {core::TechnicalChoice::Kind::otherTechnical, api::MarkType::otherTechnical},
 };
 
@@ -359,6 +386,11 @@ const Converter::EnumMap<core::FermataShape, api::MarkType> Converter::fermataMa
     {core::FermataShape::normal(), api::MarkType::fermataNormal},
     {core::FermataShape::angled(), api::MarkType::fermataAngled},
     {core::FermataShape::square(), api::MarkType::fermataSquare},
+    {core::FermataShape::doubleAngled(), api::MarkType::fermataDoubleAngled},
+    {core::FermataShape::doubleSquare(), api::MarkType::fermataDoubleSquare},
+    {core::FermataShape::doubleDot(), api::MarkType::fermataDoubleDot},
+    {core::FermataShape::halfCurve(), api::MarkType::fermataHalfCurve},
+    {core::FermataShape::curlew(), api::MarkType::fermataCurlew},
     {core::FermataShape::empty(), api::MarkType::fermata},
 };
 
@@ -534,6 +566,8 @@ const Converter::EnumMap<core::SoundID, api::SoundID> Converter::instrumentMap =
     {core::SoundID::drumTaiko(), api::SoundID::drumTaiko},
     {core::SoundID::drumTalking(), api::SoundID::drumTalking},
     {core::SoundID::drumTama(), api::SoundID::drumTama},
+    {core::SoundID::drumTabor(), api::SoundID::drumTabor},
+    {core::SoundID::drumTamborim(), api::SoundID::drumTamborim},
     {core::SoundID::drumTamborita(), api::SoundID::drumTamborita},
     {core::SoundID::drumTambourine(), api::SoundID::drumTambourine},
     {core::SoundID::drumTamte(), api::SoundID::drumTamte},
@@ -746,6 +780,7 @@ const Converter::EnumMap<core::SoundID, api::SoundID> Converter::instrumentMap =
     {core::SoundID::pitchedPercussionGyil(), api::SoundID::pitchedPercussionGyil},
     {core::SoundID::pitchedPercussionHammerDulcimer(), api::SoundID::pitchedPercussionHammerDulcimer},
     {core::SoundID::pitchedPercussionHandbells(), api::SoundID::pitchedPercussionHandbells},
+    {core::SoundID::pitchedPercussionHandchimes(), api::SoundID::pitchedPercussionHandchimes},
     {core::SoundID::pitchedPercussionKalimba(), api::SoundID::pitchedPercussionKalimba},
     {core::SoundID::pitchedPercussionKantil(), api::SoundID::pitchedPercussionKantil},
     {core::SoundID::pitchedPercussionKhim(), api::SoundID::pitchedPercussionKhim},
@@ -820,6 +855,7 @@ const Converter::EnumMap<core::SoundID, api::SoundID> Converter::instrumentMap =
     {core::SoundID::pluckBordonua(), api::SoundID::pluckBordonua},
     {core::SoundID::pluckBouzouki(), api::SoundID::pluckBouzouki},
     {core::SoundID::pluckBouzoukiIrish(), api::SoundID::pluckBouzoukiIrish},
+    {core::SoundID::pluckCavaquinho(), api::SoundID::pluckCavaquinho},
     {core::SoundID::pluckCelticHarp(), api::SoundID::pluckCelticHarp},
     {core::SoundID::pluckCharango(), api::SoundID::pluckCharango},
     {core::SoundID::pluckChitarraBattente(), api::SoundID::pluckChitarraBattente},
@@ -1107,6 +1143,7 @@ const Converter::EnumMap<core::SoundID, api::SoundID> Converter::instrumentMap =
     {core::SoundID::windFlutesWhistleSlide(), api::SoundID::windFlutesWhistleSlide},
     {core::SoundID::windFlutesWhistleTin(), api::SoundID::windFlutesWhistleTin},
     {core::SoundID::windFlutesWhistleTinBflat(), api::SoundID::windFlutesWhistleTinBflat},
+    {core::SoundID::windFlutesWhistleTinC(), api::SoundID::windFlutesWhistleTinC},
     {core::SoundID::windFlutesWhistleTinD(), api::SoundID::windFlutesWhistleTinD},
     {core::SoundID::windFlutesXiao(), api::SoundID::windFlutesXiao},
     {core::SoundID::windFlutesXun(), api::SoundID::windFlutesXun},
@@ -1135,7 +1172,9 @@ const Converter::EnumMap<core::SoundID, api::SoundID> Converter::instrumentMap =
     {core::SoundID::windReedClarinetBflat(), api::SoundID::windReedClarinetBflat},
     {core::SoundID::windReedClarinetContraAlto(), api::SoundID::windReedClarinetContraAlto},
     {core::SoundID::windReedClarinetContrabass(), api::SoundID::windReedClarinetContrabass},
+    {core::SoundID::windReedClarinetD(), api::SoundID::windReedClarinetD},
     {core::SoundID::windReedClarinetEflat(), api::SoundID::windReedClarinetEflat},
+    {core::SoundID::windReedClarinetG(), api::SoundID::windReedClarinetG},
     {core::SoundID::windReedClarinetPiccolo(), api::SoundID::windReedClarinetPiccolo},
     {core::SoundID::windReedClarinetPiccoloAflat(), api::SoundID::windReedClarinetPiccoloAflat},
     {core::SoundID::windReedClarinetteDamour(), api::SoundID::windReedClarinetteDamour},
@@ -1435,7 +1474,8 @@ bool Converter::isArticulation(api::MarkType value) const
            value == api::MarkType::staccatissimo || value == api::MarkType::spiccato || value == api::MarkType::scoop ||
            value == api::MarkType::plop || value == api::MarkType::doit || value == api::MarkType::falloff ||
            value == api::MarkType::breathMark || value == api::MarkType::caesura || value == api::MarkType::stress ||
-           value == api::MarkType::unstress || value == api::MarkType::otherArticulation;
+           value == api::MarkType::unstress || value == api::MarkType::softAccent ||
+           value == api::MarkType::otherArticulation;
 }
 
 core::DynamicsChoice::Kind Converter::convertDynamic(api::MarkType value) const
