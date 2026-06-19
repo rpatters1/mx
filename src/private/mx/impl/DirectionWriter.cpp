@@ -22,6 +22,8 @@
 #include "mx/core/generated/Divisions.h"
 #include "mx/core/generated/Dynamics.h"
 #include "mx/core/generated/Empty.h"
+#include "mx/core/generated/Figure.h"
+#include "mx/core/generated/FiguredBass.h"
 #include "mx/core/generated/FirstFret.h"
 #include "mx/core/generated/FormattedTextID.h"
 #include "mx/core/generated/Frame.h"
@@ -31,17 +33,24 @@
 #include "mx/core/generated/HarmonyAlter.h"
 #include "mx/core/generated/HarmonyChordGroup.h"
 #include "mx/core/generated/HarmonyChordGroupChoice.h"
+#include "mx/core/generated/Inversion.h"
 #include "mx/core/generated/Kind.h"
 #include "mx/core/generated/Metronome.h"
 #include "mx/core/generated/MetronomeChoice.h"
 #include "mx/core/generated/MetronomeChoiceGroup.h"
 #include "mx/core/generated/MetronomeChoiceGroupChoice.h"
 #include "mx/core/generated/MusicDataChoice.h"
+#include "mx/core/generated/Numeral.h"
+#include "mx/core/generated/NumeralKey.h"
+#include "mx/core/generated/NumeralMode.h"
+#include "mx/core/generated/NumeralRoot.h"
+#include "mx/core/generated/NumeralValue.h"
 #include "mx/core/generated/OctaveShift.h"
 #include "mx/core/generated/Offset.h"
 #include "mx/core/generated/Pedal.h"
 #include "mx/core/generated/PedalType.h"
 #include "mx/core/generated/PerMinute.h"
+#include "mx/core/generated/PositiveDivisions.h"
 #include "mx/core/generated/Root.h"
 #include "mx/core/generated/RootStep.h"
 #include "mx/core/generated/Segno.h"
@@ -51,6 +60,7 @@
 #include "mx/core/generated/StartStopContinue.h"
 #include "mx/core/generated/String.h"
 #include "mx/core/generated/StringNumber.h"
+#include "mx/core/generated/StyleText.h"
 #include "mx/core/generated/Wedge.h"
 #include "mx/core/generated/WedgeType.h"
 #include "mx/core/generated/YesNo.h"
@@ -471,6 +481,9 @@ std::vector<core::MusicDataChoice> DirectionWriter::getDirectionLikeThings()
     auto harmonyMdcs = createHarmonyElements(offset);
     addMusicDataChoices(harmonyMdcs, output);
 
+    auto figuredBassMdcs = createFiguredBassElements();
+    addMusicDataChoices(figuredBassMdcs, output);
+
     // clear state
     myPlacements.clear();
     myIsFirstDirectionTypeAdded = false;
@@ -530,21 +543,89 @@ std::vector<core::MusicDataChoice> DirectionWriter::createHarmonyElements(int in
         }
 
         core::HarmonyChordGroup grp{};
-        auto step = chordIter->root == api::Step::unspecified ? api::Step::c : chordIter->root;
 
-        core::Root root{};
-        core::RootStep rootStep{};
-        rootStep.setValue(myConverter.convert(step));
-        root.setRootStep(rootStep);
-
-        if (chordIter->rootAlter != 0)
+        switch (chordIter->harmonyChordSource)
         {
-            core::HarmonyAlter rootAlter{};
-            rootAlter.setValue(core::Semitones{core::Decimal{static_cast<double>(chordIter->rootAlter)}});
-            root.setRootAlter(rootAlter);
-        }
+        case api::HarmonyChordSource::numeral: {
+            core::Numeral numeral{};
+            core::NumeralRoot numeralRoot{};
+            numeralRoot.setValue(core::NumeralValue{chordIter->numeralRoot});
 
-        grp.setChoice(core::HarmonyChordGroupChoice::root(root));
+            if (!chordIter->numeralRootText.empty())
+            {
+                numeralRoot.setText(chordIter->numeralRootText);
+            }
+
+            numeral.setNumeralRoot(numeralRoot);
+
+            if (chordIter->hasNumeralAlter)
+            {
+                core::HarmonyAlter numeralAlter{};
+                numeralAlter.setValue(core::Semitones{core::Decimal{static_cast<double>(chordIter->numeralAlter)}});
+                numeral.setNumeralAlter(numeralAlter);
+            }
+
+            if (chordIter->hasNumeralKey)
+            {
+                core::NumeralKey numeralKey{};
+                numeralKey.setNumeralFifths(core::Fifths{chordIter->numeralKeyFifths});
+
+                switch (chordIter->numeralMode)
+                {
+                case api::NumeralMode::minor:
+                    numeralKey.setNumeralMode(core::NumeralMode::minor());
+                    break;
+                case api::NumeralMode::naturalMinor:
+                    numeralKey.setNumeralMode(core::NumeralMode::naturalMinor());
+                    break;
+                case api::NumeralMode::melodicMinor:
+                    numeralKey.setNumeralMode(core::NumeralMode::melodicMinor());
+                    break;
+                case api::NumeralMode::harmonicMinor:
+                    numeralKey.setNumeralMode(core::NumeralMode::harmonicMinor());
+                    break;
+                case api::NumeralMode::major:
+                case api::NumeralMode::unspecified:
+                default:
+                    // numeral-mode is required inside numeral-key, so it cannot be omitted. An
+                    // 'unspecified' mode here means the caller set hasNumeralKey without a concrete
+                    // mode (a contradiction); fall back to major rather than drop the numeral-key.
+                    numeralKey.setNumeralMode(core::NumeralMode::major());
+                    break;
+                }
+
+                numeral.setNumeralKey(numeralKey);
+            }
+
+            grp.setChoice(core::HarmonyChordGroupChoice::numeral(numeral));
+            break;
+        }
+        case api::HarmonyChordSource::function: {
+            core::StyleText function{};
+            function.setValue(chordIter->functionText);
+            grp.setChoice(core::HarmonyChordGroupChoice::function(function));
+            break;
+        }
+        case api::HarmonyChordSource::root:
+        default: {
+            auto step = chordIter->root == api::Step::unspecified ? api::Step::c : chordIter->root;
+
+            core::Root root{};
+            core::RootStep rootStep{};
+            rootStep.setValue(myConverter.convert(step));
+            root.setRootStep(rootStep);
+
+            if (chordIter->rootAlter != 0)
+            {
+                core::HarmonyAlter rootAlter{};
+                rootAlter.setValue(core::Semitones{core::Decimal{static_cast<double>(chordIter->rootAlter)}});
+                root.setRootAlter(rootAlter);
+            }
+
+            grp.setChoice(core::HarmonyChordGroupChoice::root(root));
+            break;
+        }
+        }
 
         if (chordIter->bass != api::Step::unspecified)
         {
@@ -561,6 +642,13 @@ std::vector<core::MusicDataChoice> DirectionWriter::createHarmonyElements(int in
             }
 
             grp.setBass(bass);
+        }
+
+        if (chordIter->hasInversion)
+        {
+            core::Inversion inversion{};
+            inversion.setValue(chordIter->inversion);
+            grp.setInversion(inversion);
         }
 
         const auto k = myConverter.convert(chordIter->chordKind);
@@ -721,6 +809,78 @@ std::vector<core::MusicDataChoice> DirectionWriter::createHarmonyElements(int in
     if (!chords.empty())
     {
         output.push_back(core::MusicDataChoice::harmony(harmony));
+    }
+
+    return output;
+}
+
+std::vector<core::MusicDataChoice> DirectionWriter::createFiguredBassElements()
+{
+    std::vector<core::MusicDataChoice> output;
+
+    for (const auto &figuredBassData : myDirectionData.figuredBasses)
+    {
+        // The core figure list is never-empty (OneOrMore), so a figured-bass with zero figures
+        // would still serialize one fabricated empty <figure/>. Skip it: an empty figures list
+        // means "no figured-bass", and round-tripping must not invent content.
+        if (figuredBassData.figures.empty())
+        {
+            continue;
+        }
+
+        core::FiguredBass figuredBass{};
+
+        bool isFirstFigure = true;
+
+        for (const auto &figureData : figuredBassData.figures)
+        {
+            core::Figure figure{};
+
+            if (!figureData.prefix.empty())
+            {
+                core::StyleText prefix{};
+                prefix.setValue(figureData.prefix);
+                figure.setPrefix(prefix);
+            }
+
+            if (!figureData.figureNumber.empty())
+            {
+                core::StyleText figureNumber{};
+                figureNumber.setValue(figureData.figureNumber);
+                figure.setFigureNumber(figureNumber);
+            }
+
+            if (!figureData.suffix.empty())
+            {
+                core::StyleText suffix{};
+                suffix.setValue(figureData.suffix);
+                figure.setSuffix(suffix);
+            }
+
+            if (isFirstFigure)
+            {
+                isFirstFigure = false;
+                figuredBass.setFigure(core::OneOrMore<core::Figure>{figure});
+            }
+            else
+            {
+                figuredBass.addFigure(figure);
+            }
+        }
+
+        if (figuredBassData.parentheses != api::Bool::unspecified)
+        {
+            figuredBass.setParentheses(figuredBassData.parentheses == api::Bool::yes ? core::YesNo::yes()
+                                                                                     : core::YesNo::no());
+        }
+
+        if (figuredBassData.durationTimeTicks >= 0)
+        {
+            figuredBass.setDuration(
+                core::PositiveDivisions{core::Decimal{static_cast<double>(figuredBassData.durationTimeTicks)}});
+        }
+
+        output.push_back(core::MusicDataChoice::figuredBass(figuredBass));
     }
 
     return output;

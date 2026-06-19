@@ -7,6 +7,7 @@
 #include "mx/api/ApiCommon.h"
 #include "mx/api/ChordData.h"
 #include "mx/api/CodaData.h"
+#include "mx/api/FiguredBassData.h"
 #include "mx/api/MarkData.h"
 #include "mx/api/OttavaData.h"
 #include "mx/api/RehearsalData.h"
@@ -115,6 +116,7 @@ struct DirectionData
     std::vector<SpannerStop> pedalStops;
     std::vector<WordsData> words;
     std::vector<ChordData> chords;
+    std::vector<FiguredBassData> figuredBasses;
     std::vector<SegnoData> segnos;
     std::vector<CodaData> codas;
     std::vector<RehearsalData> rehearsals;
@@ -138,7 +140,8 @@ inline bool isDirectionDataEmpty(const DirectionData &directionData)
            directionData.pedalStarts.size() == 0 && directionData.pedalStops.size() == 0 &&
            directionData.tempos.size() == 0 && directionData.ottavaStarts.size() == 0 &&
            directionData.ottavaStops.size() == 0 && directionData.words.size() == 0 &&
-           directionData.segnos.size() == 0 && directionData.codas.size() == 0 && !directionData.isSoundDataSpecified &&
+           directionData.segnos.size() == 0 && directionData.codas.size() == 0 &&
+           directionData.figuredBasses.size() == 0 && !directionData.isSoundDataSpecified &&
            directionData.orderedComponents.size() == 0;
 }
 
@@ -163,6 +166,7 @@ MXAPI_EQUALS_MEMBER(pedalStarts)
 MXAPI_EQUALS_MEMBER(pedalStops)
 MXAPI_EQUALS_MEMBER(words)
 MXAPI_EQUALS_MEMBER(chords)
+MXAPI_EQUALS_MEMBER(figuredBasses)
 MXAPI_EQUALS_MEMBER(segnos)
 MXAPI_EQUALS_MEMBER(codas)
 MXAPI_EQUALS_MEMBER(orderedComponents)
