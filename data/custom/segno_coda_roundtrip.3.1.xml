@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<score-partwise version="3.1">
+  <part-list>
+    <score-part id="P1">
+      <part-name>x</part-name>
+    </score-part>
+  </part-list>
+  <part id="P1">
+    <measure number="1">
+      <attributes>
+        <divisions>1</divisions>
+      </attributes>
+      <direction>
+        <direction-type>
+          <segno default-x="1.1" default-y="2.2" relative-x="3.3" relative-y="4.4" font-family="x" font-style="italic" font-size="5.5" font-weight="bold" color="#12345678" halign="center" valign="middle" id="id3" smufl="segno" />
+        </direction-type>
+        <staff>1</staff>
+      </direction>
+      <direction>
+        <direction-type>
+          <coda default-x="6.6" default-y="7.7" relative-x="8.8" relative-y="9.9" font-family="y" font-style="italic" font-size="11.1" font-weight="bold" color="#9ABCDEF0" halign="right" valign="bottom" id="id4" smufl="coda" />
+        </direction-type>
+        <staff>1</staff>
+      </direction>
+      <note>
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+      </note>
+    </measure>
+  </part>
+</score-partwise>

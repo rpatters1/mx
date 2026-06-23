@@ -12,11 +12,15 @@
 
 namespace mxtest
 {
-class ApiLoadSurvivalTest : public mxtest::MxFileTest
+// Smoke test: proves each registered file imports and produces at least one part
+// (createFromFile -> getData succeeds with a non-empty ScoreData::parts), NOT that the
+// data is correct -- dropped or mistranslated elements still pass. Fidelity is the
+// round-trip gate (roundtrip-baseline.txt).
+class ApiLoadSmokeTest : public mxtest::MxFileTest
 {
   public:
-    ApiLoadSurvivalTest(mxtest::MxFile inTestFile, std::string inTestName, std::string inTestCppFileName,
-                        int inTestCppFileLineNumber)
+    ApiLoadSmokeTest(mxtest::MxFile inTestFile, std::string inTestName, std::string inTestCppFileName,
+                     int inTestCppFileLineNumber)
         : mxtest::MxFileTest(inTestFile, inTestName, inTestCppFileName, inTestCppFileLineNumber)
     {
     }
@@ -51,8 +55,8 @@ class ApiLoadSurvivalTest : public mxtest::MxFileTest
     }
 };
 
-MxFileTestGroup<ApiLoadSurvivalTest> instance{MX_COMPILE_MAX_FILE_SIZE_BYTES, // maxFileSizeBytes
-                                              "Api Load Survival Test", __FILE__, __LINE__};
+MxFileTestGroup<ApiLoadSmokeTest> instance{MX_COMPILE_MAX_FILE_SIZE_BYTES, // maxFileSizeBytes
+                                           "Api Load Smoke Test", __FILE__, __LINE__};
 } // namespace mxtest
 
 #endif

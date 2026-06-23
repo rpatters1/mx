@@ -464,8 +464,16 @@ void MxFileRepository::initializeNameSubdirectoryMap()
     myNameSubdirectoryMap.emplace("musescore-slur-start-stop.musicxml", "custom");
     myNameSubdirectoryMap.emplace("systems-and-pages.xml", "custom");
     myNameSubdirectoryMap.emplace("transposition.musicxml", "custom");
+    myNameSubdirectoryMap.emplace("segno_coda_roundtrip.3.0.xml", "custom");
+    myNameSubdirectoryMap.emplace("segno_coda_roundtrip.3.1.xml", "custom");
 
     // mxl
     myNameSubdirectoryMap.emplace("Dichterliebe01.mxl", "mxl");
+
+    // synthetic (audit-generated single-feature fixtures)
+    myNameSubdirectoryMap.emplace("segno.3.0.xml", "synthetic");
+    myNameSubdirectoryMap.emplace("segno.3.1.xml", "synthetic");
+    myNameSubdirectoryMap.emplace("coda.3.0.xml", "synthetic");
+    myNameSubdirectoryMap.emplace("coda.3.1.xml", "synthetic");
 }
 } // namespace mxtest

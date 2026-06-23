@@ -59,3 +59,9 @@ lysuite/ly46f_IncompleteMeasures.xml
 lysuite/ly71a_Chordnames.xml
 lysuite/ly72a_TransposingInstruments.xml
 lysuite/ly72b_TransposingInstruments_Full.xml
+
+# Dedicated segno/coda api read->write->read fixtures (#204): a minimal score that
+# isolates the segno/coda surface (3.0 base attributes; 3.1 adds id + smufl) and
+# round-trips losslessly.
+custom/segno_coda_roundtrip.3.0.xml
+custom/segno_coda_roundtrip.3.1.xml
