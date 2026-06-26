@@ -60,6 +60,19 @@ class EncodingData
     std::vector<std::string> software;
     std::vector<SupportedItem> supportedItems;
     std::vector<MiscellaneousField> miscelaneousFields;
+
+    // mx stamps its own provenance <software> node (the mx URL plus the build's git
+    // SHA) into <encoding> on every api write. The intent is to aid in diagnosing and
+    // fixing mx defects: when a file mx wrote turns out to be wrong, the stamp ties
+    // the bad output back to the exact mx build that produced it. That stamp is
+    // deliberately intrusive -- it injects a node the source never had into every
+    // file mx writes -- so this flag exists to turn it off when byte-faithful output
+    // is needed (e.g. reproducing a defect without mx's own marker in the diff).
+    //
+    // Defaults true, including for files parsed without the stamp. When false,
+    // writeToFile/writeToStream omit mx's node; the user's own <software> entries are
+    // always written regardless.
+    bool writeMxVersion = true;
 };
 
 MXAPI_EQUALS_BEGIN(SupportedItem)
@@ -90,6 +103,7 @@ MXAPI_EQUALS_MEMBER(encodingDescription)
 MXAPI_EQUALS_MEMBER(software)
 MXAPI_EQUALS_MEMBER(supportedItems)
 MXAPI_EQUALS_MEMBER(miscelaneousFields)
+MXAPI_EQUALS_MEMBER(writeMxVersion)
 MXAPI_EQUALS_END;
 MXAPI_NOT_EQUALS_AND_VECTORS(EncodingData);
 } // namespace api
