@@ -36,8 +36,11 @@ set(PUBLIC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/include")
 
 # pugixml: the XML layer the generated mx::core consumes directly (plan §2.1).
 # Vendored at src/private/pugixml (upstream 1.15, stock pugiconfig).
-add_library(pugixml STATIC ${PRIVATE_DIR}/pugixml/pugixml.cpp)
-target_include_directories(pugixml PUBLIC ${PRIVATE_DIR})
+# Client projects may provide a compatible pugixml target before adding mx.
+if(NOT TARGET pugixml)
+    add_library(pugixml STATIC ${PRIVATE_DIR}/pugixml/pugixml.cpp)
+    target_include_directories(pugixml PUBLIC ${PRIVATE_DIR})
+endif()
 
 # mx_core: the generated C++ typed model plus its hand-written runtime
 # (Decimal, Result, Error, Lexical, Token, NameToken, OneOrMore, Xml). The
