@@ -17,7 +17,7 @@
 #include "mx/core/generated/ScoreHeaderGroup.h"
 #include "mx/core/generated/ScorePartwise.h"
 
-#include "pugixml/pugixml.hpp"
+#include "pugixml.hpp"
 
 #include <string>
 #include <string_view>

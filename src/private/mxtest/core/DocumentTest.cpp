@@ -15,7 +15,7 @@
 #include "mx/core/generated/Document.h"
 #include "mx/core/generated/Version.h"
 
-#include "pugixml/pugixml.hpp"
+#include "pugixml.hpp"
 
 #include <string>
 

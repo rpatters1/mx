@@ -8,7 +8,7 @@
 #include "cpul/cpulTestHarness.h"
 #include "mxtest/api/TestHelpers.h"
 #include "mxtest/file/MxFileRepository.h"
-#include "pugixml/pugixml.hpp"
+#include "pugixml.hpp"
 
 #include <sstream>
 

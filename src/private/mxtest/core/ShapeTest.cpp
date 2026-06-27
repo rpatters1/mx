@@ -24,7 +24,7 @@
 #include "mx/core/generated/Pitch.h"
 #include "mx/core/generated/Step.h"
 
-#include "pugixml/pugixml.hpp"
+#include "pugixml.hpp"
 
 #include <string>
 

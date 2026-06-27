@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "pugixml/pugixml.hpp"
+#include "pugixml.hpp"
 
 #include <string>
 #include <string_view>

@@ -39,7 +39,7 @@ set(PUBLIC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/include")
 # Client projects may provide a compatible pugixml target before adding mx.
 if(NOT TARGET pugixml)
     add_library(pugixml STATIC ${PRIVATE_DIR}/pugixml/pugixml.cpp)
-    target_include_directories(pugixml PUBLIC ${PRIVATE_DIR})
+    target_include_directories(pugixml PUBLIC ${PRIVATE_DIR}/pugixml)
 endif()
 
 # mx_core: the generated C++ typed model plus its hand-written runtime

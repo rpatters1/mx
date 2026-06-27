@@ -12,7 +12,7 @@
 #include "mxtest/file/PathRoot.h"
 #include "mxtest/import/Normalize.h"
 
-#include "pugixml/pugixml.hpp"
+#include "pugixml.hpp"
 
 #include <algorithm>
 #include <cmath>

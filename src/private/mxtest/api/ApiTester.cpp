@@ -2,7 +2,7 @@
 #include "mxtest/api/ApiTester.h"
 #include "mx/api/DocumentManager.h"
 #include "mxtest/file/StupidFileFunctions.h"
-#include "pugixml/pugixml.hpp"
+#include "pugixml.hpp"
 
 #include <sstream>
 

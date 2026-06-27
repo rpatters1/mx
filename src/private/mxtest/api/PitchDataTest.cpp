@@ -7,7 +7,7 @@
 
 #include "cpul/cpulTestHarness.h"
 #include "mx/api/DocumentManager.h"
-#include "pugixml/pugixml.hpp"
+#include "pugixml.hpp"
 
 #include <sstream>
 #include <string>
