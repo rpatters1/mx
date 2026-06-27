@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_BeamValue
 {
 
 constexpr std::string_view kWire[] = {
     "begin", "continue", "end", "forward hook", "backward hook",
 };
 
-} // namespace
+} // namespace detail_BeamValue
 
 BeamValue BeamValue::begin() noexcept
 {
@@ -44,14 +44,14 @@ BeamValue BeamValue::backwardHook() noexcept
 
 std::string_view BeamValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_BeamValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool BeamValue::tryParse(std::string_view text, BeamValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_BeamValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_BeamValue::kWire[i] == text)
         {
             out = BeamValue{static_cast<Tag>(i)};
             return true;

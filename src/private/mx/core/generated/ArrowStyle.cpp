@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_ArrowStyle
 {
 
 constexpr std::string_view kWire[] = {
     "single", "double", "filled", "hollow", "paired", "combined", "other",
 };
 
-} // namespace
+} // namespace detail_ArrowStyle
 
 ArrowStyle ArrowStyle::single() noexcept
 {
@@ -54,14 +54,14 @@ ArrowStyle ArrowStyle::other() noexcept
 
 std::string_view ArrowStyle::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_ArrowStyle::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool ArrowStyle::tryParse(std::string_view text, ArrowStyle &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_ArrowStyle::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_ArrowStyle::kWire[i] == text)
         {
             out = ArrowStyle{static_cast<Tag>(i)};
             return true;

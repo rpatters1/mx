@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_CircularArrow
 {
 
 constexpr std::string_view kWire[] = {
@@ -16,7 +16,7 @@ constexpr std::string_view kWire[] = {
     "anticlockwise",
 };
 
-} // namespace
+} // namespace detail_CircularArrow
 
 CircularArrow CircularArrow::clockwise() noexcept
 {
@@ -30,14 +30,14 @@ CircularArrow CircularArrow::anticlockwise() noexcept
 
 std::string_view CircularArrow::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_CircularArrow::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool CircularArrow::tryParse(std::string_view text, CircularArrow &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_CircularArrow::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_CircularArrow::kWire[i] == text)
         {
             out = CircularArrow{static_cast<Tag>(i)};
             return true;

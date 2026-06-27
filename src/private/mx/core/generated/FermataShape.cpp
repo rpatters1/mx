@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_FermataShape
 {
 
 constexpr std::string_view kWire[] = {
     "normal", "angled", "square", "double-angled", "double-square", "double-dot", "half-curve", "curlew", "",
 };
 
-} // namespace
+} // namespace detail_FermataShape
 
 FermataShape FermataShape::normal() noexcept
 {
@@ -64,14 +64,14 @@ FermataShape FermataShape::empty() noexcept
 
 std::string_view FermataShape::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_FermataShape::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool FermataShape::tryParse(std::string_view text, FermataShape &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_FermataShape::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_FermataShape::kWire[i] == text)
         {
             out = FermataShape{static_cast<Tag>(i)};
             return true;

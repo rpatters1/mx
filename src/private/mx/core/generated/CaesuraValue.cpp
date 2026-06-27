@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_CaesuraValue
 {
 
 constexpr std::string_view kWire[] = {
     "normal", "thick", "short", "curved", "single", "",
 };
 
-} // namespace
+} // namespace detail_CaesuraValue
 
 CaesuraValue CaesuraValue::normal() noexcept
 {
@@ -49,14 +49,14 @@ CaesuraValue CaesuraValue::empty() noexcept
 
 std::string_view CaesuraValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_CaesuraValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool CaesuraValue::tryParse(std::string_view text, CaesuraValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_CaesuraValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_CaesuraValue::kWire[i] == text)
         {
             out = CaesuraValue{static_cast<Tag>(i)};
             return true;

@@ -7,7 +7,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_MeasureText
 {
 
 std::string repaired(std::string v)
@@ -21,19 +21,19 @@ std::string repaired(std::string v)
     return v;
 }
 
-} // namespace
+} // namespace detail_MeasureText
 
-MeasureText::MeasureText() : m_value{repaired(std::string{})}
+MeasureText::MeasureText() : m_value{detail_MeasureText::repaired(std::string{})}
 {
 }
 
-MeasureText::MeasureText(std::string value) : m_value{repaired(std::move(value))}
+MeasureText::MeasureText(std::string value) : m_value{detail_MeasureText::repaired(std::move(value))}
 {
 }
 
 void MeasureText::setValue(std::string value)
 {
-    m_value = repaired(std::move(value));
+    m_value = detail_MeasureText::repaired(std::move(value));
 }
 
 bool MeasureText::tryParse(std::string_view text, MeasureText &out)

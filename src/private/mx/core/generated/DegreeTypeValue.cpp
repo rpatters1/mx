@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_DegreeTypeValue
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "subtract",
 };
 
-} // namespace
+} // namespace detail_DegreeTypeValue
 
 DegreeTypeValue DegreeTypeValue::add() noexcept
 {
@@ -36,14 +36,14 @@ DegreeTypeValue DegreeTypeValue::subtract() noexcept
 
 std::string_view DegreeTypeValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_DegreeTypeValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool DegreeTypeValue::tryParse(std::string_view text, DegreeTypeValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_DegreeTypeValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_DegreeTypeValue::kWire[i] == text)
         {
             out = DegreeTypeValue{static_cast<Tag>(i)};
             return true;

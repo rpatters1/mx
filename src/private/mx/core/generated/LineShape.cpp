@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_LineShape
 {
 
 constexpr std::string_view kWire[] = {
@@ -16,7 +16,7 @@ constexpr std::string_view kWire[] = {
     "curved",
 };
 
-} // namespace
+} // namespace detail_LineShape
 
 LineShape LineShape::straight() noexcept
 {
@@ -30,14 +30,14 @@ LineShape LineShape::curved() noexcept
 
 std::string_view LineShape::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_LineShape::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool LineShape::tryParse(std::string_view text, LineShape &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_LineShape::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_LineShape::kWire[i] == text)
         {
             out = LineShape{static_cast<Tag>(i)};
             return true;

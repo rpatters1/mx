@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_Valign
 {
 
 constexpr std::string_view kWire[] = {
@@ -18,7 +18,7 @@ constexpr std::string_view kWire[] = {
     "baseline",
 };
 
-} // namespace
+} // namespace detail_Valign
 
 Valign Valign::top() noexcept
 {
@@ -42,14 +42,14 @@ Valign Valign::baseline() noexcept
 
 std::string_view Valign::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_Valign::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool Valign::tryParse(std::string_view text, Valign &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_Valign::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_Valign::kWire[i] == text)
         {
             out = Valign{static_cast<Tag>(i)};
             return true;

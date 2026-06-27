@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_NumberLevel
 {
 
 int clamped(int v)
@@ -25,19 +25,19 @@ int clamped(int v)
     return v;
 }
 
-} // namespace
+} // namespace detail_NumberLevel
 
-NumberLevel::NumberLevel() : m_value{clamped(int{})}
+NumberLevel::NumberLevel() : m_value{detail_NumberLevel::clamped(int{})}
 {
 }
 
-NumberLevel::NumberLevel(int value) : m_value{clamped(std::move(value))}
+NumberLevel::NumberLevel(int value) : m_value{detail_NumberLevel::clamped(std::move(value))}
 {
 }
 
 void NumberLevel::setValue(int value)
 {
-    m_value = clamped(std::move(value));
+    m_value = detail_NumberLevel::clamped(std::move(value));
 }
 
 std::string NumberLevel::toString() const

@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_FontWeight
 {
 
 constexpr std::string_view kWire[] = {
@@ -16,7 +16,7 @@ constexpr std::string_view kWire[] = {
     "bold",
 };
 
-} // namespace
+} // namespace detail_FontWeight
 
 FontWeight FontWeight::normal() noexcept
 {
@@ -30,14 +30,14 @@ FontWeight FontWeight::bold() noexcept
 
 std::string_view FontWeight::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_FontWeight::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool FontWeight::tryParse(std::string_view text, FontWeight &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_FontWeight::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_FontWeight::kWire[i] == text)
         {
             out = FontWeight{static_cast<Tag>(i)};
             return true;

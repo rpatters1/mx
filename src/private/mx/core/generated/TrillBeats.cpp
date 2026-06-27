@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_TrillBeats
 {
 
 Decimal clamped(Decimal v)
@@ -21,19 +21,19 @@ Decimal clamped(Decimal v)
     return v;
 }
 
-} // namespace
+} // namespace detail_TrillBeats
 
-TrillBeats::TrillBeats() : m_value{clamped(Decimal{})}
+TrillBeats::TrillBeats() : m_value{detail_TrillBeats::clamped(Decimal{})}
 {
 }
 
-TrillBeats::TrillBeats(Decimal value) : m_value{clamped(std::move(value))}
+TrillBeats::TrillBeats(Decimal value) : m_value{detail_TrillBeats::clamped(std::move(value))}
 {
 }
 
 void TrillBeats::setValue(Decimal value)
 {
-    m_value = clamped(std::move(value));
+    m_value = detail_TrillBeats::clamped(std::move(value));
 }
 
 std::string TrillBeats::toString() const

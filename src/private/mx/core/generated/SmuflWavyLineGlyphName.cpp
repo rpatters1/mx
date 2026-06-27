@@ -7,7 +7,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_SmuflWavyLineGlyphName
 {
 
 constexpr std::string_view kWiggle = "wiggle";
@@ -21,7 +21,7 @@ bool isNameChar(char c) noexcept
            c == ':' || c == '_';
 }
 
-} // namespace
+} // namespace detail_SmuflWavyLineGlyphName
 
 SmuflWavyLineGlyphName::SmuflWavyLineGlyphName()
 {
@@ -55,7 +55,7 @@ void SmuflWavyLineGlyphName::repair()
     cleaned.reserve(m_part.size());
     for (const char c : m_part)
     {
-        if (isNameChar(c))
+        if (detail_SmuflWavyLineGlyphName::isNameChar(c))
         {
             cleaned.push_back(c);
         }
@@ -71,13 +71,13 @@ std::string SmuflWavyLineGlyphName::toString() const
 {
     if (m_kind == Kind::wiggle)
     {
-        std::string out{kWiggle};
+        std::string out{detail_SmuflWavyLineGlyphName::kWiggle};
         out += m_part;
         return out;
     }
-    std::string out{kGuitar};
+    std::string out{detail_SmuflWavyLineGlyphName::kGuitar};
     out += m_part;
-    out += kVibratoStroke;
+    out += detail_SmuflWavyLineGlyphName::kVibratoStroke;
     return out;
 }
 
@@ -86,24 +86,30 @@ bool SmuflWavyLineGlyphName::tryParse(std::string_view text, SmuflWavyLineGlyphN
     const auto allNameChars = [](std::string_view s) {
         for (const char c : s)
         {
-            if (!isNameChar(c))
+            if (!detail_SmuflWavyLineGlyphName::isNameChar(c))
             {
                 return false;
             }
         }
         return true;
     };
-    if (text.size() > kWiggle.size() && text.substr(0, kWiggle.size()) == kWiggle &&
-        allNameChars(text.substr(kWiggle.size())))
+    if (text.size() > detail_SmuflWavyLineGlyphName::kWiggle.size() &&
+        text.substr(0, detail_SmuflWavyLineGlyphName::kWiggle.size()) == detail_SmuflWavyLineGlyphName::kWiggle &&
+        allNameChars(text.substr(detail_SmuflWavyLineGlyphName::kWiggle.size())))
     {
-        out = SmuflWavyLineGlyphName{Kind::wiggle, std::string{text.substr(kWiggle.size())}};
+        out = SmuflWavyLineGlyphName{Kind::wiggle,
+                                     std::string{text.substr(detail_SmuflWavyLineGlyphName::kWiggle.size())}};
         return true;
     }
-    if (text.size() >= kGuitar.size() + kVibratoStroke.size() && text.substr(0, kGuitar.size()) == kGuitar &&
-        text.substr(text.size() - kVibratoStroke.size()) == kVibratoStroke)
+    if (text.size() >=
+            detail_SmuflWavyLineGlyphName::kGuitar.size() + detail_SmuflWavyLineGlyphName::kVibratoStroke.size() &&
+        text.substr(0, detail_SmuflWavyLineGlyphName::kGuitar.size()) == detail_SmuflWavyLineGlyphName::kGuitar &&
+        text.substr(text.size() - detail_SmuflWavyLineGlyphName::kVibratoStroke.size()) ==
+            detail_SmuflWavyLineGlyphName::kVibratoStroke)
     {
-        const std::string_view middle =
-            text.substr(kGuitar.size(), text.size() - kGuitar.size() - kVibratoStroke.size());
+        const std::string_view middle = text.substr(detail_SmuflWavyLineGlyphName::kGuitar.size(),
+                                                    text.size() - detail_SmuflWavyLineGlyphName::kGuitar.size() -
+                                                        detail_SmuflWavyLineGlyphName::kVibratoStroke.size());
         if (allNameChars(middle))
         {
             out = SmuflWavyLineGlyphName{Kind::guitarVibratoStroke, std::string{middle}};

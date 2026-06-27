@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_EffectValue
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "slide whistle", "thunder sheet", "wind machine", "wind whistle",
 };
 
-} // namespace
+} // namespace detail_EffectValue
 
 EffectValue EffectValue::anvil() noexcept
 {
@@ -101,14 +101,14 @@ EffectValue EffectValue::windWhistle() noexcept
 
 std::string_view EffectValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_EffectValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool EffectValue::tryParse(std::string_view text, EffectValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_EffectValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_EffectValue::kWire[i] == text)
         {
             out = EffectValue{static_cast<Tag>(i)};
             return true;

@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_TremoloMarks
 {
 
 int clamped(int v)
@@ -25,19 +25,19 @@ int clamped(int v)
     return v;
 }
 
-} // namespace
+} // namespace detail_TremoloMarks
 
-TremoloMarks::TremoloMarks() : m_value{clamped(int{})}
+TremoloMarks::TremoloMarks() : m_value{detail_TremoloMarks::clamped(int{})}
 {
 }
 
-TremoloMarks::TremoloMarks(int value) : m_value{clamped(std::move(value))}
+TremoloMarks::TremoloMarks(int value) : m_value{detail_TremoloMarks::clamped(std::move(value))}
 {
 }
 
 void TremoloMarks::setValue(int value)
 {
-    m_value = clamped(std::move(value));
+    m_value = detail_TremoloMarks::clamped(std::move(value));
 }
 
 std::string TremoloMarks::toString() const

@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_TwoNoteTurn
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "none",
 };
 
-} // namespace
+} // namespace detail_TwoNoteTurn
 
 TwoNoteTurn TwoNoteTurn::whole() noexcept
 {
@@ -36,14 +36,14 @@ TwoNoteTurn TwoNoteTurn::none() noexcept
 
 std::string_view TwoNoteTurn::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_TwoNoteTurn::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool TwoNoteTurn::tryParse(std::string_view text, TwoNoteTurn &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_TwoNoteTurn::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_TwoNoteTurn::kWire[i] == text)
         {
             out = TwoNoteTurn{static_cast<Tag>(i)};
             return true;

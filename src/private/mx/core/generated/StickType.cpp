@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_StickType
 {
 
 constexpr std::string_view kWire[] = {
@@ -16,7 +16,7 @@ constexpr std::string_view kWire[] = {
     "superball", "timpani",          "wound",        "xylophone", "yarn",
 };
 
-} // namespace
+} // namespace detail_StickType
 
 StickType StickType::bassDrum() noexcept
 {
@@ -70,14 +70,14 @@ StickType StickType::yarn() noexcept
 
 std::string_view StickType::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_StickType::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool StickType::tryParse(std::string_view text, StickType &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_StickType::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_StickType::kWire[i] == text)
         {
             out = StickType{static_cast<Tag>(i)};
             return true;

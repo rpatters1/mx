@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_SmuflAccidentalGlyphName
 {
 
 constexpr std::string_view kPrefix[] = {
@@ -23,7 +23,7 @@ bool isNameChar(char c) noexcept
            c == ':' || c == '_';
 }
 
-} // namespace
+} // namespace detail_SmuflAccidentalGlyphName
 
 SmuflAccidentalGlyphName::SmuflAccidentalGlyphName()
 {
@@ -44,7 +44,7 @@ SmuflAccidentalGlyphName::SmuflAccidentalGlyphName(Prefix prefix, std::string su
 void SmuflAccidentalGlyphName::setPrefix(Prefix value) noexcept
 {
     m_prefix = value;
-    if (static_cast<std::size_t>(m_prefix) >= std::size(kPrefix))
+    if (static_cast<std::size_t>(m_prefix) >= std::size(detail_SmuflAccidentalGlyphName::kPrefix))
     {
         m_prefix = Prefix::acc;
     }
@@ -58,7 +58,7 @@ void SmuflAccidentalGlyphName::setSuffix(std::string value)
 
 void SmuflAccidentalGlyphName::repair()
 {
-    if (static_cast<std::size_t>(m_prefix) >= std::size(kPrefix))
+    if (static_cast<std::size_t>(m_prefix) >= std::size(detail_SmuflAccidentalGlyphName::kPrefix))
     {
         m_prefix = Prefix::acc;
     }
@@ -66,7 +66,7 @@ void SmuflAccidentalGlyphName::repair()
     cleaned.reserve(m_suffix.size());
     for (const char c : m_suffix)
     {
-        if (isNameChar(c))
+        if (detail_SmuflAccidentalGlyphName::isNameChar(c))
         {
             cleaned.push_back(c);
         }
@@ -80,16 +80,16 @@ void SmuflAccidentalGlyphName::repair()
 
 std::string SmuflAccidentalGlyphName::toString() const
 {
-    std::string out{kPrefix[static_cast<std::size_t>(m_prefix)]};
+    std::string out{detail_SmuflAccidentalGlyphName::kPrefix[static_cast<std::size_t>(m_prefix)]};
     out += m_suffix;
     return out;
 }
 
 bool SmuflAccidentalGlyphName::tryParse(std::string_view text, SmuflAccidentalGlyphName &out)
 {
-    for (std::size_t i = 0; i < std::size(kPrefix); ++i)
+    for (std::size_t i = 0; i < std::size(detail_SmuflAccidentalGlyphName::kPrefix); ++i)
     {
-        const std::string_view prefix = kPrefix[i];
+        const std::string_view prefix = detail_SmuflAccidentalGlyphName::kPrefix[i];
         if (text.size() < prefix.size() || text.substr(0, prefix.size()) != prefix)
         {
             continue;
@@ -102,7 +102,7 @@ bool SmuflAccidentalGlyphName::tryParse(std::string_view text, SmuflAccidentalGl
         bool valid = true;
         for (const char c : suffix)
         {
-            if (!isNameChar(c))
+            if (!detail_SmuflAccidentalGlyphName::isNameChar(c))
             {
                 valid = false;
                 break;

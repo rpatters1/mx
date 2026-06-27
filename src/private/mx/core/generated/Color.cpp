@@ -7,7 +7,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_Color
 {
 
 constexpr char kHex[] = "0123456789ABCDEF";
@@ -46,7 +46,7 @@ bool parseByte(std::string_view text, std::size_t offset, std::uint8_t &out) noe
     return true;
 }
 
-} // namespace
+} // namespace detail_Color
 
 std::string Color::toString() const
 {
@@ -55,11 +55,11 @@ std::string Color::toString() const
     out.push_back('#');
     if (m_alpha)
     {
-        appendByte(out, *m_alpha);
+        detail_Color::appendByte(out, *m_alpha);
     }
-    appendByte(out, m_red);
-    appendByte(out, m_green);
-    appendByte(out, m_blue);
+    detail_Color::appendByte(out, m_red);
+    detail_Color::appendByte(out, m_green);
+    detail_Color::appendByte(out, m_blue);
     return out;
 }
 
@@ -73,7 +73,7 @@ bool Color::tryParse(std::string_view text, Color &out) noexcept
     const std::size_t count = (text.size() - 1) / 2;
     for (std::size_t i = 0; i < count; ++i)
     {
-        if (!parseByte(text, 1 + i * 2, bytes[i]))
+        if (!detail_Color::parseByte(text, 1 + i * 2, bytes[i]))
         {
             return false;
         }

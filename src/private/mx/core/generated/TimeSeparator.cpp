@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_TimeSeparator
 {
 
 constexpr std::string_view kWire[] = {
     "none", "horizontal", "diagonal", "vertical", "adjacent",
 };
 
-} // namespace
+} // namespace detail_TimeSeparator
 
 TimeSeparator TimeSeparator::none() noexcept
 {
@@ -44,14 +44,14 @@ TimeSeparator TimeSeparator::adjacent() noexcept
 
 std::string_view TimeSeparator::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_TimeSeparator::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool TimeSeparator::tryParse(std::string_view text, TimeSeparator &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_TimeSeparator::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_TimeSeparator::kWire[i] == text)
         {
             out = TimeSeparator{static_cast<Tag>(i)};
             return true;

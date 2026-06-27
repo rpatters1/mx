@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_SmuflCodaGlyphName
 {
 
 constexpr std::string_view kPrefix[] = {
@@ -23,7 +23,7 @@ bool isNameChar(char c) noexcept
            c == ':' || c == '_';
 }
 
-} // namespace
+} // namespace detail_SmuflCodaGlyphName
 
 SmuflCodaGlyphName::SmuflCodaGlyphName()
 {
@@ -47,7 +47,7 @@ void SmuflCodaGlyphName::repair()
     cleaned.reserve(m_suffix.size());
     for (const char c : m_suffix)
     {
-        if (isNameChar(c))
+        if (detail_SmuflCodaGlyphName::isNameChar(c))
         {
             cleaned.push_back(c);
         }
@@ -57,16 +57,16 @@ void SmuflCodaGlyphName::repair()
 
 std::string SmuflCodaGlyphName::toString() const
 {
-    std::string out{kPrefix[0]};
+    std::string out{detail_SmuflCodaGlyphName::kPrefix[0]};
     out += m_suffix;
     return out;
 }
 
 bool SmuflCodaGlyphName::tryParse(std::string_view text, SmuflCodaGlyphName &out)
 {
-    for (std::size_t i = 0; i < std::size(kPrefix); ++i)
+    for (std::size_t i = 0; i < std::size(detail_SmuflCodaGlyphName::kPrefix); ++i)
     {
-        const std::string_view prefix = kPrefix[i];
+        const std::string_view prefix = detail_SmuflCodaGlyphName::kPrefix[i];
         if (text.size() < prefix.size() || text.substr(0, prefix.size()) != prefix)
         {
             continue;
@@ -75,7 +75,7 @@ bool SmuflCodaGlyphName::tryParse(std::string_view text, SmuflCodaGlyphName &out
         bool valid = true;
         for (const char c : suffix)
         {
-            if (!isNameChar(c))
+            if (!detail_SmuflCodaGlyphName::isNameChar(c))
             {
                 valid = false;
                 break;

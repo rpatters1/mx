@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_NoteTypeValue
 {
 
 constexpr std::string_view kWire[] = {
@@ -16,7 +16,7 @@ constexpr std::string_view kWire[] = {
     "eighth", "quarter", "half",  "whole", "breve", "long", "maxima",
 };
 
-} // namespace
+} // namespace detail_NoteTypeValue
 
 NoteTypeValue NoteTypeValue::_1024th() noexcept
 {
@@ -90,14 +90,14 @@ NoteTypeValue NoteTypeValue::maxima() noexcept
 
 std::string_view NoteTypeValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_NoteTypeValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool NoteTypeValue::tryParse(std::string_view text, NoteTypeValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_NoteTypeValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_NoteTypeValue::kWire[i] == text)
         {
             out = NoteTypeValue{static_cast<Tag>(i)};
             return true;

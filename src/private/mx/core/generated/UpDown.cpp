@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_UpDown
 {
 
 constexpr std::string_view kWire[] = {
@@ -16,7 +16,7 @@ constexpr std::string_view kWire[] = {
     "down",
 };
 
-} // namespace
+} // namespace detail_UpDown
 
 UpDown UpDown::up() noexcept
 {
@@ -30,14 +30,14 @@ UpDown UpDown::down() noexcept
 
 std::string_view UpDown::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_UpDown::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool UpDown::tryParse(std::string_view text, UpDown &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_UpDown::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_UpDown::kWire[i] == text)
         {
             out = UpDown{static_cast<Tag>(i)};
             return true;

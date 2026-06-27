@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_UprightInverted
 {
 
 constexpr std::string_view kWire[] = {
@@ -16,7 +16,7 @@ constexpr std::string_view kWire[] = {
     "inverted",
 };
 
-} // namespace
+} // namespace detail_UprightInverted
 
 UprightInverted UprightInverted::upright() noexcept
 {
@@ -30,14 +30,14 @@ UprightInverted UprightInverted::inverted() noexcept
 
 std::string_view UprightInverted::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_UprightInverted::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool UprightInverted::tryParse(std::string_view text, UprightInverted &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_UprightInverted::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_UprightInverted::kWire[i] == text)
         {
             out = UprightInverted{static_cast<Tag>(i)};
             return true;

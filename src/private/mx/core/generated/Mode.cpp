@@ -7,7 +7,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_Mode
 {
 
 std::string repaired(std::string v)
@@ -15,15 +15,15 @@ std::string repaired(std::string v)
     return v;
 }
 
-} // namespace
+} // namespace detail_Mode
 
-Mode::Mode(std::string value) : m_value{repaired(std::move(value))}
+Mode::Mode(std::string value) : m_value{detail_Mode::repaired(std::move(value))}
 {
 }
 
 void Mode::setValue(std::string value)
 {
-    m_value = repaired(std::move(value));
+    m_value = detail_Mode::repaired(std::move(value));
 }
 
 bool Mode::tryParse(std::string_view text, Mode &out)

@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_BreathMarkValue
 {
 
 constexpr std::string_view kWire[] = {
     "", "comma", "tick", "upbow", "salzedo",
 };
 
-} // namespace
+} // namespace detail_BreathMarkValue
 
 BreathMarkValue BreathMarkValue::empty() noexcept
 {
@@ -44,14 +44,14 @@ BreathMarkValue BreathMarkValue::salzedo() noexcept
 
 std::string_view BreathMarkValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_BreathMarkValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool BreathMarkValue::tryParse(std::string_view text, BreathMarkValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_BreathMarkValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_BreathMarkValue::kWire[i] == text)
         {
             out = BreathMarkValue{static_cast<Tag>(i)};
             return true;

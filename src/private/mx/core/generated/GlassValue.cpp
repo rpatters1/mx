@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_GlassValue
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "wind chimes",
 };
 
-} // namespace
+} // namespace detail_GlassValue
 
 GlassValue GlassValue::glassHarmonica() noexcept
 {
@@ -36,14 +36,14 @@ GlassValue GlassValue::windChimes() noexcept
 
 std::string_view GlassValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_GlassValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool GlassValue::tryParse(std::string_view text, GlassValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_GlassValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_GlassValue::kWire[i] == text)
         {
             out = GlassValue{static_cast<Tag>(i)};
             return true;

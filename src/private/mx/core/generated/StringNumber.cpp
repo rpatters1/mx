@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_StringNumber
 {
 
 int clamped(int v)
@@ -21,19 +21,19 @@ int clamped(int v)
     return v;
 }
 
-} // namespace
+} // namespace detail_StringNumber
 
-StringNumber::StringNumber() : m_value{clamped(int{})}
+StringNumber::StringNumber() : m_value{detail_StringNumber::clamped(int{})}
 {
 }
 
-StringNumber::StringNumber(int value) : m_value{clamped(std::move(value))}
+StringNumber::StringNumber(int value) : m_value{detail_StringNumber::clamped(std::move(value))}
 {
 }
 
 void StringNumber::setValue(int value)
 {
-    m_value = clamped(std::move(value));
+    m_value = detail_StringNumber::clamped(std::move(value));
 }
 
 std::string StringNumber::toString() const

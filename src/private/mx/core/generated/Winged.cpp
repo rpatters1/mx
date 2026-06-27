@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_Winged
 {
 
 constexpr std::string_view kWire[] = {
     "none", "straight", "curved", "double-straight", "double-curved",
 };
 
-} // namespace
+} // namespace detail_Winged
 
 Winged Winged::none() noexcept
 {
@@ -44,14 +44,14 @@ Winged Winged::doubleCurved() noexcept
 
 std::string_view Winged::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_Winged::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool Winged::tryParse(std::string_view text, Winged &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_Winged::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_Winged::kWire[i] == text)
         {
             out = Winged{static_cast<Tag>(i)};
             return true;

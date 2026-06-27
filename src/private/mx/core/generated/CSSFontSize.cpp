@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_CSSFontSize
 {
 
 constexpr std::string_view kWire[] = {
     "xx-small", "x-small", "small", "medium", "large", "x-large", "xx-large",
 };
 
-} // namespace
+} // namespace detail_CSSFontSize
 
 CSSFontSize CSSFontSize::xxSmall() noexcept
 {
@@ -54,14 +54,14 @@ CSSFontSize CSSFontSize::xxLarge() noexcept
 
 std::string_view CSSFontSize::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_CSSFontSize::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool CSSFontSize::tryParse(std::string_view text, CSSFontSize &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_CSSFontSize::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_CSSFontSize::kWire[i] == text)
         {
             out = CSSFontSize{static_cast<Tag>(i)};
             return true;

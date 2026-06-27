@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_SyncType
 {
 
 constexpr std::string_view kWire[] = {
     "none", "tempo", "mostly-tempo", "mostly-event", "event", "always-event",
 };
 
-} // namespace
+} // namespace detail_SyncType
 
 SyncType SyncType::none() noexcept
 {
@@ -49,14 +49,14 @@ SyncType SyncType::alwaysEvent() noexcept
 
 std::string_view SyncType::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_SyncType::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool SyncType::tryParse(std::string_view text, SyncType &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_SyncType::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_SyncType::kWire[i] == text)
         {
             out = SyncType{static_cast<Tag>(i)};
             return true;

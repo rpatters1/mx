@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_NoteSizeType
 {
 
 constexpr std::string_view kWire[] = {
@@ -18,7 +18,7 @@ constexpr std::string_view kWire[] = {
     "large",
 };
 
-} // namespace
+} // namespace detail_NoteSizeType
 
 NoteSizeType NoteSizeType::cue() noexcept
 {
@@ -42,14 +42,14 @@ NoteSizeType NoteSizeType::large() noexcept
 
 std::string_view NoteSizeType::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_NoteSizeType::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool NoteSizeType::tryParse(std::string_view text, NoteSizeType &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_NoteSizeType::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_NoteSizeType::kWire[i] == text)
         {
             out = NoteSizeType{static_cast<Tag>(i)};
             return true;

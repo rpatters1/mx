@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_HarmonClosedValue
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "half",
 };
 
-} // namespace
+} // namespace detail_HarmonClosedValue
 
 HarmonClosedValue HarmonClosedValue::yes() noexcept
 {
@@ -36,14 +36,14 @@ HarmonClosedValue HarmonClosedValue::half() noexcept
 
 std::string_view HarmonClosedValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_HarmonClosedValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool HarmonClosedValue::tryParse(std::string_view text, HarmonClosedValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_HarmonClosedValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_HarmonClosedValue::kWire[i] == text)
         {
             out = HarmonClosedValue{static_cast<Tag>(i)};
             return true;

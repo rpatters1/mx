@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_Octave
 {
 
 int clamped(int v)
@@ -25,19 +25,19 @@ int clamped(int v)
     return v;
 }
 
-} // namespace
+} // namespace detail_Octave
 
-Octave::Octave() : m_value{clamped(int{})}
+Octave::Octave() : m_value{detail_Octave::clamped(int{})}
 {
 }
 
-Octave::Octave(int value) : m_value{clamped(std::move(value))}
+Octave::Octave(int value) : m_value{detail_Octave::clamped(std::move(value))}
 {
 }
 
 void Octave::setValue(int value)
 {
-    m_value = clamped(std::move(value));
+    m_value = detail_Octave::clamped(std::move(value));
 }
 
 std::string Octave::toString() const

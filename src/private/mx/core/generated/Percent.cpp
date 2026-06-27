@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_Percent
 {
 
 Decimal clamped(Decimal v)
@@ -25,19 +25,19 @@ Decimal clamped(Decimal v)
     return v;
 }
 
-} // namespace
+} // namespace detail_Percent
 
-Percent::Percent() : m_value{clamped(Decimal{})}
+Percent::Percent() : m_value{detail_Percent::clamped(Decimal{})}
 {
 }
 
-Percent::Percent(Decimal value) : m_value{clamped(std::move(value))}
+Percent::Percent(Decimal value) : m_value{detail_Percent::clamped(std::move(value))}
 {
 }
 
 void Percent::setValue(Decimal value)
 {
-    m_value = clamped(std::move(value));
+    m_value = detail_Percent::clamped(std::move(value));
 }
 
 std::string Percent::toString() const

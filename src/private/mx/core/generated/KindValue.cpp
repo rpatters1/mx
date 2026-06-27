@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_KindValue
 {
 
 constexpr std::string_view kWire[] = {
@@ -47,7 +47,7 @@ constexpr std::string_view kWire[] = {
     "none",
 };
 
-} // namespace
+} // namespace detail_KindValue
 
 KindValue KindValue::major() noexcept
 {
@@ -216,14 +216,14 @@ KindValue KindValue::none() noexcept
 
 std::string_view KindValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_KindValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool KindValue::tryParse(std::string_view text, KindValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_KindValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_KindValue::kWire[i] == text)
         {
             out = KindValue{static_cast<Tag>(i)};
             return true;

@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_UpDownStopContinue
 {
 
 constexpr std::string_view kWire[] = {
@@ -18,7 +18,7 @@ constexpr std::string_view kWire[] = {
     "continue",
 };
 
-} // namespace
+} // namespace detail_UpDownStopContinue
 
 UpDownStopContinue UpDownStopContinue::up() noexcept
 {
@@ -42,14 +42,14 @@ UpDownStopContinue UpDownStopContinue::continue_() noexcept
 
 std::string_view UpDownStopContinue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_UpDownStopContinue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool UpDownStopContinue::tryParse(std::string_view text, UpDownStopContinue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_UpDownStopContinue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_UpDownStopContinue::kWire[i] == text)
         {
             out = UpDownStopContinue{static_cast<Tag>(i)};
             return true;

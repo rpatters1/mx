@@ -7,7 +7,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_DistanceType
 {
 
 std::string repaired(std::string v)
@@ -15,15 +15,15 @@ std::string repaired(std::string v)
     return v;
 }
 
-} // namespace
+} // namespace detail_DistanceType
 
-DistanceType::DistanceType(std::string value) : m_value{repaired(std::move(value))}
+DistanceType::DistanceType(std::string value) : m_value{detail_DistanceType::repaired(std::move(value))}
 {
 }
 
 void DistanceType::setValue(std::string value)
 {
-    m_value = repaired(std::move(value));
+    m_value = detail_DistanceType::repaired(std::move(value));
 }
 
 bool DistanceType::tryParse(std::string_view text, DistanceType &out)

@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_FontStyle
 {
 
 constexpr std::string_view kWire[] = {
@@ -16,7 +16,7 @@ constexpr std::string_view kWire[] = {
     "italic",
 };
 
-} // namespace
+} // namespace detail_FontStyle
 
 FontStyle FontStyle::normal() noexcept
 {
@@ -30,14 +30,14 @@ FontStyle FontStyle::italic() noexcept
 
 std::string_view FontStyle::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_FontStyle::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool FontStyle::tryParse(std::string_view text, FontStyle &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_FontStyle::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_FontStyle::kWire[i] == text)
         {
             out = FontStyle{static_cast<Tag>(i)};
             return true;

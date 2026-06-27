@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_MarginType
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "both",
 };
 
-} // namespace
+} // namespace detail_MarginType
 
 MarginType MarginType::odd() noexcept
 {
@@ -36,14 +36,14 @@ MarginType MarginType::both() noexcept
 
 std::string_view MarginType::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_MarginType::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool MarginType::tryParse(std::string_view text, MarginType &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_MarginType::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_MarginType::kWire[i] == text)
         {
             out = MarginType{static_cast<Tag>(i)};
             return true;

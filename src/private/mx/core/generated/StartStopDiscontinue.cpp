@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_StartStopDiscontinue
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "discontinue",
 };
 
-} // namespace
+} // namespace detail_StartStopDiscontinue
 
 StartStopDiscontinue StartStopDiscontinue::start() noexcept
 {
@@ -36,14 +36,14 @@ StartStopDiscontinue StartStopDiscontinue::discontinue() noexcept
 
 std::string_view StartStopDiscontinue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_StartStopDiscontinue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool StartStopDiscontinue::tryParse(std::string_view text, StartStopDiscontinue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_StartStopDiscontinue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_StartStopDiscontinue::kWire[i] == text)
         {
             out = StartStopDiscontinue{static_cast<Tag>(i)};
             return true;

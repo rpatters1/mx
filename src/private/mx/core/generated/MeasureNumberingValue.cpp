@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_MeasureNumberingValue
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "system",
 };
 
-} // namespace
+} // namespace detail_MeasureNumberingValue
 
 MeasureNumberingValue MeasureNumberingValue::none() noexcept
 {
@@ -36,14 +36,14 @@ MeasureNumberingValue MeasureNumberingValue::system() noexcept
 
 std::string_view MeasureNumberingValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_MeasureNumberingValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool MeasureNumberingValue::tryParse(std::string_view text, MeasureNumberingValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_MeasureNumberingValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_MeasureNumberingValue::kWire[i] == text)
         {
             out = MeasureNumberingValue{static_cast<Tag>(i)};
             return true;

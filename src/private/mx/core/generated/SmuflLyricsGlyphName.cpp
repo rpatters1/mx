@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_SmuflLyricsGlyphName
 {
 
 constexpr std::string_view kPrefix[] = {
@@ -23,7 +23,7 @@ bool isNameChar(char c) noexcept
            c == ':' || c == '_';
 }
 
-} // namespace
+} // namespace detail_SmuflLyricsGlyphName
 
 SmuflLyricsGlyphName::SmuflLyricsGlyphName()
 {
@@ -47,7 +47,7 @@ void SmuflLyricsGlyphName::repair()
     cleaned.reserve(m_suffix.size());
     for (const char c : m_suffix)
     {
-        if (isNameChar(c))
+        if (detail_SmuflLyricsGlyphName::isNameChar(c))
         {
             cleaned.push_back(c);
         }
@@ -61,16 +61,16 @@ void SmuflLyricsGlyphName::repair()
 
 std::string SmuflLyricsGlyphName::toString() const
 {
-    std::string out{kPrefix[0]};
+    std::string out{detail_SmuflLyricsGlyphName::kPrefix[0]};
     out += m_suffix;
     return out;
 }
 
 bool SmuflLyricsGlyphName::tryParse(std::string_view text, SmuflLyricsGlyphName &out)
 {
-    for (std::size_t i = 0; i < std::size(kPrefix); ++i)
+    for (std::size_t i = 0; i < std::size(detail_SmuflLyricsGlyphName::kPrefix); ++i)
     {
-        const std::string_view prefix = kPrefix[i];
+        const std::string_view prefix = detail_SmuflLyricsGlyphName::kPrefix[i];
         if (text.size() < prefix.size() || text.substr(0, prefix.size()) != prefix)
         {
             continue;
@@ -83,7 +83,7 @@ bool SmuflLyricsGlyphName::tryParse(std::string_view text, SmuflLyricsGlyphName 
         bool valid = true;
         for (const char c : suffix)
         {
-            if (!isNameChar(c))
+            if (!detail_SmuflLyricsGlyphName::isNameChar(c))
             {
                 valid = false;
                 break;

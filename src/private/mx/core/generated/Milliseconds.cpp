@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_Milliseconds
 {
 
 int clamped(int v)
@@ -21,19 +21,19 @@ int clamped(int v)
     return v;
 }
 
-} // namespace
+} // namespace detail_Milliseconds
 
-Milliseconds::Milliseconds() : m_value{clamped(int{})}
+Milliseconds::Milliseconds() : m_value{detail_Milliseconds::clamped(int{})}
 {
 }
 
-Milliseconds::Milliseconds(int value) : m_value{clamped(std::move(value))}
+Milliseconds::Milliseconds(int value) : m_value{detail_Milliseconds::clamped(std::move(value))}
 {
 }
 
 void Milliseconds::setValue(int value)
 {
-    m_value = clamped(std::move(value));
+    m_value = detail_Milliseconds::clamped(std::move(value));
 }
 
 std::string Milliseconds::toString() const

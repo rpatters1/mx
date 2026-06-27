@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_PedalType
 {
 
 constexpr std::string_view kWire[] = {
     "start", "stop", "sostenuto", "change", "continue", "discontinue", "resume",
 };
 
-} // namespace
+} // namespace detail_PedalType
 
 PedalType PedalType::start() noexcept
 {
@@ -54,14 +54,14 @@ PedalType PedalType::resume() noexcept
 
 std::string_view PedalType::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_PedalType::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool PedalType::tryParse(std::string_view text, PedalType &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_PedalType::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_PedalType::kWire[i] == text)
         {
             out = PedalType{static_cast<Tag>(i)};
             return true;

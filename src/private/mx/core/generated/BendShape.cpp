@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_BendShape
 {
 
 constexpr std::string_view kWire[] = {
@@ -16,7 +16,7 @@ constexpr std::string_view kWire[] = {
     "curved",
 };
 
-} // namespace
+} // namespace detail_BendShape
 
 BendShape BendShape::angled() noexcept
 {
@@ -30,14 +30,14 @@ BendShape BendShape::curved() noexcept
 
 std::string_view BendShape::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_BendShape::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool BendShape::tryParse(std::string_view text, BendShape &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_BendShape::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_BendShape::kWire[i] == text)
         {
             out = BendShape{static_cast<Tag>(i)};
             return true;

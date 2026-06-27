@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_GroupSymbolValue
 {
 
 constexpr std::string_view kWire[] = {
     "none", "brace", "line", "bracket", "square",
 };
 
-} // namespace
+} // namespace detail_GroupSymbolValue
 
 GroupSymbolValue GroupSymbolValue::none() noexcept
 {
@@ -44,14 +44,14 @@ GroupSymbolValue GroupSymbolValue::square() noexcept
 
 std::string_view GroupSymbolValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_GroupSymbolValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool GroupSymbolValue::tryParse(std::string_view text, GroupSymbolValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_GroupSymbolValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_GroupSymbolValue::kWire[i] == text)
         {
             out = GroupSymbolValue{static_cast<Tag>(i)};
             return true;

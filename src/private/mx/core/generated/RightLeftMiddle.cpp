@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_RightLeftMiddle
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "middle",
 };
 
-} // namespace
+} // namespace detail_RightLeftMiddle
 
 RightLeftMiddle RightLeftMiddle::right() noexcept
 {
@@ -36,14 +36,14 @@ RightLeftMiddle RightLeftMiddle::middle() noexcept
 
 std::string_view RightLeftMiddle::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_RightLeftMiddle::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool RightLeftMiddle::tryParse(std::string_view text, RightLeftMiddle &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_RightLeftMiddle::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_RightLeftMiddle::kWire[i] == text)
         {
             out = RightLeftMiddle{static_cast<Tag>(i)};
             return true;

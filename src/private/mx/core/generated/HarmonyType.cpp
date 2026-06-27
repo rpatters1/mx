@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_HarmonyType
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "alternate",
 };
 
-} // namespace
+} // namespace detail_HarmonyType
 
 HarmonyType HarmonyType::explicit_() noexcept
 {
@@ -36,14 +36,14 @@ HarmonyType HarmonyType::alternate() noexcept
 
 std::string_view HarmonyType::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_HarmonyType::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool HarmonyType::tryParse(std::string_view text, HarmonyType &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_HarmonyType::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_HarmonyType::kWire[i] == text)
         {
             out = HarmonyType{static_cast<Tag>(i)};
             return true;

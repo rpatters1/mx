@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_AccidentalValue
 {
 
 constexpr std::string_view kWire[] = {
@@ -55,7 +55,7 @@ constexpr std::string_view kWire[] = {
     "other",
 };
 
-} // namespace
+} // namespace detail_AccidentalValue
 
 AccidentalValue AccidentalValue::sharp() noexcept
 {
@@ -264,14 +264,14 @@ AccidentalValue AccidentalValue::other() noexcept
 
 std::string_view AccidentalValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_AccidentalValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool AccidentalValue::tryParse(std::string_view text, AccidentalValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_AccidentalValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_AccidentalValue::kWire[i] == text)
         {
             out = AccidentalValue{static_cast<Tag>(i)};
             return true;

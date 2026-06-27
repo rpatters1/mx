@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_StaffLinePosition
 {
 
 int clamped(int v)
@@ -17,19 +17,19 @@ int clamped(int v)
     return v;
 }
 
-} // namespace
+} // namespace detail_StaffLinePosition
 
-StaffLinePosition::StaffLinePosition() : m_value{clamped(int{})}
+StaffLinePosition::StaffLinePosition() : m_value{detail_StaffLinePosition::clamped(int{})}
 {
 }
 
-StaffLinePosition::StaffLinePosition(int value) : m_value{clamped(std::move(value))}
+StaffLinePosition::StaffLinePosition(int value) : m_value{detail_StaffLinePosition::clamped(std::move(value))}
 {
 }
 
 void StaffLinePosition::setValue(int value)
 {
-    m_value = clamped(std::move(value));
+    m_value = detail_StaffLinePosition::clamped(std::move(value));
 }
 
 std::string StaffLinePosition::toString() const

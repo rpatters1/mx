@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_Step
 {
 
 constexpr std::string_view kWire[] = {
     "A", "B", "C", "D", "E", "F", "G",
 };
 
-} // namespace
+} // namespace detail_Step
 
 Step Step::a() noexcept
 {
@@ -54,14 +54,14 @@ Step Step::g() noexcept
 
 std::string_view Step::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_Step::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool Step::tryParse(std::string_view text, Step &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_Step::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_Step::kWire[i] == text)
         {
             out = Step{static_cast<Tag>(i)};
             return true;

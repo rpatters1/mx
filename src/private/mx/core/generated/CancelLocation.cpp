@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_CancelLocation
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "before-barline",
 };
 
-} // namespace
+} // namespace detail_CancelLocation
 
 CancelLocation CancelLocation::left() noexcept
 {
@@ -36,14 +36,14 @@ CancelLocation CancelLocation::beforeBarline() noexcept
 
 std::string_view CancelLocation::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_CancelLocation::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool CancelLocation::tryParse(std::string_view text, CancelLocation &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_CancelLocation::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_CancelLocation::kWire[i] == text)
         {
             out = CancelLocation{static_cast<Tag>(i)};
             return true;

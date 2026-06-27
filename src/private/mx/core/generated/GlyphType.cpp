@@ -7,7 +7,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_GlyphType
 {
 
 std::string repaired(std::string v)
@@ -15,15 +15,15 @@ std::string repaired(std::string v)
     return v;
 }
 
-} // namespace
+} // namespace detail_GlyphType
 
-GlyphType::GlyphType(std::string value) : m_value{repaired(std::move(value))}
+GlyphType::GlyphType(std::string value) : m_value{detail_GlyphType::repaired(std::move(value))}
 {
 }
 
 void GlyphType::setValue(std::string value)
 {
-    m_value = repaired(std::move(value));
+    m_value = detail_GlyphType::repaired(std::move(value));
 }
 
 bool GlyphType::tryParse(std::string_view text, GlyphType &out)

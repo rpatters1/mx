@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_TrillStep
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "unison",
 };
 
-} // namespace
+} // namespace detail_TrillStep
 
 TrillStep TrillStep::whole() noexcept
 {
@@ -36,14 +36,14 @@ TrillStep TrillStep::unison() noexcept
 
 std::string_view TrillStep::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_TrillStep::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool TrillStep::tryParse(std::string_view text, TrillStep &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_TrillStep::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_TrillStep::kWire[i] == text)
         {
             out = TrillStep{static_cast<Tag>(i)};
             return true;

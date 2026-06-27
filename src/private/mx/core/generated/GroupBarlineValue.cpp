@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_GroupBarlineValue
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "Mensurstrich",
 };
 
-} // namespace
+} // namespace detail_GroupBarlineValue
 
 GroupBarlineValue GroupBarlineValue::yes() noexcept
 {
@@ -36,14 +36,14 @@ GroupBarlineValue GroupBarlineValue::mensurstrich() noexcept
 
 std::string_view GroupBarlineValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_GroupBarlineValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool GroupBarlineValue::tryParse(std::string_view text, GroupBarlineValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_GroupBarlineValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_GroupBarlineValue::kWire[i] == text)
         {
             out = GroupBarlineValue{static_cast<Tag>(i)};
             return true;

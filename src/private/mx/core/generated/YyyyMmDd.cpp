@@ -7,7 +7,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_YyyyMmDd
 {
 
 bool isLeap(int year) noexcept
@@ -35,7 +35,7 @@ void appendPadded(std::string &out, int value, int width)
     out += digits;
 }
 
-} // namespace
+} // namespace detail_YyyyMmDd
 
 YyyyMmDd::YyyyMmDd(int year, int month, int day) noexcept : m_year{year}, m_month{month}, m_day{day}
 {
@@ -82,7 +82,7 @@ void YyyyMmDd::clamp() noexcept
     {
         m_day = 1;
     }
-    const int cap = daysInMonth(m_year, m_month);
+    const int cap = detail_YyyyMmDd::daysInMonth(m_year, m_month);
     if (m_day > cap)
     {
         m_day = cap;
@@ -93,11 +93,11 @@ std::string YyyyMmDd::toString() const
 {
     std::string out;
     out.reserve(10);
-    appendPadded(out, m_year, 4);
+    detail_YyyyMmDd::appendPadded(out, m_year, 4);
     out.push_back('-');
-    appendPadded(out, m_month, 2);
+    detail_YyyyMmDd::appendPadded(out, m_month, 2);
     out.push_back('-');
-    appendPadded(out, m_day, 2);
+    detail_YyyyMmDd::appendPadded(out, m_day, 2);
     return out;
 }
 
@@ -115,7 +115,7 @@ bool YyyyMmDd::tryParse(std::string_view text, YyyyMmDd &out) noexcept
     {
         return false;
     }
-    if (year < 1 || month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month))
+    if (year < 1 || month < 1 || month > 12 || day < 1 || day > detail_YyyyMmDd::daysInMonth(year, month))
     {
         return false;
     }

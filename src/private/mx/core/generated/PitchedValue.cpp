@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_PitchedValue
 {
 
 constexpr std::string_view kWire[] = {
@@ -16,7 +16,7 @@ constexpr std::string_view kWire[] = {
     "steel drums", "tubaphone", "tubular chimes", "vibraphone", "xylophone",
 };
 
-} // namespace
+} // namespace detail_PitchedValue
 
 PitchedValue PitchedValue::celesta() noexcept
 {
@@ -75,14 +75,14 @@ PitchedValue PitchedValue::xylophone() noexcept
 
 std::string_view PitchedValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_PitchedValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool PitchedValue::tryParse(std::string_view text, PitchedValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_PitchedValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_PitchedValue::kWire[i] == text)
         {
             out = PitchedValue{static_cast<Tag>(i)};
             return true;

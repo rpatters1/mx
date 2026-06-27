@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_TimeRelation
 {
 
 constexpr std::string_view kWire[] = {
     "parentheses", "bracket", "equals", "slash", "space", "hyphen",
 };
 
-} // namespace
+} // namespace detail_TimeRelation
 
 TimeRelation TimeRelation::parentheses() noexcept
 {
@@ -49,14 +49,14 @@ TimeRelation TimeRelation::hyphen() noexcept
 
 std::string_view TimeRelation::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_TimeRelation::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool TimeRelation::tryParse(std::string_view text, TimeRelation &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_TimeRelation::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_TimeRelation::kWire[i] == text)
         {
             out = TimeRelation{static_cast<Tag>(i)};
             return true;

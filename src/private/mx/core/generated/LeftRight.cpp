@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_LeftRight
 {
 
 constexpr std::string_view kWire[] = {
@@ -16,7 +16,7 @@ constexpr std::string_view kWire[] = {
     "right",
 };
 
-} // namespace
+} // namespace detail_LeftRight
 
 LeftRight LeftRight::left() noexcept
 {
@@ -30,14 +30,14 @@ LeftRight LeftRight::right() noexcept
 
 std::string_view LeftRight::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_LeftRight::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool LeftRight::tryParse(std::string_view text, LeftRight &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_LeftRight::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_LeftRight::kWire[i] == text)
         {
             out = LeftRight{static_cast<Tag>(i)};
             return true;

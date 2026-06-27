@@ -7,7 +7,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_LineWidthType
 {
 
 std::string repaired(std::string v)
@@ -15,15 +15,15 @@ std::string repaired(std::string v)
     return v;
 }
 
-} // namespace
+} // namespace detail_LineWidthType
 
-LineWidthType::LineWidthType(std::string value) : m_value{repaired(std::move(value))}
+LineWidthType::LineWidthType(std::string value) : m_value{detail_LineWidthType::repaired(std::move(value))}
 {
 }
 
 void LineWidthType::setValue(std::string value)
 {
-    m_value = repaired(std::move(value));
+    m_value = detail_LineWidthType::repaired(std::move(value));
 }
 
 bool LineWidthType::tryParse(std::string_view text, LineWidthType &out)

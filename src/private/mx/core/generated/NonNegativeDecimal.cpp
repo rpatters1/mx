@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_NonNegativeDecimal
 {
 
 Decimal clamped(Decimal v)
@@ -21,19 +21,19 @@ Decimal clamped(Decimal v)
     return v;
 }
 
-} // namespace
+} // namespace detail_NonNegativeDecimal
 
-NonNegativeDecimal::NonNegativeDecimal() : m_value{clamped(Decimal{})}
+NonNegativeDecimal::NonNegativeDecimal() : m_value{detail_NonNegativeDecimal::clamped(Decimal{})}
 {
 }
 
-NonNegativeDecimal::NonNegativeDecimal(Decimal value) : m_value{clamped(std::move(value))}
+NonNegativeDecimal::NonNegativeDecimal(Decimal value) : m_value{detail_NonNegativeDecimal::clamped(std::move(value))}
 {
 }
 
 void NonNegativeDecimal::setValue(Decimal value)
 {
-    m_value = clamped(std::move(value));
+    m_value = detail_NonNegativeDecimal::clamped(std::move(value));
 }
 
 std::string NonNegativeDecimal::toString() const

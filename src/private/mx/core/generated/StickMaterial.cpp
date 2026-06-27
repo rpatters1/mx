@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_StickMaterial
 {
 
 constexpr std::string_view kWire[] = {
     "soft", "medium", "hard", "shaded", "x",
 };
 
-} // namespace
+} // namespace detail_StickMaterial
 
 StickMaterial StickMaterial::soft() noexcept
 {
@@ -44,14 +44,14 @@ StickMaterial StickMaterial::x() noexcept
 
 std::string_view StickMaterial::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_StickMaterial::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool StickMaterial::tryParse(std::string_view text, StickMaterial &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_StickMaterial::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_StickMaterial::kWire[i] == text)
         {
             out = StickMaterial{static_cast<Tag>(i)};
             return true;

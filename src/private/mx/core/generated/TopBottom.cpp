@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_TopBottom
 {
 
 constexpr std::string_view kWire[] = {
@@ -16,7 +16,7 @@ constexpr std::string_view kWire[] = {
     "bottom",
 };
 
-} // namespace
+} // namespace detail_TopBottom
 
 TopBottom TopBottom::top() noexcept
 {
@@ -30,14 +30,14 @@ TopBottom TopBottom::bottom() noexcept
 
 std::string_view TopBottom::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_TopBottom::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool TopBottom::tryParse(std::string_view text, TopBottom &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_TopBottom::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_TopBottom::kWire[i] == text)
         {
             out = TopBottom{static_cast<Tag>(i)};
             return true;

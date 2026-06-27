@@ -7,7 +7,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_SmuflGlyphName
 {
 
 // The ASCII subset of XML name characters (matches the schema's \c).
@@ -17,7 +17,7 @@ bool isNameChar(char c) noexcept
            c == ':' || c == '_';
 }
 
-} // namespace
+} // namespace detail_SmuflGlyphName
 
 SmuflGlyphName::SmuflGlyphName()
 {
@@ -41,7 +41,7 @@ void SmuflGlyphName::repair()
     cleaned.reserve(m_value.size());
     for (const char c : m_value)
     {
-        if (isNameChar(c))
+        if (detail_SmuflGlyphName::isNameChar(c))
         {
             cleaned.push_back(c);
         }
@@ -61,7 +61,7 @@ bool SmuflGlyphName::tryParse(std::string_view text, SmuflGlyphName &out)
     }
     for (const char c : text)
     {
-        if (!isNameChar(c))
+        if (!detail_SmuflGlyphName::isNameChar(c))
         {
             return false;
         }

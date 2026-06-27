@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_Divisions
 {
 
 Decimal clamped(Decimal v)
@@ -17,19 +17,19 @@ Decimal clamped(Decimal v)
     return v;
 }
 
-} // namespace
+} // namespace detail_Divisions
 
-Divisions::Divisions() : m_value{clamped(Decimal{})}
+Divisions::Divisions() : m_value{detail_Divisions::clamped(Decimal{})}
 {
 }
 
-Divisions::Divisions(Decimal value) : m_value{clamped(std::move(value))}
+Divisions::Divisions(Decimal value) : m_value{detail_Divisions::clamped(std::move(value))}
 {
 }
 
 void Divisions::setValue(Decimal value)
 {
-    m_value = clamped(std::move(value));
+    m_value = detail_Divisions::clamped(std::move(value));
 }
 
 std::string Divisions::toString() const

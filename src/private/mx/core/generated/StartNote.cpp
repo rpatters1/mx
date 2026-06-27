@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_StartNote
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "below",
 };
 
-} // namespace
+} // namespace detail_StartNote
 
 StartNote StartNote::upper() noexcept
 {
@@ -36,14 +36,14 @@ StartNote StartNote::below() noexcept
 
 std::string_view StartNote::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_StartNote::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool StartNote::tryParse(std::string_view text, StartNote &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_StartNote::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_StartNote::kWire[i] == text)
         {
             out = StartNote{static_cast<Tag>(i)};
             return true;

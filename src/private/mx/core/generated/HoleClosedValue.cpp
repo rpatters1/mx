@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_HoleClosedValue
 {
 
 constexpr std::string_view kWire[] = {
@@ -17,7 +17,7 @@ constexpr std::string_view kWire[] = {
     "half",
 };
 
-} // namespace
+} // namespace detail_HoleClosedValue
 
 HoleClosedValue HoleClosedValue::yes() noexcept
 {
@@ -36,14 +36,14 @@ HoleClosedValue HoleClosedValue::half() noexcept
 
 std::string_view HoleClosedValue::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_HoleClosedValue::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool HoleClosedValue::tryParse(std::string_view text, HoleClosedValue &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_HoleClosedValue::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_HoleClosedValue::kWire[i] == text)
         {
             out = HoleClosedValue{static_cast<Tag>(i)};
             return true;

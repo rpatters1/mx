@@ -8,14 +8,14 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_SemiPitched
 {
 
 constexpr std::string_view kWire[] = {
     "high", "medium-high", "medium", "medium-low", "low", "very-low",
 };
 
-} // namespace
+} // namespace detail_SemiPitched
 
 SemiPitched SemiPitched::high() noexcept
 {
@@ -49,14 +49,14 @@ SemiPitched SemiPitched::veryLow() noexcept
 
 std::string_view SemiPitched::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_SemiPitched::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool SemiPitched::tryParse(std::string_view text, SemiPitched &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_SemiPitched::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_SemiPitched::kWire[i] == text)
         {
             out = SemiPitched{static_cast<Tag>(i)};
             return true;

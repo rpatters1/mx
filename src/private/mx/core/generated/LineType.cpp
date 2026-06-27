@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_LineType
 {
 
 constexpr std::string_view kWire[] = {
@@ -18,7 +18,7 @@ constexpr std::string_view kWire[] = {
     "wavy",
 };
 
-} // namespace
+} // namespace detail_LineType
 
 LineType LineType::solid() noexcept
 {
@@ -42,14 +42,14 @@ LineType LineType::wavy() noexcept
 
 std::string_view LineType::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_LineType::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool LineType::tryParse(std::string_view text, LineType &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_LineType::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_LineType::kWire[i] == text)
         {
             out = LineType{static_cast<Tag>(i)};
             return true;

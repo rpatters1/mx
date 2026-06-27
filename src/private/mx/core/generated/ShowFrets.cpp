@@ -8,7 +8,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_ShowFrets
 {
 
 constexpr std::string_view kWire[] = {
@@ -16,7 +16,7 @@ constexpr std::string_view kWire[] = {
     "letters",
 };
 
-} // namespace
+} // namespace detail_ShowFrets
 
 ShowFrets ShowFrets::numbers() noexcept
 {
@@ -30,14 +30,14 @@ ShowFrets ShowFrets::letters() noexcept
 
 std::string_view ShowFrets::toString() const noexcept
 {
-    return kWire[static_cast<std::size_t>(m_tag)];
+    return detail_ShowFrets::kWire[static_cast<std::size_t>(m_tag)];
 }
 
 bool ShowFrets::tryParse(std::string_view text, ShowFrets &out) noexcept
 {
-    for (std::size_t i = 0; i < std::size(kWire); ++i)
+    for (std::size_t i = 0; i < std::size(detail_ShowFrets::kWire); ++i)
     {
-        if (kWire[i] == text)
+        if (detail_ShowFrets::kWire[i] == text)
         {
             out = ShowFrets{static_cast<Tag>(i)};
             return true;

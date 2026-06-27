@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_Semitones
 {
 
 Decimal clamped(Decimal v)
@@ -17,19 +17,19 @@ Decimal clamped(Decimal v)
     return v;
 }
 
-} // namespace
+} // namespace detail_Semitones
 
-Semitones::Semitones() : m_value{clamped(Decimal{})}
+Semitones::Semitones() : m_value{detail_Semitones::clamped(Decimal{})}
 {
 }
 
-Semitones::Semitones(Decimal value) : m_value{clamped(std::move(value))}
+Semitones::Semitones(Decimal value) : m_value{detail_Semitones::clamped(std::move(value))}
 {
 }
 
 void Semitones::setValue(Decimal value)
 {
-    m_value = clamped(std::move(value));
+    m_value = detail_Semitones::clamped(std::move(value));
 }
 
 std::string Semitones::toString() const
