@@ -13,7 +13,7 @@
 #include "mx/core/generated/ScorePartwise.h"
 #include "mx/core/generated/ScoreTimewise.h"
 
-#include "pugixml/pugixml.hpp"
+#include "pugixml.hpp"
 
 #include <utility>
 #include <vector>

@@ -11,7 +11,7 @@
 #include "mx/impl/ScoreWriter.h"
 #include "mx/impl/WriteRefusal.h"
 
-#include "pugixml/pugixml.hpp"
+#include "pugixml.hpp"
 
 #include <map>
 #include <mutex>

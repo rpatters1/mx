@@ -24,7 +24,7 @@
 #include "mx/core/Attribution.h"
 #include "mxtest/corert/Compare.h"
 #include "mxtest/corert/Fixer.h"
-#include "pugixml/pugixml.hpp"
+#include "pugixml.hpp"
 
 #include <algorithm>
 #include <filesystem>

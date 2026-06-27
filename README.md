@@ -513,7 +513,8 @@ recorded in `docs/ai/design/mx-core-plan.md`.
 
 `mx::core` consumes the vendored [pugixml](http://pugixml.org/) (`src/private/pugixml/`) directly,
 in keeping with the build tenets [above](#build-tenets). The earlier `ezxml` abstraction layer is
-retired.
+retired. A client project may provide a compatible version by creating the CMake `pugixml` target
+before adding `mx`.
 
 ##### `mx::impl`
 

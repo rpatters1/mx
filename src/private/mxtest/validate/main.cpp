@@ -13,7 +13,7 @@
 #include "mx/core/generated/Document.h"
 #include "mxtest/corert/CoreRoundtripImpl.h"
 
-#include "pugixml/pugixml.hpp"
+#include "pugixml.hpp"
 
 #include <cstdio>
 #include <filesystem>
