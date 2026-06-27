@@ -7,7 +7,7 @@
 namespace {{vars.namespace}}
 {
 
-namespace
+namespace {{name.detail_namespace}}
 {
 
 std::string repaired(std::string v)
@@ -23,21 +23,21 @@ std::string repaired(std::string v)
     return v;
 }
 
-} // namespace
+} // namespace {{name.detail_namespace}}
 
 {{#min_length}}
-{{ident}}::{{ident}}() : m_value{repaired(std::string{})}
+{{ident}}::{{ident}}() : m_value{ {{name.detail_namespace}}::repaired(std::string{})}
 {
 }
 
 {{/min_length}}
-{{ident}}::{{ident}}(std::string value) : m_value{repaired(std::move(value))}
+{{ident}}::{{ident}}(std::string value) : m_value{ {{name.detail_namespace}}::repaired(std::move(value))}
 {
 }
 
 void {{ident}}::setValue(std::string value)
 {
-    m_value = repaired(std::move(value));
+    m_value = {{name.detail_namespace}}::repaired(std::move(value));
 }
 
 bool {{ident}}::tryParse(std::string_view text, {{ident}} &out)

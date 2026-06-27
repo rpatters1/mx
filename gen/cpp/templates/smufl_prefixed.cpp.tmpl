@@ -9,7 +9,7 @@
 namespace {{vars.namespace}}
 {
 
-namespace
+namespace {{name.detail_namespace}}
 {
 
 constexpr std::string_view kPrefix[] = {
@@ -25,7 +25,7 @@ bool isNameChar(char c) noexcept
            c == '.' || c == ':' || c == '_';
 }
 
-} // namespace
+} // namespace {{name.detail_namespace}}
 
 {{ident}}::{{ident}}()
 {
@@ -46,7 +46,7 @@ bool isNameChar(char c) noexcept
 void {{ident}}::setPrefix(Prefix value) noexcept
 {
     m_prefix = value;
-    if (static_cast<std::size_t>(m_prefix) >= std::size(kPrefix))
+    if (static_cast<std::size_t>(m_prefix) >= std::size({{name.detail_namespace}}::kPrefix))
     {
         m_prefix = Prefix::{{#prefixes}}{{#is_first}}{{ident}}{{/is_first}}{{/prefixes}};
     }
@@ -62,7 +62,7 @@ void {{ident}}::setSuffix(std::string value)
 void {{ident}}::repair()
 {
 {{#multi_prefix}}
-    if (static_cast<std::size_t>(m_prefix) >= std::size(kPrefix))
+    if (static_cast<std::size_t>(m_prefix) >= std::size({{name.detail_namespace}}::kPrefix))
     {
         m_prefix = Prefix::{{#prefixes}}{{#is_first}}{{ident}}{{/is_first}}{{/prefixes}};
     }
@@ -71,7 +71,7 @@ void {{ident}}::repair()
     cleaned.reserve(m_suffix.size());
     for (const char c : m_suffix)
     {
-        if (isNameChar(c))
+        if ({{name.detail_namespace}}::isNameChar(c))
         {
             cleaned.push_back(c);
         }
@@ -88,10 +88,10 @@ void {{ident}}::repair()
 std::string {{ident}}::toString() const
 {
 {{#multi_prefix}}
-    std::string out{kPrefix[static_cast<std::size_t>(m_prefix)]};
+    std::string out{ {{name.detail_namespace}}::kPrefix[static_cast<std::size_t>(m_prefix)]};
 {{/multi_prefix}}
 {{^multi_prefix}}
-    std::string out{kPrefix[0]};
+    std::string out{ {{name.detail_namespace}}::kPrefix[0]};
 {{/multi_prefix}}
     out += m_suffix;
     return out;
@@ -99,9 +99,9 @@ std::string {{ident}}::toString() const
 
 bool {{ident}}::tryParse(std::string_view text, {{ident}} &out)
 {
-    for (std::size_t i = 0; i < std::size(kPrefix); ++i)
+    for (std::size_t i = 0; i < std::size({{name.detail_namespace}}::kPrefix); ++i)
     {
-        const std::string_view prefix = kPrefix[i];
+        const std::string_view prefix = {{name.detail_namespace}}::kPrefix[i];
         if (text.size() < prefix.size() || text.substr(0, prefix.size()) != prefix)
         {
             continue;
@@ -116,7 +116,7 @@ bool {{ident}}::tryParse(std::string_view text, {{ident}} &out)
         bool valid = true;
         for (const char c : suffix)
         {
-            if (!isNameChar(c))
+            if (!{{name.detail_namespace}}::isNameChar(c))
             {
                 valid = false;
                 break;

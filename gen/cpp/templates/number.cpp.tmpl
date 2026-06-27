@@ -9,7 +9,7 @@
 namespace {{vars.namespace}}
 {
 
-namespace
+namespace {{name.detail_namespace}}
 {
 
 {{target_type}} clamped({{target_type}} v)
@@ -31,19 +31,19 @@ namespace
     return v;
 }
 
-} // namespace
+} // namespace {{name.detail_namespace}}
 
-{{ident}}::{{ident}}() : m_value{clamped({{target_type}}{})}
+{{ident}}::{{ident}}() : m_value{ {{name.detail_namespace}}::clamped({{target_type}}{})}
 {
 }
 
-{{ident}}::{{ident}}({{target_type}} value) : m_value{clamped(std::move(value))}
+{{ident}}::{{ident}}({{target_type}} value) : m_value{ {{name.detail_namespace}}::clamped(std::move(value))}
 {
 }
 
 void {{ident}}::setValue({{target_type}} value)
 {
-    m_value = clamped(std::move(value));
+    m_value = {{name.detail_namespace}}::clamped(std::move(value));
 }
 
 std::string {{ident}}::toString() const

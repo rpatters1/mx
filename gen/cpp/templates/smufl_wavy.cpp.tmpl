@@ -7,7 +7,7 @@
 namespace {{vars.namespace}}
 {
 
-namespace
+namespace {{name.detail_namespace}}
 {
 
 constexpr std::string_view kWiggle = "wiggle";
@@ -21,7 +21,7 @@ bool isNameChar(char c) noexcept
            c == '.' || c == ':' || c == '_';
 }
 
-} // namespace
+} // namespace {{name.detail_namespace}}
 
 {{ident}}::{{ident}}()
 {
@@ -55,7 +55,7 @@ void {{ident}}::repair()
     cleaned.reserve(m_part.size());
     for (const char c : m_part)
     {
-        if (isNameChar(c))
+        if ({{name.detail_namespace}}::isNameChar(c))
         {
             cleaned.push_back(c);
         }
@@ -71,13 +71,13 @@ std::string {{ident}}::toString() const
 {
     if (m_kind == Kind::wiggle)
     {
-        std::string out{kWiggle};
+        std::string out{ {{name.detail_namespace}}::kWiggle};
         out += m_part;
         return out;
     }
-    std::string out{kGuitar};
+    std::string out{ {{name.detail_namespace}}::kGuitar};
     out += m_part;
-    out += kVibratoStroke;
+    out += {{name.detail_namespace}}::kVibratoStroke;
     return out;
 }
 
@@ -86,25 +86,26 @@ bool {{ident}}::tryParse(std::string_view text, {{ident}} &out)
     const auto allNameChars = [](std::string_view s) {
         for (const char c : s)
         {
-            if (!isNameChar(c))
+            if (!{{name.detail_namespace}}::isNameChar(c))
             {
                 return false;
             }
         }
         return true;
     };
-    if (text.size() > kWiggle.size() && text.substr(0, kWiggle.size()) == kWiggle &&
-        allNameChars(text.substr(kWiggle.size())))
+    if (text.size() > {{name.detail_namespace}}::kWiggle.size() &&
+        text.substr(0, {{name.detail_namespace}}::kWiggle.size()) == {{name.detail_namespace}}::kWiggle &&
+        allNameChars(text.substr({{name.detail_namespace}}::kWiggle.size())))
     {
-        out = {{ident}}{Kind::wiggle, std::string{text.substr(kWiggle.size())}};
+        out = {{ident}}{Kind::wiggle, std::string{text.substr({{name.detail_namespace}}::kWiggle.size())}};
         return true;
     }
-    if (text.size() >= kGuitar.size() + kVibratoStroke.size() &&
-        text.substr(0, kGuitar.size()) == kGuitar &&
-        text.substr(text.size() - kVibratoStroke.size()) == kVibratoStroke)
+    if (text.size() >= {{name.detail_namespace}}::kGuitar.size() + {{name.detail_namespace}}::kVibratoStroke.size() &&
+        text.substr(0, {{name.detail_namespace}}::kGuitar.size()) == {{name.detail_namespace}}::kGuitar &&
+        text.substr(text.size() - {{name.detail_namespace}}::kVibratoStroke.size()) == {{name.detail_namespace}}::kVibratoStroke)
     {
         const std::string_view middle =
-            text.substr(kGuitar.size(), text.size() - kGuitar.size() - kVibratoStroke.size());
+            text.substr({{name.detail_namespace}}::kGuitar.size(), text.size() - {{name.detail_namespace}}::kGuitar.size() - {{name.detail_namespace}}::kVibratoStroke.size());
         if (allNameChars(middle))
         {
             out = {{ident}}{Kind::guitarVibratoStroke, std::string{middle}};

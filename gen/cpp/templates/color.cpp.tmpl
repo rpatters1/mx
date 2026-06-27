@@ -7,7 +7,7 @@
 namespace {{vars.namespace}}
 {
 
-namespace
+namespace {{name.detail_namespace}}
 {
 
 constexpr char kHex[] = "0123456789ABCDEF";
@@ -46,7 +46,7 @@ bool parseByte(std::string_view text, std::size_t offset, std::uint8_t &out) noe
     return true;
 }
 
-} // namespace
+} // namespace {{name.detail_namespace}}
 
 std::string {{ident}}::toString() const
 {
@@ -55,11 +55,11 @@ std::string {{ident}}::toString() const
     out.push_back('#');
     if (m_alpha)
     {
-        appendByte(out, *m_alpha);
+        {{name.detail_namespace}}::appendByte(out, *m_alpha);
     }
-    appendByte(out, m_red);
-    appendByte(out, m_green);
-    appendByte(out, m_blue);
+    {{name.detail_namespace}}::appendByte(out, m_red);
+    {{name.detail_namespace}}::appendByte(out, m_green);
+    {{name.detail_namespace}}::appendByte(out, m_blue);
     return out;
 }
 
@@ -73,7 +73,7 @@ bool {{ident}}::tryParse(std::string_view text, {{ident}} &out) noexcept
     const std::size_t count = (text.size() - 1) / 2;
     for (std::size_t i = 0; i < count; ++i)
     {
-        if (!parseByte(text, 1 + i * 2, bytes[i]))
+        if (!{{name.detail_namespace}}::parseByte(text, 1 + i * 2, bytes[i]))
         {
             return false;
         }

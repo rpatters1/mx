@@ -78,6 +78,7 @@ def _convert(obj):
         for convention, ident in obj.cased.items():
             out[convention] = ident
             out[convention + "_q"] = quoted(ident)
+        out["detail_namespace"] = "detail_" + obj.cased["pascal"]
         return out
     if dataclasses.is_dataclass(obj):
         out: dict = {}
