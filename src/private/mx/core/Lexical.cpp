@@ -112,7 +112,7 @@ std::string formatInt(int value)
     return std::string(buf, ptr);
 }
 
-namespace
+namespace detail_Lexical
 {
 
 void splitVersion(std::string_view v, int &major, int &minor)
@@ -129,7 +129,7 @@ void splitVersion(std::string_view v, int &major, int &minor)
     tryParseInt(v.substr(dot + 1), minor);
 }
 
-} // namespace
+} // namespace detail_Lexical
 
 bool musicXmlVersionExceeds(std::string_view declared, std::string_view supported)
 {
@@ -137,8 +137,8 @@ bool musicXmlVersionExceeds(std::string_view declared, std::string_view supporte
     int dMinor = 0;
     int sMajor = 0;
     int sMinor = 0;
-    splitVersion(declared, dMajor, dMinor);
-    splitVersion(supported, sMajor, sMinor);
+    detail_Lexical::splitVersion(declared, dMajor, dMinor);
+    detail_Lexical::splitVersion(supported, sMajor, sMinor);
     return dMajor > sMajor || (dMajor == sMajor && dMinor > sMinor);
 }
 

@@ -53,7 +53,7 @@ bool isNamespaceDecl(std::string_view attribute_name)
     return attribute_name.size() > 6 && attribute_name.substr(0, 6) == "xmlns:";
 }
 
-namespace
+namespace detail_Xml
 {
 
 // XML 1.0 forbids the C0 control characters other than tab/LF/CR; pugixml
@@ -94,13 +94,13 @@ std::string xmlSanitized(std::string_view text)
     return out;
 }
 
-} // namespace
+} // namespace detail_Xml
 
 void setAttribute(pugi::xml_node el, const char *name, std::string_view value)
 {
-    if (needsXmlSanitize(value))
+    if (detail_Xml::needsXmlSanitize(value))
     {
-        const std::string clean = xmlSanitized(value);
+        const std::string clean = detail_Xml::xmlSanitized(value);
         el.append_attribute(name).set_value(clean.data(), clean.size());
         return;
     }
@@ -118,9 +118,9 @@ void setText(pugi::xml_node el, std::string_view text)
     {
         return;
     }
-    if (needsXmlSanitize(text))
+    if (detail_Xml::needsXmlSanitize(text))
     {
-        const std::string clean = xmlSanitized(text);
+        const std::string clean = detail_Xml::xmlSanitized(text);
         el.append_child(pugi::node_pcdata).set_value(clean.data(), clean.size());
         return;
     }

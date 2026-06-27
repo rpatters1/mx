@@ -21,7 +21,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_Attribution
 {
 
 // Rebuild the score header's <encoding> with exactly one mx stamp: drop any
@@ -53,7 +53,7 @@ template <typename Score> Score withStamp(Score score)
     return score;
 }
 
-} // namespace
+} // namespace detail_Attribution
 
 std::string mxSoftwareAttribution()
 {
@@ -67,11 +67,11 @@ void serializeWithAttribution(const Document &d, pugi::xml_document &out)
     Document stamped = d;
     if (stamped.isScorePartwise())
     {
-        stamped.setRoot(Document::Root{withStamp(stamped.asScorePartwise())});
+        stamped.setRoot(Document::Root{detail_Attribution::withStamp(stamped.asScorePartwise())});
     }
     else
     {
-        stamped.setRoot(Document::Root{withStamp(stamped.asScoreTimewise())});
+        stamped.setRoot(Document::Root{detail_Attribution::withStamp(stamped.asScoreTimewise())});
     }
     serialize(stamped, out);
 }

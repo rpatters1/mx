@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_Token
 {
 
 // The ASCII subset of the XML NCName character classes (the schema's
@@ -25,7 +25,7 @@ bool isNameChar(char c) noexcept
     return isNameStart(c) || (c >= '0' && c <= '9') || c == '-' || c == '.';
 }
 
-} // namespace
+} // namespace detail_Token
 
 Token::Token()
 {
@@ -49,14 +49,14 @@ void Token::repair()
     cleaned.reserve(m_value.size());
     for (const char c : m_value)
     {
-        if (isNameChar(c))
+        if (detail_Token::isNameChar(c))
         {
             cleaned.push_back(c);
         }
     }
     // An NCName cannot begin with a digit, '-', or '.'.
     std::size_t start = 0;
-    while (start < cleaned.size() && !isNameStart(cleaned[start]))
+    while (start < cleaned.size() && !detail_Token::isNameStart(cleaned[start]))
     {
         ++start;
     }
@@ -70,13 +70,13 @@ void Token::repair()
 
 bool Token::tryParse(std::string_view text, Token &out)
 {
-    if (text.empty() || !isNameStart(text.front()))
+    if (text.empty() || !detail_Token::isNameStart(text.front()))
     {
         return false;
     }
     for (const char c : text)
     {
-        if (!isNameChar(c))
+        if (!detail_Token::isNameChar(c))
         {
             return false;
         }

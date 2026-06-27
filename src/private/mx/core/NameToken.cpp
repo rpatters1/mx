@@ -9,7 +9,7 @@
 namespace mx::core
 {
 
-namespace
+namespace detail_NameToken
 {
 
 bool isNameChar(char c) noexcept
@@ -18,7 +18,7 @@ bool isNameChar(char c) noexcept
            c == ':' || c == '_';
 }
 
-} // namespace
+} // namespace detail_NameToken
 
 NameToken::NameToken()
 {
@@ -42,7 +42,7 @@ void NameToken::repair()
     cleaned.reserve(m_value.size());
     for (const char c : m_value)
     {
-        if (isNameChar(c))
+        if (detail_NameToken::isNameChar(c))
         {
             cleaned.push_back(c);
         }
@@ -62,7 +62,7 @@ bool NameToken::tryParse(std::string_view text, NameToken &out)
     }
     for (const char c : text)
     {
-        if (!isNameChar(c))
+        if (!detail_NameToken::isNameChar(c))
         {
             return false;
         }
