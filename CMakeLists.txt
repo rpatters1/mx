@@ -83,7 +83,7 @@ add_custom_target(mx_git_sha ALL
         -DMX_GIT_SHA_TEMPLATE=${PRIVATE_DIR}/mx/core/Version.cpp.in
         -DMX_GIT_SHA_OUT=${MX_GIT_SHA_CPP}
         -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/GitSha.cmake"
-    COMMENT "Capturing git SHA"
+    COMMENT "Capturing MX git SHA"
     VERBATIM)
 set_source_files_properties("${MX_GIT_SHA_CPP}" PROPERTIES GENERATED TRUE)
 
