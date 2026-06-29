@@ -47,6 +47,9 @@ class ClefData
     int octaveChange;
     int tickTimePosition;
     ClefLocation location;
+    // Visibility of the clef via the MusicXML print-object attribute.
+    // unspecified -> omit the attribute, yes/no -> write print-object verbatim.
+    Bool printObject;
     std::string toString() const;
 
     // convenience - set symbol, line and octave for common clefs
@@ -76,6 +79,7 @@ MXAPI_EQUALS_MEMBER(isLineSpecified)
 MXAPI_EQUALS_MEMBER(octaveChange)
 MXAPI_EQUALS_MEMBER(tickTimePosition)
 MXAPI_EQUALS_MEMBER(location)
+MXAPI_EQUALS_MEMBER(printObject)
 MXAPI_EQUALS_END;
 MXAPI_NOT_EQUALS_AND_VECTORS(ClefData);
 } // namespace api

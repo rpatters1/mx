@@ -815,6 +815,11 @@ void MeasureReader::importClef(const core::Clef &inClef) const
         clefData.octaveChange = 0;
     }
 
+    if (inClef.printObject().has_value())
+    {
+        clefData.printObject = converter.convert(*inClef.printObject());
+    }
+
     int celfStaffIndex = -1;
     if (inClef.number().has_value())
     {
