@@ -351,8 +351,8 @@ const Converter::EnumMap<core::BarStyle, api::BarlineType> Converter::barlineMap
     {core::BarStyle::lightHeavy(), api::BarlineType::lightHeavy},
     {core::BarStyle::heavyLight(), api::BarlineType::heavyLight},
     {core::BarStyle::heavyHeavy(), api::BarlineType::heavyHeavy},
-    {core::BarStyle::tick(), api::BarlineType::unsupported},
-    {core::BarStyle::short_(), api::BarlineType::unsupported},
+    {core::BarStyle::tick(), api::BarlineType::tick},
+    {core::BarStyle::short_(), api::BarlineType::short_},
     {core::BarStyle::none(), api::BarlineType::none},
 };
 
