@@ -221,6 +221,11 @@ void PropertiesWriter::writeClef(int staffIndex, const api::ClefData &inClefData
         cg.setClefOctaveChange(inClefData.octaveChange);
     }
 
+    if (inClefData.printObject != api::Bool::unspecified)
+    {
+        mxClef.setPrintObject(converter.convert(inClefData.printObject));
+    }
+
     mxClef.setClef(cg);
     myAttributes.addClef(mxClef);
     myHasContent = true;
