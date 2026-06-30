@@ -737,7 +737,7 @@ void MeasureReader::importStaffDetails(const core::Attributes &inMxAttributes) c
 {
     for (const auto &staffDetails : inMxAttributes.staffDetails())
     {
-        if (!staffDetails.group().has_value())
+        if (!staffDetails.group().has_value() && !staffDetails.staffSize().has_value())
         {
             continue;
         }
@@ -753,7 +753,15 @@ void MeasureReader::importStaffDetails(const core::Attributes &inMxAttributes) c
             continue;
         }
 
-        myOutMeasureData.staves.at(static_cast<size_t>(staffIndex)).staffLines = staffDetails.group()->staffLines();
+        auto &staffData = myOutMeasureData.staves.at(static_cast<size_t>(staffIndex));
+        if (staffDetails.group().has_value())
+        {
+            staffData.staffLines = staffDetails.group()->staffLines();
+        }
+        if (staffDetails.staffSize().has_value())
+        {
+            staffData.staffSize = staffDetails.staffSize()->value().value().value();
+        }
     }
 }
 
