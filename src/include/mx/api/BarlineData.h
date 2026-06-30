@@ -24,7 +24,9 @@ enum class BarlineType
     dotted,
     dashed,
     heavy,
-    heavyHeavy
+    heavyHeavy,
+    tick,
+    short_
 };
 
 enum class EndingType

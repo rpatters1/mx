@@ -117,6 +117,40 @@ TEST(backwardRepeat, MeasureData)
 
 T_END;
 
+TEST(tickAndShortBarlinesRoundTrip, MeasureData)
+{
+    ScoreData score;
+    score.parts.emplace_back();
+    auto &part = score.parts.back();
+    part.measures.emplace_back();
+    auto &measure = part.measures.back();
+    measure.staves.emplace_back();
+    auto &staff = measure.staves.back();
+    staff.voices[0].notes.emplace_back();
+
+    measure.barlines.emplace_back();
+    auto &tickBarline = measure.barlines.back();
+    tickBarline.barlineType = BarlineType::tick;
+
+    measure.barlines.emplace_back();
+    auto &shortBarline = measure.barlines.back();
+    shortBarline.barlineType = BarlineType::short_;
+
+    const auto xml = mxtest::toXml(score);
+    CHECK(xml.find("<bar-style>tick</bar-style>") != std::string::npos);
+    CHECK(xml.find("<bar-style>short</bar-style>") != std::string::npos);
+
+    const auto outScore = mxtest::fromXml(xml);
+    REQUIRE(outScore.parts.size() == 1);
+    REQUIRE(outScore.parts.front().measures.size() == 1);
+    const auto &outBarlines = outScore.parts.front().measures.front().barlines;
+    REQUIRE(outBarlines.size() == 2);
+    CHECK(outBarlines.at(0).barlineType == BarlineType::tick);
+    CHECK(outBarlines.at(1).barlineType == BarlineType::short_);
+}
+
+T_END;
+
 TEST(staffLinesRoundTrip, MeasureData)
 {
     ScoreData score;
