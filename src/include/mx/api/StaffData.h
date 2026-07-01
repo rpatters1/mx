@@ -25,7 +25,7 @@ class StaffData
 
     // Specifies the scaling of the notation. The MusicXml spec calls out the case
     // of percussion staves with wider spaced line as an example where this differs
-    // from staffSize. For example it might be staffSize=100, staffScaling = 150.
+    // from staffSize. For example it might be staffSize=150, staffScaling = 100.
     double staffScaling = -1.0;
 
     std::vector<ClefData> clefs;
