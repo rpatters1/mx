@@ -24,7 +24,7 @@ class StaffData
     double staffSize = -1.0;
 
     // Specifies the scaling of the notation. The MusicXml spec calls out the case
-    // of percussion staves with wider spaced line as an example where this differs
+    // of percussion staves with wider spaced lines as an example where this differs
     // from staffSize. For example it might be staffSize=150, staffScaling = 100.
     double staffScaling = -1.0;
 
