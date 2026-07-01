@@ -20,6 +20,7 @@ class StaffData
   public:
     int staffLines = -1;
     double staffSize = -1.0;
+    double staffScaling = -1.0;
     std::vector<ClefData> clefs;
 
     // for the use case where key signatures
@@ -56,7 +57,8 @@ inline bool voicesAreEqual(const std::map<int, VoiceData> &l, const std::map<int
 
 MXAPI_EQUALS_BEGIN(StaffData)
 MXAPI_EQUALS_MEMBER(staffLines)
-MXAPI_EQUALS_MEMBER(staffSize)
+MXAPI_DOUBLES_EQUALS_MEMBER(staffSize)
+MXAPI_DOUBLES_EQUALS_MEMBER(staffScaling)
 MXAPI_EQUALS_MEMBER(clefs)
 MXAPI_EQUALS_MEMBER(keys)
 MXAPI_EQUALS_MEMBER(directions)

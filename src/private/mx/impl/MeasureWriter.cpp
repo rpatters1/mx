@@ -137,7 +137,8 @@ void MeasureWriter::writeMeasureGlobals()
             {
                 desiredStaffIndex = localStaffCounter;
             }
-            myPropertiesWriter->writeStaffDetails(desiredStaffIndex, staff.staffLines, staff.staffSize);
+            myPropertiesWriter->writeStaffDetails(desiredStaffIndex, staff.staffLines, staff.staffSize,
+                                                  staff.staffScaling);
         }
 
         auto clefIter = staff.clefs.cbegin();

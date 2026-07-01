@@ -183,10 +183,15 @@ void PropertiesWriter::writeNumStaves(int value)
 
 void PropertiesWriter::writeStaffDetails(int staffIndex, int staffLines)
 {
-    writeStaffDetails(staffIndex, staffLines, -1.0);
+    writeStaffDetails(staffIndex, staffLines, -1.0, -1.0);
 }
 
 void PropertiesWriter::writeStaffDetails(int staffIndex, int staffLines, double staffSize)
+{
+    writeStaffDetails(staffIndex, staffLines, staffSize, -1.0);
+}
+
+void PropertiesWriter::writeStaffDetails(int staffIndex, int staffLines, double staffSize, double staffScaling)
 {
     core::StaffDetails staffDetails{};
 
@@ -206,6 +211,10 @@ void PropertiesWriter::writeStaffDetails(int staffIndex, int staffLines, double 
     {
         core::StaffSize size{};
         size.setValue(core::NonNegativeDecimal{core::Decimal{staffSize}});
+        if (staffScaling >= 0.0)
+        {
+            size.setScaling(core::NonNegativeDecimal{core::Decimal{staffScaling}});
+        }
         staffDetails.setStaffSize(size);
     }
 

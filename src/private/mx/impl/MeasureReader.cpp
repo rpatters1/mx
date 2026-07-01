@@ -761,6 +761,10 @@ void MeasureReader::importStaffDetails(const core::Attributes &inMxAttributes) c
         if (staffDetails.staffSize().has_value())
         {
             staffData.staffSize = staffDetails.staffSize()->value().value().value();
+            if (staffDetails.staffSize()->scaling().has_value())
+            {
+                staffData.staffScaling = staffDetails.staffSize()->scaling()->value().value();
+            }
         }
     }
 }
