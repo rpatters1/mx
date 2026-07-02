@@ -48,6 +48,10 @@ mx::api::ScoreData makeScoreWithLyrics()
     first.positionData.isDefaultYSpecified = true;
     first.positionData.defaultY = -40.0;
     first.printData.printObject = Bool::yes;
+    first.printData.isColorSpecified = true;
+    first.printData.color.red = 1;
+    first.printData.color.green = 2;
+    first.printData.color.blue = 3;
     first.printData.fontData.fontFamily = {"Bravura Text"};
     note.lyrics.emplace_back(first);
 
@@ -82,6 +86,7 @@ TEST(lyricsWriteToMusicXml, LyricData)
     CHECK_EQUAL(std::string{"below"}, std::string{lyric.attribute("placement").value()});
     CHECK_EQUAL(std::string{"center"}, std::string{lyric.attribute("justify").value()});
     CHECK_EQUAL(std::string{"yes"}, std::string{lyric.attribute("print-object").value()});
+    CHECK_EQUAL(std::string{"#010203"}, std::string{lyric.attribute("color").value()});
     CHECK_EQUAL(std::string{"-40"}, std::string{lyric.attribute("default-y").value()});
     CHECK_EQUAL(std::string{"begin"}, std::string{lyric.child("syllabic").text().get()});
     CHECK_EQUAL(std::string{"Hel"}, std::string{lyric.child("text").text().get()});
@@ -111,6 +116,10 @@ TEST(lyricsRoundTripThroughApi, LyricData)
     CHECK(note.lyrics.at(0).positionData.placement == Placement::below);
     CHECK(note.lyrics.at(0).positionData.horizontalAlignmnet == HorizontalAlignment::center);
     CHECK(note.lyrics.at(0).printData.printObject == Bool::yes);
+    CHECK(note.lyrics.at(0).printData.isColorSpecified);
+    CHECK_EQUAL(1, static_cast<int>(note.lyrics.at(0).printData.color.red));
+    CHECK_EQUAL(2, static_cast<int>(note.lyrics.at(0).printData.color.green));
+    CHECK_EQUAL(3, static_cast<int>(note.lyrics.at(0).printData.color.blue));
     CHECK_EQUAL(std::string{"Bravura Text"}, note.lyrics.at(0).printData.fontData.fontFamily.at(0));
 
     CHECK_EQUAL(std::string{"2"}, note.lyrics.at(1).verseNumber);
